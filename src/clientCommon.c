@@ -1,10 +1,16 @@
 /* -*- mode: c++; coding: sjis-dos; -*-
- * Time-stamp: <2004-01-12 18:00:47 tfuruka1>
+ * Time-stamp: <2004-01-17 21:44:35 tfuruka1>
  *
  * 「ak2psのようなもの」のクライアントの共通処理部
  *
- * $Id: clientCommon.c,v 1.14 2004/01/12 09:54:42 tfuruka1 Exp $
+ * $Id: clientCommon.c,v 1.15 2004/01/19 05:25:58 tfuruka1 Exp $
  * $Log: clientCommon.c,v $
+ * Revision 1.15  2004/01/19 05:25:58  tfuruka1
+ * [/D:PRN]オプションを固定で無視するようにしました。/をオプションスイッ
+ * チとして扱うようにしていたが, その方法だと, コマンドラインから使用した
+ * ときに, ルート直下の D というファイルを扱えなくなってしまう。/はディレ
+ * クトリセパレータとして使用可能な仕様としている為。
+ *
  * Revision 1.14  2004/01/12 09:54:42  tfuruka1
  * ・ 短辺綴じと長辺綴じのコマンドオプションを追加しました。
  *
@@ -150,15 +156,21 @@ int ak2prClientCommon(int __argc, char **_argv)
         if ('(' == **(__argv + i)) {
             continue;
         }
-        if (('-' != **(__argv +i)) && ('/' != **(__argv +i))) {
+        // EmacsからPostScriptのファイルを印刷するときに[/D:PRN] とい
+        // うオプションが追加されてくるが、このオプションは、オプショ
+        // ンスイッチが'-'ではなく'/'なので、ややこしい。ディレクトリ
+        // セパレータと区別が付かないので、個別でチェックする。
+        if (strcmpi("/D:PRN", *(__argv + i)) == 0) {
+            Syslog(FALSE, "%s は無視します", *(__argv + i));
+            continue;
+        }
+        if ('-' != **(__argv +i)) {
             break;
         }
         switch (*(*(__argv + i) + 1)) {
         case 'P':                               // このパラメータは無視
-        case 'D':
             // Emacsが付与するオプションだがデバイスオプションは無視す
-            // る。EmacsからPostScriptのファイルを印刷するときに
-            // [/D:PRN] というオプションが追加されてくる
+            // る。
             Syslog(FALSE, "%s は無視します", *(__argv + i));
             continue;
         case 'S':                               // サーバ起動オプションは無視
