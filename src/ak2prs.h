@@ -2,8 +2,11 @@
  *
  * 「ak2psのようなもの」のサーバ側のヘッダファイル
  *
- * $Id: ak2prs.h,v 1.23 2004/08/21 01:01:01 tfuruka1 Exp $
+ * $Id: ak2prs.h,v 1.24 2004/08/21 11:12:49 tfuruka1 Exp $
  * $Log: ak2prs.h,v $
+ * Revision 1.24  2004/08/21 11:12:49  tfuruka1
+ * VersionをVersionファイルから取得するようにしました。
+ *
  * Revision 1.23  2004/08/21 01:01:01  tfuruka1
  * テキスト印刷に於いて「行間」と「罫線連結」が有効になるようにしました。
  *
@@ -116,8 +119,8 @@
 #ifndef _AK2PRS_H_
 #define _AK2PRS_H_
 
-#define TIMESTAMP "Time-stamp: <2004-08-21 09:33:29 tfuruka1>"
-#define VERSION   "Version 2.4 Beta-1($Name:  $)"
+#include "ver.h"
+#define VERSION   "Version " MAKE_VERSION "($Name:  $)"
 
 #include <windows.h>
 #include <windowsx.h>
@@ -146,8 +149,8 @@
 
 #define SV_EXE_NAME "ak2prSV.EXE"
 
-#define COPYRIGHT   "ak2pr " VERSION\
-" Copyright 1997-2003 By T.Furukawa\n(tfuruka1@nifty.com)" TIMESTAMP
+#define COPYRIGHT   "ak2pr " VERSION \
+" Copyright 1997-2004 By T.Furukawa\n(tfuruka1@nifty.com)" TIMESTAMP
 
 // 1バイト目が漢字コードか否かチェックするマクロ
 #define IsKanjiSJIS(c)  (((c) >= 0x81 && (c) <= 0x9f) ||\
