@@ -1,10 +1,13 @@
 /* -*- mode: c++; coding: sjis-dos; -*-
- * Time-stamp: <2001-12-21 22:10:36 tfuruka1>
+ * Time-stamp: <2004-01-18 19:33:37 tfuruka1>
  *
  * ak2psのようなもののテスト印字関連
  *
- * $Id: testprint.c,v 1.3 2001/12/23 10:21:43 tfuruka1 Exp $
+ * $Id: testprint.c,v 1.4 2004/01/19 05:39:09 tfuruka1 Exp $
  * $Log: testprint.c,v $
+ * Revision 1.4  2004/01/19 05:39:09  tfuruka1
+ * フォント情報を指定出来るようになった事に関する修正を行いました。
+ *
  * Revision 1.3  2001/12/23 10:21:43  tfuruka1
  * ●プレビューモードの判断方法を修正
  *
@@ -272,8 +275,8 @@ DoTestPrint(void)
     SetTextColor(g_MailBox.hDC, RGB(0, 0, 0));
 
     // タイトル用フォントの作成
-    hFont = CreatePrtFont(FN_MSPG, ConvX2Dt(20, nDPIH, CX_PT), 400,
-                          TRUE, FALSE, FALSE, TRUE);
+    hFont = CreatePrtFont(ConvX2Dt(20, nDPIH, CX_PT), 400,
+                          TRUE, FALSE, FALSE, &g_MailBox.PrtInfo.lfPPF);
     hFontOld = SelectObject(g_MailBox.hDC, hFont);
 
     // タイトルの表示領域の設定
@@ -282,7 +285,7 @@ DoTestPrint(void)
     rc.bottom = rc.top + ConvX2Dt(20, nDPIH, CX_PT);
     rc.right = nPaperWidth - nDPIW - nPaperMarginW;
 
-    wsprintf(szBuf, "ak2prテスト印字");
+    wsprintf(szBuf, "ak2pr %s テスト印字", VERSION);
     DrawText(g_MailBox.hDC, szBuf, -1, &rc,
              DT_NOPREFIX | DT_CENTER | DT_WORDBREAK);
 
@@ -291,8 +294,8 @@ DoTestPrint(void)
     DeleteObject(hFont);
 
     // フッダ用フォントの作成
-    hFont = CreatePrtFont(FN_MSPG,  ConvX2Dt(8, nDPIH, CX_PT), 400,
-                          TRUE, FALSE, FALSE, TRUE);
+    hFont = CreatePrtFont(ConvX2Dt(8, nDPIH, CX_PT), 400,
+                          TRUE, FALSE, FALSE, &g_MailBox.PrtInfo.lfPPF);
     hFontOld = SelectObject(g_MailBox.hDC, hFont);
 
     rc.top = nPaperHeight - nDPIH - ConvX2Dt(30, nDPIH, CX_PT) - nPaperMarginH;
@@ -319,8 +322,8 @@ DoTestPrint(void)
     DeleteObject(hFont);
 
     // 本文用フォントの作成
-    hFont = CreatePrtFont(FN_MSPM, ConvX2Dt(10, nDPIH, CX_PT), 400,
-                          FALSE, FALSE, FALSE, TRUE);
+    hFont = CreatePrtFont(ConvX2Dt(10, nDPIH, CX_PT), 400,
+                          FALSE, FALSE, FALSE, &g_MailBox.PrtInfo.lfTHF);
     hFontOld = SelectObject(g_MailBox.hDC, hFont);
 
     rc.top = nDPIH + ConvX2Dt(30, nDPIH, CX_PT) - nPaperMarginH;

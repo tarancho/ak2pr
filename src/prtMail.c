@@ -1,10 +1,13 @@
 /* -*- mode: C++; coding: sjis-dos; -*-
- * Time-stamp: <2003-03-01 01:10:11 tfuruka1>
+ * Time-stamp: <2004-01-19 12:46:35 tfuruka1>
  *
  * 「ak2psのようなもの」のメール印字処理
  *
- * $Id: prtMail.c,v 1.2 2003/03/01 09:05:25 tfuruka1 Exp $
+ * $Id: prtMail.c,v 1.3 2004/01/19 05:37:04 tfuruka1 Exp $
  * $Log: prtMail.c,v $
+ * Revision 1.3  2004/01/19 05:37:04  tfuruka1
+ * フォント情報を指定出来るようになった事に関する修正を行いました。
+ *
  * Revision 1.2  2003/03/01 09:05:25  tfuruka1
  * ●行番号の印刷に対応した
  * ●e-mail印刷時のカラー印刷を少しカラフルにした。
@@ -157,7 +160,6 @@ VOID PrintMail(void)
             }
 
             // ヘッダの印字
-            strcpy(lfFaceName, FN_MSPG);
             p1 = strchr(szBuf, ' ');
             if ((p = strchr(szBuf, ':')) && (NULL == p1 ||
                                              (ULONG)p < (ULONG)p1)) {
@@ -211,8 +213,8 @@ VOID PrintMail(void)
             if (g_MailBox.PrtInfo.bNum) {
                 sprintf(szLine, "%4d: ", ++nLine);
                 SetTextColor(g_MailBox.hDC, MULE_BLACK);
-                if (!SetFontAndPrint(szLine, FN_COU, lfHeight, 800,
-                                     FALSE, FALSE, FALSE, FALSE)) {
+                if (!SetFontAndPrint(szLine, lfHeight, 800, FALSE, FALSE,
+                                     FALSE, &g_MailBox.PrtInfo.lfOF)) {
                     goto ErrorExit;
                 }
                 if (g_MailBox.PrtInfo.bColor) {     // カラー印刷の場合
@@ -222,8 +224,9 @@ VOID PrintMail(void)
                 }
             }
 
-            if (!SetFontAndPrint(szBuf, lfFaceName, lfHeight, lfWeight,
-                                 lfItalic, lfUnderline, FALSE, TRUE)) {
+            if (!SetFontAndPrint(szBuf, lfHeight, lfWeight, lfItalic,
+                                 lfUnderline, FALSE,
+                                 &g_MailBox.PrtInfo.lfOPPF)) {
                 goto ErrorExit;
             }
 
@@ -256,8 +259,9 @@ VOID PrintMail(void)
                         lfUnderline = Header[i].bUnderLine;
                     }
 
-                    if (!SetFontAndPrint(p, lfFaceName, lfHeight, lfWeight,
-                                         lfItalic, lfUnderline, FALSE, TRUE)) {
+                    if (!SetFontAndPrint(p, lfHeight, lfWeight,
+                                         lfItalic, lfUnderline, FALSE,
+                                         &g_MailBox.PrtInfo.lfPPF)) {
                         goto ErrorExit;
                     }
                     break;
@@ -269,8 +273,9 @@ VOID PrintMail(void)
                     crLast = MULE_GRAY;
                 }
                 lfWeight = 400;
-                if (!SetFontAndPrint(p, lfFaceName, lfHeight, lfWeight,
-                                     lfItalic, lfUnderline, FALSE, TRUE)) {
+                if (!SetFontAndPrint(p, lfHeight, lfWeight,
+                                     lfItalic, lfUnderline, FALSE,
+                                     &g_MailBox.PrtInfo.lfPPF)) {
                     goto ErrorExit;
                 }
             }
@@ -285,8 +290,9 @@ VOID PrintMail(void)
         if (g_MailBox.PrtInfo.bNum) {
             sprintf(szLine, "%4d: ", ++nLine);
             SetTextColor(g_MailBox.hDC, MULE_BLACK);
-            if (!SetFontAndPrint(szLine, FN_COU, lfHeight, 800,
-                                 FALSE, FALSE, FALSE, FALSE)) {
+            if (!SetFontAndPrint(szLine, lfHeight, 800,
+                                 FALSE, FALSE, FALSE,
+                                 &g_MailBox.PrtInfo.lfOF)) {
                 goto ErrorExit;
             }
             if (g_MailBox.PrtInfo.bColor) {     // カラー印刷の場合
@@ -328,11 +334,11 @@ VOID PrintMail(void)
                 if (p != p1) {
                     c = *p1;
                     *p1 = '\0';
-                    strcpy(lfFaceName, FN_MSM);
                     lfUnderline = FALSE;
 
-                    if (!SetFontAndPrint(p, lfFaceName, lfHeight, lfWeight,
-                                         lfItalic, lfUnderline, FALSE, TRUE)) {
+                    if (!SetFontAndPrint(p, lfHeight, lfWeight,
+                                         lfItalic, lfUnderline, FALSE,
+                                         &g_MailBox.PrtInfo.lfTHF)) {
                         goto ErrorExit;
                     }
                     *p1 = c;
@@ -343,39 +349,40 @@ VOID PrintMail(void)
                     c = *p;
                     *p = '\0';
                     lfUnderline = TRUE;
-                    strcpy(lfFaceName, FN_MSPG);
 
-                    if (!SetFontAndPrint(p1, lfFaceName, lfHeight, lfWeight,
-                                         lfItalic, lfUnderline, FALSE, TRUE)) {
+                    if (!SetFontAndPrint(p1, lfHeight, lfWeight,
+                                         lfItalic, lfUnderline, FALSE,
+                                         &g_MailBox.PrtInfo.lfPPF)) {
                         goto ErrorExit;
                     }
                     *p = c;
                 }
                 else {
                     lfUnderline = TRUE;
-                    strcpy(lfFaceName, FN_MSPG);
 
-                    if (!SetFontAndPrint(p1, lfFaceName, lfHeight, lfWeight,
-                                         lfItalic, lfUnderline, FALSE, TRUE)) {
+                    if (!SetFontAndPrint(p1, lfHeight, lfWeight,
+                                         lfItalic, lfUnderline, FALSE,
+                                         &g_MailBox.PrtInfo.lfPPF)) {
                         goto ErrorExit;
                     }
                     break;
                 }
             }
             if (*p) {
-                strcpy(lfFaceName, FN_MSM);
                 lfUnderline = FALSE;
 
-                if (!SetFontAndPrint(p, lfFaceName, lfHeight, lfWeight,
-                                     lfItalic, lfUnderline, FALSE, TRUE)) {
+                if (!SetFontAndPrint(p, lfHeight, lfWeight,
+                                     lfItalic, lfUnderline, FALSE,
+                                     &g_MailBox.PrtInfo.lfTHF)) {
                     goto ErrorExit;
                 }
             }
         }
         else {
             // 通常のボディ部
-            if (!SetFontAndPrint(szBuf, lfFaceName, lfHeight, lfWeight,
-                                 lfItalic, lfUnderline, FALSE, TRUE)) {
+            if (!SetFontAndPrint(szBuf, lfHeight, lfWeight,
+                                 lfItalic, lfUnderline, FALSE,
+                                 &g_MailBox.PrtInfo.lfTHF)) {
                 goto ErrorExit;
             }
             SetTextColor(g_MailBox.hDC, MULE_BLACK);

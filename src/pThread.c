@@ -1,10 +1,13 @@
 /* -*- mode: C++; coding: sjis-dos; -*-
- * Time-stamp: <2003-03-15 23:13:52 tfuruka1>
+ * Time-stamp: <2004-01-19 12:22:33 tfuruka1>
  *
  * 「ak2psのようなもの」の印刷スレッド
  *
- * $Id: pThread.c,v 1.11 2003/03/15 14:41:02 tfuruka1 Exp $
+ * $Id: pThread.c,v 1.12 2004/01/19 05:37:58 tfuruka1 Exp $
  * $Log: pThread.c,v $
+ * Revision 1.12  2004/01/19 05:37:58  tfuruka1
+ * フォント情報を指定出来るようになった事に関する修正を行いました。
+ *
  * Revision 1.11  2003/03/15 14:41:02  tfuruka1
  * ● プレビューで印刷設定を行った場合に、再度プレビュー画面へ遷移するよ
  * 　 うにした。
@@ -267,6 +270,12 @@ PrintThread(LPDWORD lpIDThread)
             // ンテキストを設定する
             g_MailBox.hDC = g_MailBox.hDCPrinter;
         }
+
+        // フォント名からLOGFONTを生成する
+        GetLogFont(&g_MailBox.PrtInfo.lfTHF);
+        GetLogFont(&g_MailBox.PrtInfo.lfPPF);
+        GetLogFont(&g_MailBox.PrtInfo.lfOF);
+        GetLogFont(&g_MailBox.PrtInfo.lfOPPF);
 
         // ───────── 以上で印刷準備完了 ─────────
 

@@ -1,5 +1,5 @@
 /* -*- mode: c++; coding: sjis-dos; -*-
- * Time-stamp: <2004-01-12 16:33:23 tfuruka1>
+ * Time-stamp: <2004-01-19 12:26:13 tfuruka1>
  *
  * 「ak2psのようなもの」の印字設定
  *
@@ -10,8 +10,11 @@
  * ていない場合は、実行されない。この事を知らなかったので、不可解な現
  * 象が発生していました（INIT_DIALOGが常に発生していると思っていた）。
  *
- * $Id: setup.c,v 1.12 2004/01/12 10:00:05 tfuruka1 Exp $
+ * $Id: setup.c,v 1.13 2004/01/19 05:38:35 tfuruka1 Exp $
  * $Log: setup.c,v $
+ * Revision 1.13  2004/01/19 05:38:35  tfuruka1
+ * フォント情報を指定出来るようになった事に関する修正を行いました。
+ *
  * Revision 1.12  2004/01/12 10:00:05  tfuruka1
  * 長辺綴じと短辺綴じに対応した事により、チェックボックスが増えた事による
  * 対応。
@@ -147,6 +150,22 @@ DoInitDialogCom(
     CheckDlgButton(hWnd, IDC_CHK_SHORT_BINDING,
                    PrtInfoTmp.bShortBinding ? TRUE : FALSE);
 
+    // フォント選択コンボボックスの初期化
+    LsFontToCOMBO(GetDlgItem(hWnd, IDC_COMBO_THF));
+    LsFontToCOMBO(GetDlgItem(hWnd, IDC_COMBO_PPF));
+    LsFontToCOMBO(GetDlgItem(hWnd, IDC_COMBO_OF));
+    LsFontToCOMBO(GetDlgItem(hWnd, IDC_COMBO_OPPF));
+
+    // デフォルトフォントの選択
+    SendDlgItemMessage(hWnd, IDC_COMBO_THF, CB_SELECTSTRING, -1, 
+                       (LPARAM)PrtInfoTmp.lfTHF.lfFaceName);
+    SendDlgItemMessage(hWnd, IDC_COMBO_PPF, CB_SELECTSTRING, -1, 
+                       (LPARAM)PrtInfoTmp.lfPPF.lfFaceName);
+    SendDlgItemMessage(hWnd, IDC_COMBO_OF, CB_SELECTSTRING, -1, 
+                       (LPARAM)PrtInfoTmp.lfOF.lfFaceName);
+    SendDlgItemMessage(hWnd, IDC_COMBO_OPPF, CB_SELECTSTRING, -1, 
+                       (LPARAM)PrtInfoTmp.lfOPPF.lfFaceName);
+
     return TRUE;
 }
 
@@ -206,6 +225,10 @@ DoCommandCom(
         PrtInfoTmp.bShortBinding = IsDlgButtonChecked(hWnd,
                                                       IDC_CHK_SHORT_BINDING);
         break;
+    case IDC_CHK_NOCOPYRIGHT:
+        PrtInfoTmp.bNoCopyright
+            = IsDlgButtonChecked(hWnd, IDC_CHK_NOCOPYRIGHT);
+        break;
     case IDC_DEFAULT:
         PrtInfoTmp.nTab = 8;
         PrtInfoTmp.nNumOfUp = 2;
@@ -223,6 +246,25 @@ DoCommandCom(
         PrtInfoTmp.bPreView = FALSE;
         CheckDlgButton(hWnd, IDC_CHK_PREVIEW, PrtInfoTmp.bPreView);
 
+        PrtInfoTmp.bShortBinding = FALSE;
+        CheckDlgButton(hWnd, IDC_CHK_SHORT_BINDING, PrtInfoTmp.bShortBinding);
+
+        PrtInfoTmp.bNoCopyright = FALSE;
+        CheckDlgButton(hWnd, IDC_CHK_NOCOPYRIGHT, PrtInfoTmp.bNoCopyright);
+
+        // フォントの選択
+        strcpy(PrtInfoTmp.lfTHF.lfFaceName, FN_MSPM);
+        strcpy(PrtInfoTmp.lfPPF.lfFaceName, FN_MSPG);
+        strcpy(PrtInfoTmp.lfOF.lfFaceName, FN_COU);
+        strcpy(PrtInfoTmp.lfOPPF.lfFaceName, FN_ARIAL);
+        SendDlgItemMessage(hWnd, IDC_COMBO_THF, CB_SELECTSTRING, -1, 
+                           (LPARAM)PrtInfoTmp.lfTHF.lfFaceName);
+        SendDlgItemMessage(hWnd, IDC_COMBO_PPF, CB_SELECTSTRING, -1, 
+                           (LPARAM)PrtInfoTmp.lfPPF.lfFaceName);
+        SendDlgItemMessage(hWnd, IDC_COMBO_OF, CB_SELECTSTRING, -1, 
+                           (LPARAM)PrtInfoTmp.lfOF.lfFaceName);
+        SendDlgItemMessage(hWnd, IDC_COMBO_OPPF, CB_SELECTSTRING, -1, 
+                           (LPARAM)PrtInfoTmp.lfOPPF.lfFaceName);
         break;
     case IDC_PRINTER:
         SetupPrinter(hWnd, &g_MailBox.hDevNames, &g_MailBox.hDevMode);
@@ -265,11 +307,26 @@ DoCloseCom(HWND hWnd)
     PrtInfoTmp.bNoCopyright = IsDlgButtonChecked(hWnd, IDC_CHK_NOCOPYRIGHT);
     PrtInfoTmp.bShortBinding = IsDlgButtonChecked(hWnd, IDC_CHK_SHORT_BINDING);
 
+    // フォント
+    GetDlgItemText(hWnd, IDC_COMBO_THF, PrtInfoTmp.lfTHF.lfFaceName,
+                   LF_FACESIZE);
+    GetDlgItemText(hWnd, IDC_COMBO_PPF, PrtInfoTmp.lfPPF.lfFaceName,
+                   LF_FACESIZE);
+    GetDlgItemText(hWnd, IDC_COMBO_OF, PrtInfoTmp.lfOF.lfFaceName,
+                   LF_FACESIZE);
+    GetDlgItemText(hWnd, IDC_COMBO_OPPF, PrtInfoTmp.lfOPPF.lfFaceName,
+                   LF_FACESIZE);
+
     DbgPrint(NULL, 'I', "共通設定終了\nTABSTOP:%d\nFONTSIZE:%f\n"
-             "NUP:%d\nPREVIE:%d\nCOPYRIGHT:%d\nSHORTBIND:%d",
+             "NUP:%d\nPREVIE:%d\nCOPYRIGHT:%d\nSHORTBIND:%d\n"
+             "TH=%s,PP=%s,OTHER=%s, OTHER(PP)=",
              PrtInfoTmp.nTab, PrtInfoTmp.fFontSize, PrtInfoTmp.nNumOfUp,
              PrtInfoTmp.bPreView, PrtInfoTmp.bNoCopyright,
-             PrtInfoTmp.bShortBinding);
+             PrtInfoTmp.bShortBinding,
+             PrtInfoTmp.lfTHF.lfFaceName,
+             PrtInfoTmp.lfPPF.lfFaceName,
+             PrtInfoTmp.lfOF.lfFaceName,
+             PrtInfoTmp.lfOPPF.lfFaceName);
 }
 
 static BOOL

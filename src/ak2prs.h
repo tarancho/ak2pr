@@ -2,8 +2,11 @@
  *
  * 「ak2psのようなもの」のサーバ側のヘッダファイル
  *
- * $Id: ak2prs.h,v 1.20 2004/01/12 09:57:53 tfuruka1 Exp $
+ * $Id: ak2prs.h,v 1.21 2004/01/19 05:40:05 tfuruka1 Exp $
  * $Log: ak2prs.h,v $
+ * Revision 1.21  2004/01/19 05:40:05  tfuruka1
+ * フォント情報を指定出来るようになった事に関する修正を行いました。
+ *
  * Revision 1.20  2004/01/12 09:57:53  tfuruka1
  * 短辺綴じと長辺綴じに対応しました。それに合わせてVerison番号も変更しま
  * した。
@@ -107,8 +110,8 @@
 #ifndef _AK2PRS_H_
 #define _AK2PRS_H_
 
-#define TIMESTAMP "Time-stamp: <2004-01-12 18:57:26 tfuruka1>"
-#define VERSION   "Version 2.3 beta-3"
+#define TIMESTAMP "Time-stamp: <2004-01-19 14:20:36 tfuruka1>"
+#define VERSION   "Version 2.3 beta-4"
 
 #include <windows.h>
 #include <windowsx.h>
@@ -200,7 +203,10 @@ typedef struct _PrtInfo{
     BOOL bNoCopyright;                          // T: Copyrightを印刷しない
     BOOL bShortBinding;                         // T: 短編綴じ
     double fFontSize;                           // フォントサイズ --- Point
-
+    LOGFONT lfTHF;                              // 等幅フォント情報
+    LOGFONT lfPPF;                         // プロポーショナルフォント
+    LOGFONT lfOF;                              // その他のフォント情報
+    LOGFONT lfOPPF;                             // その他のプロポーショナル
     // ----- 以下はPostScript印刷時の情報
     TCHAR szAcrobat[MAX_PATH];                  // Distiller in フォルダ
     TCHAR szGsPath[MAX_PATH];                   // GhostScript パス
@@ -245,6 +251,20 @@ typedef struct {
     TCHAR szReference[128];                     // リファレンス
     TCHAR szMessageID[128];                     // メッセージID
 } MAILBOX, *PMAILBOX;
+
+// フォント列挙情報
+enum {FFI_FN_SETCOMBO = 0,                      // コンボボックスにセット
+      FFI_FN_GETLOGFONT,                        // LOGFONTの取得
+      NUMBER_OF_FFI_FN
+};
+typedef struct {
+    int funcNumber;                             // 機能番号
+    HWND hWnd;                                  // ウインドウハンドル
+                                                // (FFI_FN_SETCOMBOの
+                                                // 時に使用)
+    LOGFONT lf;                                 // FFI_FN_GETLOGFONTの
+                                                // 時に使用
+} FONT_FUNK_INFO, *PFONT_FUNK_INFO;
 
 // 外部定義
 extern PRT_INFO g_PrtInfo;                      // デフォルトの印刷情報
@@ -303,13 +323,12 @@ CreatePrtPen(
     );
 HFONT
 CreatePrtFont(
-    LPTSTR lpszFontName,                        // フォント名
     int nHeight,                                // フォントの高さ
     int nWeight,                                // フォントの太さ
     BOOL bItalic,                               // T: イタリック
     BOOL bUnderline,                            // T: 下線
     BOOL bStrikeOut,                            // T: 打ち消し線
-    BOOL bSjis                                  // T: 日本語
+    LPLOGFONT lplf                              // LOGFONTテンプレート
     );
 LPTSTR
 ufgets(
@@ -324,13 +343,12 @@ ufgets(
  * *-----------------------------------------------------------------*/
 BOOL SetFontAndPrint(
     LPTSTR lpszStr,                             // 出力文字列
-    LPTSTR lfFaceName,                          // フォント名
     UINT lfHeight,                              // フォントの高さ
     UINT lfWeight,                              // フォントのウエイト
     BOOL lfItalic,                              // T:イタリック
     BOOL lfUnderline,                           // T:下線
     BOOL lfStrikeout,                           // T:打ち消し線
-    BOOL bJapan                                 // T:日本語フォント
+    LPLOGFONT lplf                              // LOGFONTテンプレート
     );
 LPTSTR TrimString(LPSTR lpszStr);
 LPTSTR TrimLeft(LPTSTR lpszStr);
@@ -359,6 +377,9 @@ void PrintText(void);
 BOOL PrintPreview(HWND hWnd, PPREVIEW_INFO);
 void SetPreViewPos(LPRECT lprc);
 void GetPreViewPos(LPRECT lprc);
+
+VOID WINAPI LsFontToCOMBO(HWND hWnd);
+BOOL WINAPI GetLogFont(LPLOGFONT lplf);
 /*--------------------------------------------------------------------
  * hDCPrinterで指定されてたデバイスコンテキストから、プレビュー用のデ
  * バイスコンテキストを作成する。プレビュー用のデバイスコンテキストは

@@ -1,10 +1,13 @@
 /* -*- mode: c++; coding: sjis-dos; -*-
- * Time-stamp: <2003-02-26 00:18:55 tfuruka1>
+ * Time-stamp: <2004-01-18 19:44:56 tfuruka1>
  *
  * 「ak2psのようなもの」のテキスト印刷処理
  *
- * $Id: prtText.c,v 1.2 2003/02/25 15:29:43 tfuruka1 Exp $
+ * $Id: prtText.c,v 1.3 2004/01/19 05:37:29 tfuruka1 Exp $
  * $Log: prtText.c,v $
+ * Revision 1.3  2004/01/19 05:37:29  tfuruka1
+ * フォント情報を指定出来るようになった事に関する修正を行いました。
+ *
  * Revision 1.2  2003/02/25 15:29:43  tfuruka1
  * 行番号出力の制御追加による修正。
  *
@@ -44,13 +47,14 @@ void PrintText(void)
         // 行番号印刷の場合は行番号を印刷する
         if (g_MailBox.PrtInfo.bNum) {
             sprintf(szLine, "%4d: ", ++nLine);
-            if (!SetFontAndPrint(szLine, FN_COU, lfHeight, 800,
-                                 FALSE, FALSE, FALSE, FALSE)) {
+            if (!SetFontAndPrint(szLine, lfHeight, 800,
+                                 FALSE, FALSE, FALSE,
+                                 &g_MailBox.PrtInfo.lfOF)) {
                 goto ErrorExit;
             }
         }
-        if (!SetFontAndPrint(szBuf, FN_MSM, lfHeight, 400,
-                             FALSE, FALSE, FALSE, TRUE)) {
+        if (!SetFontAndPrint(szBuf, lfHeight, 400,
+                             FALSE, FALSE, FALSE, &g_MailBox.PrtInfo.lfTHF)) {
             goto ErrorExit;
         }
     }

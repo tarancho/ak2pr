@@ -2,8 +2,11 @@
  *
  * 「ak2psのようなもの」のウインドウプロシジャ
  *
- * $Id: wndproc.c,v 1.16 2004/01/12 10:00:54 tfuruka1 Exp $
+ * $Id: wndproc.c,v 1.17 2004/01/19 05:39:32 tfuruka1 Exp $
  * $Log: wndproc.c,v $
+ * Revision 1.17  2004/01/19 05:39:32  tfuruka1
+ * フォント情報を指定出来るようになった事に関する修正を行いました。
+ *
  * Revision 1.16  2004/01/12 10:00:54  tfuruka1
  * 長辺綴じと短辺綴じに対応しました。
  *
@@ -78,7 +81,7 @@
 // (replace-regexp "/\\*\\(.+\\)\\*/" "//\\1")
 // (replace-regexp "[ \t]+$" "")
 
-#define TIME_STAMP "Time-stamp: <2004-01-12 17:10:24 tfuruka1>"
+#define TIME_STAMP "Time-stamp: <2004-01-19 12:23:01 tfuruka1>"
 
 #include "ak2prs.h"
 
@@ -372,6 +375,11 @@ DoCopyData(
     pPrtInfo->bNoRcvHeader = g_PrtInfo.bNoRcvHeader;
     pPrtInfo->bNoCopyright = g_PrtInfo.bNoCopyright;
     pPrtInfo->bDebug = g_PrtInfo.bDebug;
+
+    memcpy(&pPrtInfo->lfTHF, &g_PrtInfo.lfTHF, sizeof(LOGFONT));
+    memcpy(&pPrtInfo->lfPPF, &g_PrtInfo.lfPPF, sizeof(LOGFONT));
+    memcpy(&pPrtInfo->lfOF, &g_PrtInfo.lfOF, sizeof(LOGFONT));
+    memcpy(&pPrtInfo->lfOPPF, &g_PrtInfo.lfOPPF, sizeof(LOGFONT));
 
     // 構造体を有効にする
     pPrtInfo->valid = TRUE;
