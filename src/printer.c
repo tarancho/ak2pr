@@ -1,11 +1,15 @@
 /* -*- mode: c++; coding: sjis-dos; -*-
- * Time-stamp: <2004-12-23 16:22:17 tfuruka1>
- * $Id: printer.c,v 1.12 2004/12/23 08:11:56 tfuruka1 Exp $
+ * Time-stamp: <2004-12-26 18:16:48 tfuruka1>
+ * $Id: printer.c,v 1.13 2004/12/26 09:19:15 tfuruka1 Exp $
  * $Name:  $
  *
  * 「ak2psのようなもの」のプリンタ制御関連
  *
  * $Log: printer.c,v $
+ * Revision 1.13  2004/12/26 09:19:15  tfuruka1
+ * 行番号を印刷している状態で, 文字を折り返す場合に折り返し行以降の先頭文
+ * 字の位置を一行目の行番号を除いた位置と同じになるようにしました。
+ *
  * Revision 1.12  2004/12/23 08:11:56  tfuruka1
  * シングルライン印刷(食ミ出した部分を印刷しない)に対応しました。とりあえ
  * ず、サーバ側の設定のみです。
@@ -63,14 +67,16 @@ static int nBasePoint, nBaseLineK, nBaseLine;   // ベースライン
 static int nCurrentX, nCurrentY;                // 現在の座標
 static int nStartX, nEndX;                      // 水平方向の範囲
 static int nStartY, nEndY;                      // 垂直方向の範囲
+static int nLineNoOffset;                       // 行番号オフセット
+static int nCharWidth;                          // 一文字の幅
 static BOOL bKeisen, bKanji;                    // 罫線及び漢字フラグ
 static BOOL bPreviewed = FALSE;                 // T:プレビュー済み
 // 罫線コード表
 static LPTSTR szKeisen = {
     /* -------- 0 1 2 3 4 5 6 7 8 9 A B C D E F */
-    /* 282x - */ "─│┌┐┘└├┬┤┴┼━┃┏┓" 
-    /* 283X */ "┛┗┣┳┫┻╋┠┯┨┷┿┝┰┥┸"          
-    /* 284X */ "╂"                                        
+    /* 282x - */ "─│┌┐┘└├┬┤┴┼━┃┏┓"
+    /* 283X */ "┛┗┣┳┫┻╋┠┯┨┷┿┝┰┥┸"
+    /* 284X */ "╂"
 };
 
 /* -------------------------------------------------------------------
@@ -157,8 +163,7 @@ int GetPrtCenter(int flg)
         if (!(flg & GPC_IM)) {
             nCenter -= nPaperMarginW;
         }
-    }
-    else {
+    } else {
         nCenter = nPaperHeight / 2;
         if (!(flg & GPC_IM)) {
             nCenter -= nPaperMarginH;
@@ -232,6 +237,8 @@ BeginDocument(void)
 {
     static DOCINFO di;
     TCHAR szBuf[512];
+    HFONT hFont, hOldFont;
+    SIZE Size;
 
     DbgPrint(NULL, 'B', "プリンタ初期化開始");
 
@@ -259,8 +266,7 @@ BeginDocument(void)
         nDPIW = GetDeviceCaps(g_MailBox.hDC, LOGPIXELSX);
         nDPIH = GetDeviceCaps(g_MailBox.hDC, LOGPIXELSY);
 
-    }
-    else {
+    } else {
         // プレビューの場合
         nPaperWidth = g_MailBox.PrevInfo.wd;
         nPaperHeight = g_MailBox.PrevInfo.ht;
@@ -295,6 +301,34 @@ BeginDocument(void)
 
     // テキストのバックモード(透過)
     SetBkMode(g_MailBox.hDC, TRANSPARENT);
+
+    // 行番号オフセットの計算
+    if (g_MailBox.PrtInfo.bNum) {
+        hFont = CreatePrtFont(GetPrtBasePoint(), 800, FALSE,
+                              FALSE, FALSE, &g_MailBox.PrtInfo.lfOF);
+        hOldFont = SelectObject(g_MailBox.hDC, hFont);
+        GetTextExtentPoint32(g_MailBox.hDC, "0000: ", 6, &Size);
+
+        nLineNoOffset = Size.cx;
+        DbgPrint(NULL, 'I', "LineNo Offset = %d", nLineNoOffset);
+
+        SelectObject(g_MailBox.hDC, hOldFont);
+        DeleteObject(hFont);
+    } else {
+        nLineNoOffset = 0;
+    }
+
+    // 一文字の幅を計算する
+    hFont = CreatePrtFont(GetPrtBasePoint(), 400, FALSE,
+                          FALSE, FALSE, &g_MailBox.PrtInfo.lfTHF);
+    hOldFont = SelectObject(g_MailBox.hDC, hFont);
+    GetTextExtentPoint32(g_MailBox.hDC, "M", 1, &Size);
+
+    nCharWidth = Size.cx;
+    DbgPrint(NULL, 'I', "Character Width = %d", nCharWidth);
+
+    SelectObject(g_MailBox.hDC, hOldFont);
+    DeleteObject(hFont);
 
     DbgPrint(NULL, 'B', "プリンタ初期化完了");
     return TRUE;
@@ -377,7 +411,7 @@ BeginPage(void)
         // プレビューの場合はこのブロック内の処理は行わない
         nError = StartPage(g_MailBox.hDC);
         if (nError <= 0) {
-            DbgPrint(NULL, 'E', "%s", 
+            DbgPrint(NULL, 'E', "%s",
                      GetLastErrorMessage("StartPage()", GetLastError()));
 
             return FALSE;
@@ -399,15 +433,14 @@ BeginPage(void)
          && !g_MailBox.PrtInfo.bShortBinding)   // 横置きの長辺綴じ
         || (!(nPaperWidth > nPaperHeight)
          && g_MailBox.PrtInfo.bShortBinding)    // 縦置きの短辺綴じ
-        ) { 
+        ) {
         RoundRect(g_MailBox.hDC,
                   nStartX = nDPIW / 2 - nPaperMarginW,
                   nStartY = nDPIH - nPaperMarginH,
                   nEndX = nPaperWidth - nDPIW / 2 - nPaperMarginW,
                   nEndY = nPaperHeight - nDPIH / 2 - nPaperMarginH,
                   nDPIW / 4, nDPIH / 4);
-    }
-    else {                                      // 縦置きの場合
+    } else {                                      // 縦置きの場合
         RoundRect(g_MailBox.hDC,
                   nStartX = nDPIW - nPaperMarginW,
                   nStartY = nDPIH / 2 - nPaperMarginH,
@@ -449,18 +482,17 @@ BeginPage(void)
     hOldBrush = SelectObject(g_MailBox.hDC, hBrush);
 
     if (((nPaperWidth > nPaperHeight)
-          && !g_MailBox.PrtInfo.bShortBinding)  // 横置きの長辺綴じ
+         && !g_MailBox.PrtInfo.bShortBinding)   // 横置きの長辺綴じ
         || (!(nPaperWidth > nPaperHeight)
-          && g_MailBox.PrtInfo.bShortBinding)   // 縦置きの短辺綴じ
-        ) {  
+            && g_MailBox.PrtInfo.bShortBinding) // 縦置きの短辺綴じ
+        ) {
 
         pt[0].x = nCenter = GetPrtCenter(GPC_W);
         pt[1].y = pt[2].y = ConvX2Dt(10, nDPIH, CX_PT);
         pt[0].y = 0;
         pt[1].x = pt[0].x + ConvX2Dt(5, nDPIW, CX_PT);
         pt[2].x = pt[0].x - ConvX2Dt(5, nDPIW, CX_PT);
-    }
-    else {                                      // 縦置きの場合
+    } else {                                    // 縦置きの場合
         pt[0].x = 0;
         pt[1].x = pt[2].x = ConvX2Dt(10, nDPIW, CX_PT);
         pt[0].y = nCenter = GetPrtCenter(GPC_H);
@@ -500,8 +532,7 @@ BeginPage(void)
             (int)(fTopMg  + f2rHoleH / 2),
             (int)(nCenter + fbtHole / 2 + f2rHoleW / 2),
             (int)(fTopMg + f2rHoleH / 2));
-    }
-    else {
+    } else {
         double fbtHole = ConvX2Dt(8, nDPIH, CX_CM);
         double f2rHoleW = ConvX2Dt(.55, nDPIW, CX_CM);
         double f2rHoleH = ConvX2Dt(.55, nDPIH, CX_CM);
@@ -538,13 +569,12 @@ BeginPage(void)
 
     if (((nPaperWidth > nPaperHeight)
          && !g_MailBox.PrtInfo.bShortBinding)   // 横置きの長辺綴じ場合
-        || (!(nPaperWidth > nPaperHeight) 
+        || (!(nPaperWidth > nPaperHeight)
             && g_MailBox.PrtInfo.bShortBinding) // 縦置きの短辺綴じ
-        ){ 
+        ){
 
         rc.left = nDPIW / 2 - nPaperMarginW;
-    }
-    else {                                      // 縦置きの場合
+    } else {                                      // 縦置きの場合
         rc.left = nDPIW - nPaperMarginW;
     }
     rc.top = nPaperHeight - nDPIH / 2 - nPaperMarginH
@@ -555,8 +585,7 @@ BeginPage(void)
     t = 64;
     if (GetUserName(szBuf, &t)) {
         strcat(szBuf, " - ");
-    }
-    else {
+    } else {
         szBuf[0] = '\0';
     }
 
@@ -624,8 +653,7 @@ BOOL EndPageDocument(void)
 
         rc.left = nDPIW / 2 - nPaperMarginW;
         rc.top = nDPIH - nPaperMarginH;
-    }
-    else {                                      // 縦置きの場合
+    } else {                                      // 縦置きの場合
         rc.left = nDPIW - nPaperMarginW;
         rc.top = nDPIH / 2 - nPaperMarginH;
     }
@@ -730,8 +758,7 @@ PutcPrinter(
         nCurrentX = nStartX;
         if (bKeisen) {
             nCurrentY += nBasePoint;
-        }
-        else {
+        } else {
             nCurrentY += (bKanji ? nBaseLineK : nBaseLine);
         }
         bKanji = bKeisen = FALSE;
@@ -753,7 +780,7 @@ PutcPrinter(
             return TRUE;
         }
 
-        nCurrentX = nStartX;
+        nCurrentX = nStartX + nLineNoOffset;
         if (bKeisen) {
             nCurrentY += nBasePoint;
         } else {
@@ -772,7 +799,7 @@ PutcPrinter(
             if (!BeginPage()) {
                 return FALSE;
             }
-            nCurrentX = nStartX;
+            nCurrentX = nStartX + nLineNoOffset;
             nCurrentY = nStartY;
             bKanji = bKeisen = FALSE;
         }
@@ -805,7 +832,6 @@ PutcPrinter(
         }
         break;
     }
-
 
     // デバッグモードの場合は、文字の回りを矩形で囲む
     if (g_MailBox.PrtInfo.bDebug) {
@@ -912,7 +938,7 @@ PutsPrinter(LPTSTR szBuf)
             }
             break;
         }
-        
+
         if (szTmp[0]) {                         // 改行文字が存在する
             PutcPrinter(szTmp, 1);
         }
