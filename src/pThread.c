@@ -1,10 +1,14 @@
 /* -*- mode: C++; coding: sjis-dos; -*-
- * Time-stamp: <2001-12-08 01:39:29 tfuruka1>
+ * Time-stamp: <2001-12-15 02:07:48 tfuruka1>
  *
  * 「ak2psのようなもの」の印刷スレッド
  *
- * $Id: pThread.c,v 1.7 2001/12/07 18:23:57 tfuruka1 Exp $
+ * $Id: pThread.c,v 1.8 2001/12/14 17:08:43 tfuruka1 Exp $
  * $Log: pThread.c,v $
+ * Revision 1.8  2001/12/14 17:08:43  tfuruka1
+ * プレビュー対応。もともとプレビューなんて考慮していなかったので、とても
+ * 汚い処理になってしまった。
+ *
  * Revision 1.7  2001/12/07 18:23:57  tfuruka1
  * 用紙サイズの指定を出来るようにした。
  *
@@ -142,6 +146,7 @@ PrintThread(LPDWORD lpIDThread)
     LPDEVMODE lpWkDevMode;                      // プリンタデバイス
     LONG cbDevMode;                             // プリンタデバイスサイズ
     HDC hDC;                                    // プリンタデバイスコンテキスト
+    BOOL bSuspend = TRUE;                       // T: 自分をサスペンドする
 
     DbgPrint(NULL, 'I', "印刷Thread起動完了");
 
@@ -165,8 +170,18 @@ PrintThread(LPDWORD lpIDThread)
         Sleep(1000);
     }
     while (TRUE) {
-        SendMessage(g_MailBox.hWnd, WM_SUSPEND, (WPARAM)g_MailBox.hThread, 0);
+        if (bSuspend) {
+            SendMessage(g_MailBox.hWnd, WM_SUSPEND,
+                        (WPARAM)g_MailBox.hThread, 0);
+        }
+        bSuspend = TRUE;
         DbgPrint(NULL, 'I', "印刷Threadを再開しました");
+
+        // プレビューでキャンセルされた場合は、何もしない
+        if (!g_MailBox.PrtInfo.valid) {
+            DbgPrint(NULL, 'D', "印刷情報無効（意図）");
+            continue;
+        }
 
         // ---- ここから印刷処理
         EnterCriticalSection(&g_csCriticalSection);// ロック
@@ -204,7 +219,8 @@ PrintThread(LPDWORD lpIDThread)
             hDC = NULL;
             DbgPrint(NULL, 'E', "メモリ不足(DEVMODE確保)");
         }
-        g_MailBox.hDC = hDC;
+        g_MailBox.hDCPrinter = hDC;
+        g_MailBox.hDC = NULL;
 
         GlobalUnlock(g_MailBox.hDevNames);
         GlobalUnlock(g_MailBox.hDevMode);
@@ -220,11 +236,40 @@ PrintThread(LPDWORD lpIDThread)
             continue;
         }
 
+        // デバイスコンテキストの設定
+        if (g_MailBox.PrtInfo.bPreView) {
+            // プレビュー見る場合は、デバイスコンテキストにプレビュー
+            // 用のデバイスコンテキストを設定する
+            g_MailBox.hDC = MakePreviewInfo(g_MailBox.hWnd, hDC,
+                                            &g_MailBox.PrevInfo);
+            // プレビュー用のデバイスコンテキストの作成に失敗した場合
+            // は、プリンタデバイスコンテキストを削除して処理終了
+            if (!g_MailBox.hDC) {
+                DeleteDC(hDC);
+                continue;
+            }
+        }
+        else {
+            // プレビューを行わない場合はデバイスプリンタのデバイスコ
+            // ンテキストを設定する
+            g_MailBox.hDC = g_MailBox.hDCPrinter;
+        }
+
+        // ───────── 以上で印刷準備完了 ─────────
+
         // ファイル名が指定されていない場合はテスト印字として処理する
         if (!g_MailBox.PrtInfo.szFileName[0]) {
-            DoTestPrint();
-            DeleteDC(hDC);
-            continue;
+            DoTestPrint();                      // テストプリント実行
+
+            if (g_MailBox.PrtInfo.bPreView) {
+                // プレビューでキャンセルされた場合は、構造体を無効に
+                // 設定
+                if (PVI_CANCEL == g_MailBox.PrevInfo.status) {
+                    g_MailBox.PrtInfo.valid = FALSE;
+                }
+
+            }
+            goto PostProcess;
         }
         //
         // --- 以下はテスト印字以外の場合の処理
@@ -238,8 +283,7 @@ PrintThread(LPDWORD lpIDThread)
                        GetLastErrorMessage(__FILE__ " FindFirstFile()", nErr),
                        g_MailBox.PrtInfo.szFileName,
                        MB_ICONSTOP | MB_SETFOREGROUND);
-            DeleteDC(hDC);
-            continue;
+            goto PostProcess;
         }
         // 指定されたファイルがディレクトリの場合
         if (FindFileData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) {
@@ -247,8 +291,7 @@ PrintThread(LPDWORD lpIDThread)
                        "指定されたファイルはディレクトリです",
                        g_MailBox.PrtInfo.szFileName,
                        MB_ICONSTOP | MB_SETFOREGROUND);
-            DeleteDC(hDC);
-            continue;
+            goto PostProcess;
         }
         FindClose(hFile);
 
@@ -262,13 +305,24 @@ PrintThread(LPDWORD lpIDThread)
             break;
         case PT_PS_ACROBAT:                     // PostScript(Acrobat)
             PrintPSAcrobat();
+            g_MailBox.PrtInfo.valid = FALSE;    // プレビューは有り得ない
             break;
         case PT_PS_GHOST:                       // PostScript(GhostScript)
             PrintPSGhost();
+            g_MailBox.PrtInfo.valid = FALSE;    // プレビューは有り得ない
             break;
         default:
             DbgPrint(NULL, 'E', "PrtInfo.nTypeの値が不正です()",
                      g_MailBox.PrtInfo.nType);
+        }
+
+        if (g_MailBox.PrtInfo.valid && g_MailBox.PrtInfo.bPreView) {
+            // プレビューでキャンセルされた場合は、構造体を無効に
+            // 設定
+            if (PVI_CANCEL == g_MailBox.PrevInfo.status) {
+                g_MailBox.PrtInfo.valid = FALSE;
+            }
+            goto PostProcess;
         }
 
         // 作業用ファイルを削除する
@@ -282,6 +336,14 @@ PrintThread(LPDWORD lpIDThread)
                      g_MailBox.PrtInfo.szFileName,
                      GetLastErrorMessage("DeleteFile()", nErr));
         }
+    PostProcess:
         DeleteDC(hDC);
+        if (g_MailBox.PrtInfo.bPreView) {
+            g_MailBox.PrtInfo.bPreView = FALSE;
+            DeleteDC(g_MailBox.PrevInfo.hDC);
+            DeleteObject(g_MailBox.PrevInfo.hBitmap);
+            bSuspend = FALSE;
+        }
+        DbgPrint(NULL, 'I', "印刷スレッド後処理完了");
     }
 }
