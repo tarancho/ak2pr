@@ -2,8 +2,21 @@
  *
  * 「ak2psのようなもの」のサーバ側のヘッダファイル
  *
- * $Id: ak2prs.h,v 1.4 2001/08/19 04:37:45 tfuruka1 Exp $
+ * $Id: ak2prs.h,v 1.5 2001/08/19 09:03:25 tfuruka1 Exp $
  * $Log: ak2prs.h,v $
+ * Revision 1.5  2001/08/19 09:03:25  tfuruka1
+ * ───── Version 1.3にしました  ─────
+ * RCSのRevisionと一致させるのは無理が（頻繁に上がり過ぎるので）あるので、
+ * やっぱり、手動で上げる事にした。
+ *
+ * 1.2からの面な差分は
+ * ●テンポラリファイルの不足(27個)が発生しないようにした。
+ * ●クライアントとサーバでワーキングディレクトリが異なっている場合、印刷
+ *   ファイルを相対パスで指定した場合に、サーバ側でファイル未検出になる問
+ *   題を修正。
+ * ●PostScriptファイルに対応した(といっても、実際は、Acrobat Distillerか、
+ *   GhostScriptにフォワードするだけ)。
+ *
  * Revision 1.4  2001/08/19 04:37:45  tfuruka1
  * PostScriptファイルの暫定対応（ただ単にDistillerの監視フォルダに放り込
  * むだけ）。
@@ -26,8 +39,8 @@
 #ifndef _AK2PRS_H_
 #define _AK2PRS_H_
 
-#define TIMESTAMP "Time-stamp: <2001-08-19 11:21:26 tfuruka1>"
-#define VERSION   "$Revision: 1.4 $"
+#define TIMESTAMP "Time-stamp: <2001-08-19 17:56:36 tfuruka1>"
+#define VERSION   "Version 1.3"
 
 #include <windows.h>
 #include <windowsx.h>
@@ -133,6 +146,7 @@ typedef struct {
     // ----- 以下はPostScript印刷時の情報
     TCHAR szAcrobat[MAX_PATH];                  // Distiller in フォルダ
     TCHAR szGsPath[MAX_PATH];                   // GhostScript パス
+    TCHAR szGsOpt[512];                         // GhostScript option
 } MAILBOX, *PMAILBOX;
 
 // 外部定義
