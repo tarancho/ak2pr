@@ -1,10 +1,13 @@
 /* -*- mode: C++; coding: sjis-dos; -*-
- * Time-stamp: <2001-12-06 22:58:01 tfuruka1>
+ * Time-stamp: <2001-12-08 01:39:29 tfuruka1>
  *
  * 「ak2psのようなもの」の印刷スレッド
  *
- * $Id: pThread.c,v 1.6 2001/12/06 14:01:17 tfuruka1 Exp $
+ * $Id: pThread.c,v 1.7 2001/12/07 18:23:57 tfuruka1 Exp $
  * $Log: pThread.c,v $
+ * Revision 1.7  2001/12/07 18:23:57  tfuruka1
+ * 用紙サイズの指定を出来るようにした。
+ *
  * Revision 1.6  2001/12/06 14:01:17  tfuruka1
  * DEVMODE構造体の複写が完全でなかった問題を修正。sizeof(DEVMODE)から、
  * dmDriverExtra + dmSizeへ変更した。(環境によっては、CreateDCで落ちる事
@@ -181,6 +184,10 @@ PrintThread(LPDWORD lpIDThread)
             // 用紙の向きが指定されている場合は設定し直す
             if (g_MailBox.PrtInfo.nOrientation) {
                 lpWkDevMode->dmOrientation = g_MailBox.PrtInfo.nOrientation;
+            }
+            // 用紙サイズが指定されている場合は設定し直す
+            if (g_MailBox.PrtInfo.dmPaperSize) {
+                lpWkDevMode->dmPaperSize = g_MailBox.PrtInfo.dmPaperSize;
             }
 
             DbgPrint(NULL, 'I', "デバイス情報:%s, %s, %s",

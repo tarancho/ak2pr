@@ -1,10 +1,13 @@
 /* -*- mode: C++; coding: sjis-dos; -*-
- * Time-stamp: <2001-10-01 21:43:48 tfuruka1>
+ * Time-stamp: <2001-12-08 01:05:34 tfuruka1>
  *
  * ak2ps のようなものの共通 DLL
  *
- * $Id: dllmain.c,v 1.5 2001/10/01 13:20:47 tfuruka1 Exp $
+ * $Id: dllmain.c,v 1.6 2001/12/07 18:25:11 tfuruka1 Exp $
  * $Log: dllmain.c,v $
+ * Revision 1.6  2001/12/07 18:25:11  tfuruka1
+ * 用紙サイズの指定を出来るようにした。
+ *
  * Revision 1.5  2001/10/01 13:20:47  tfuruka1
  * 用紙の向きを指定出来るように修正。
  *
@@ -39,6 +42,60 @@
 // (replace-regexp "[ \t]+$" "")
 #include "ak2prs.h"
 #include "ak2pr.h"
+
+/* 用紙サイズの一覧 */
+static struct {
+    LPTSTR cmdOpt;                              // コマンドパラメータ等
+    short dmPaperSize;                          // DEVMODEのパラメータ
+    LPTSTR sComment;                            // 用紙の説明
+} devModePs[] = {
+    {"A3", DMPAPER_A3, "A3シート, 297×420ミリメートル"}, 
+    {"A4", DMPAPER_A4, "A4シート, 210×297ミリメートル"}, 
+    {"A4SMALL", DMPAPER_A4SMALL, "A4 small シート, 210×297ミリメートル"}, 
+    {"A5", DMPAPER_A5, "A5シート, 148×210ミリメートル"}, 
+    {"B4", DMPAPER_B4, "B4シート, 250×354ミリメートル"}, 
+    {"B5", DMPAPER_B5, "B5シート, 182×257ミリメートル"}, 
+    {"LETTER", DMPAPER_LETTER, "Letter, 8 1/2×11インチ"}, 
+    {"LEGAL", DMPAPER_LEGAL, "Legal, 8 1/2×14インチ"}, 
+    {"CSHEET", DMPAPER_CSHEET, "C シート, 17×22インチ"}, 
+    {"DSHEET", DMPAPER_DSHEET, "D シート, 22×34インチ"}, 
+    {"ESHEET", DMPAPER_ESHEET, "E シート, 34×44インチ"}, 
+    {"LETTERSMALL", DMPAPER_LETTERSMALL, "Letter Small, 8 1/2×11インチ"}, 
+    {"TABLOID", DMPAPER_TABLOID, "Tabloid, 11×17インチ"}, 
+    {"LEDGER", DMPAPER_LEDGER, "Ledger, 17×11インチ"}, 
+    {"STATEMENT", DMPAPER_STATEMENT, "Statement, 5 1/2×8 1/2インチ"}, 
+    {"EXECUTIVE", DMPAPER_EXECUTIVE, "Executive, 7 1/4×10 1/2インチ"}, 
+    {"FOLIO", DMPAPER_FOLIO, "Folio, 8 1/2×13インチ"}, 
+    {"QUARTO", DMPAPER_QUARTO, "Quarto, 215×275ミリメートル"}, 
+    {"10X14", DMPAPER_10X14, "10×14インチシート"}, 
+    {"11X17", DMPAPER_11X17, "11×17インチシート"}, 
+    {"NOTE", DMPAPER_NOTE, "Note, 8 1/2×11インチ"}, 
+    {"ENV_9", DMPAPER_ENV_9, "#9 Envelope, 3 7/8×8 7/8インチ"}, 
+    {"ENV_10", DMPAPER_ENV_10, "#10 Envelope, 4 1/8×9 1/2インチ"}, 
+    {"ENV_11", DMPAPER_ENV_11, "#11 Envelope, 4 1/2×10 3/8インチ"}, 
+    {"ENV_12", DMPAPER_ENV_12, "#12 Envelope, 4 3/4×11インチ"}, 
+    {"ENV_14", DMPAPER_ENV_14, "#14 Envelope, 5×11 1/2インチ"}, 
+    {"ENV_DL", DMPAPER_ENV_DL, "DL Envelope, 110×220ミリメートル"}, 
+    {"ENV_C5", DMPAPER_ENV_C5, "C5 Envelope, 162×229ミリメートル"}, 
+    {"ENV_C3", DMPAPER_ENV_C3, "C3 Envelope, 324×458ミリメートル"}, 
+    {"ENV_C4", DMPAPER_ENV_C4, "C4 Envelope, 229×324ミリメートル"}, 
+    {"ENV_C6", DMPAPER_ENV_C6, "C6 Envelope, 114×162ミリメートル"}, 
+    {"ENV_C65", DMPAPER_ENV_C65, "C65 Envelope, 114×229ミリメートル"}, 
+    {"ENV_B4", DMPAPER_ENV_B4, "B4 Envelope, 250×353ミリメートル"}, 
+    {"ENV_B5", DMPAPER_ENV_B5, "B5 Envelope, 176×250ミリメートル"}, 
+    {"ENV_B6", DMPAPER_ENV_B6, "B6 Envelope, 176×125ミリメートル"}, 
+    {"ENV_ITALY", DMPAPER_ENV_ITALY, "Italy Envelope, 110×230ミリメートル"}, 
+    {"ENV_MONARCH", DMPAPER_ENV_MONARCH, 
+     "Monarch Envelope, 3 7/8×7 1/2インチ"}, 
+    {"ENV_PERSONAL", DMPAPER_ENV_PERSONAL, 
+     "6 3/4 Envelope, 3 5/8×6 1/2インチ"}, 
+    {"FANFOLD_US", DMPAPER_FANFOLD_US, "US Std Fanfold, 14 7/8×11インチ"}, 
+    {"FANFOLD_STD_GERMAN", DMPAPER_FANFOLD_STD_GERMAN, 
+     "German Std Fanfold, 8 1/2×12インチ"}, 
+    {"FANFOLD_LGL_GERMAN", DMPAPER_FANFOLD_LGL_GERMAN, 
+     "German Legal Fanfold, 8 1/2×13インチ"}, 
+    {NULL, 0, NULL}
+};
 
 /*--------------------------------------------------------------------
  * dwErr で指定されたエラーコードに対応するエラーメッセージを関数にシ
@@ -198,7 +255,7 @@ IsPrtServerEnable(VOID)
  * プリントサーバを起動する。正常に起動出来た場合は TRUE を返却する。起
  * 動できなかった場合は FALSE を返す。
  * *-------------------------------------------------------------------*/
-static BOOL WINAPI
+BOOL WINAPI
 ExecutePrtServer(VOID)
 {
     PROCESS_INFORMATION  pi;                    // プロセス情報
@@ -303,7 +360,8 @@ SendPrintFromStdin(
     int nTab,                                   // タブ幅
     double fFontSize,                           // フォントサイズ
     int nType,                                  // 印刷データタイプ
-    int nOrientation                            // 用紙の向き
+    int nOrientation,                           // 用紙の向き
+    short dmPaperSize                           // 用紙サイズ
     )
 {
     PRT_INFO PrtInfo;                           // プリントファイル情報
@@ -325,6 +383,7 @@ SendPrintFromStdin(
     PrtInfo.nType = nType;
     PrtInfo.fFontSize = fFontSize;
     PrtInfo.nOrientation = nOrientation;
+    PrtInfo.dmPaperSize = dmPaperSize;
 
     // 作業ファイルを作成する
     if (NULL == (fp = MakeTempFile("wt", PrtInfo.szFileName))) {
@@ -360,7 +419,8 @@ SendPrintFromFileCopy(
     int nTab,                                   // タブ幅
     double fFontSize,                           // フォントサイズ
     int nType,                                  // 印刷データタイプ
-    int nOrientation                            // 用紙の向き
+    int nOrientation,                           // 用紙の向き
+    short dmPaperSize                           // 用紙サイズ
     )
 {
     PRT_INFO PrtInfo;                           // プリントファイル情報
@@ -397,6 +457,7 @@ SendPrintFromFileCopy(
     PrtInfo.nType = nType;
     PrtInfo.fFontSize = fFontSize;
     PrtInfo.nOrientation = nOrientation;
+    PrtInfo.dmPaperSize = dmPaperSize;
 
     // 作業ファイルを作成する
     if (NULL == (fp = MakeTempFile("wt", PrtInfo.szFileName))) {
@@ -474,4 +535,45 @@ Syslog(
            sizeof(SOCKADDR));
     closesocket(finet);
     WSACleanup();
+}
+
+/*-------------------------------------------------------------------- 
+ * 指定可能な用紙サイズの一覧を返却する。
+ * 
+ * *-------------------------------------------------------------------*/
+LPTSTR WINAPI
+GetPaperSizeUsageMessage()
+{
+    int i;
+    static TCHAR buf[4096];
+
+    strcpy(buf, "用紙サイズは以下の何れかを指定して下さい。"
+           "但し, 全てのオプションが全てのプリンタで"
+           "有効とは限りません。\n\n"
+           "オプション          説明\n"
+           "------------------- ------------------------------\n");
+    for (i = 0; devModePs[i].cmdOpt; i++) {
+        sprintf(buf + strlen(buf), "%-20s%s\n", 
+                devModePs[i].cmdOpt, devModePs[i].sComment);
+        if (strlen(buf) > (4096 - 80)) {
+            break;
+        }
+    }
+    return buf;
+}
+
+/*-------------------------------------------------------------------- 
+ * コマンドオプションで指定した用紙サイズから、DEVMODEで使用する用紙サ
+ * イズの定数を得る。用紙サイズが不正の場合は0を返却する。
+ * *-------------------------------------------------------------------*/
+short WINAPI
+GetPaperSizeDevMode(LPTSTR cmdOpt)
+{
+    int i;
+    for (i = 0; devModePs[i].cmdOpt; i++) {
+        if (0 == stricmp(cmdOpt, devModePs[i].cmdOpt)) {
+            return devModePs[i].dmPaperSize;
+        }
+    }
+    return 0;
 }
