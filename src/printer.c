@@ -1,10 +1,14 @@
 /* -*- mode: c++; coding: sjis-dos; -*-
- * Time-stamp: <2001-12-23 17:26:46 tfuruka1>
+ * Time-stamp: <2003-02-27 22:48:45 tfuruka1>
  *
  * 「ak2psのようなもの」のプリンタ制御関連
  *
- * $Id: printer.c,v 1.4 2001/12/23 10:10:33 tfuruka1 Exp $
+ * $Id: printer.c,v 1.5 2003/03/01 09:04:09 tfuruka1 Exp $
  * $Log: printer.c,v $
+ * Revision 1.5  2003/03/01 09:04:09  tfuruka1
+ * ●本文以外の定形印刷部分の印刷文字色がボディ部の影響を受ける場合があっ
+ * たのを修正。
+ *
  * Revision 1.4  2001/12/23 10:10:33  tfuruka1
  * ●プレビュー有りの判断方法を変更した。
  * ●Copyright表示を印字しないモードを用意した。
@@ -331,6 +335,8 @@ BeginPage(void)
     int nError, mod, i, nCenter;
     LPTSTR szErr = NULL;
     TCHAR szBuf[512];
+
+    SetTextColor(g_MailBox.hDC, RGB(0, 0, 0));
 
     // n段組みの最初の段以外(即ち一番左側の段以外)の時は座標の更新だけ行う
     if (0 != (mod = ((nPageNo - 1) % g_MailBox.PrtInfo.nNumOfUp))) {
