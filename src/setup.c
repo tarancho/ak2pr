@@ -1,17 +1,21 @@
 /* -*- mode: c++; coding: sjis-dos; -*-
- * Time-stamp: <2003-03-15 22:40:01 tfuruka1>
+ * Time-stamp: <2003-03-29 21:47:33 tfuruka1>
  *
  * 「ak2psのようなもの」の印字設定
  *
  * 覚書
  *
- * プロパティシートの夫夫のダイアログは、タブ選択したときにINIT_DIALOG
- * のイベントが発生する。当然WM_CLOSEは、INIT_DIALOGが走っていない場合
- * は、実行されない。この事を知らなかったので、不可解な現象が発生して
- * いました。
+ * プロパティシートの各々のダイアログは、*タブ選択*したときに
+ * INIT_DIALOG のイベントが発生する。当然WM_CLOSEは、INIT_DIALOGが走っ
+ * ていない場合は、実行されない。この事を知らなかったので、不可解な現
+ * 象が発生していました（INIT_DIALOGが常に発生していると思っていた）。
  *
- * $Id: setup.c,v 1.10 2003/03/15 14:43:43 tfuruka1 Exp $
+ * $Id: setup.c,v 1.11 2003/03/29 12:49:31 tfuruka1 Exp $
  * $Log: setup.c,v $
+ * Revision 1.11  2003/03/29 12:49:31  tfuruka1
+ * ● セットアップダイアログに「個別設定」のタブを追加しました。言葉で書
+ *    くとこれだけですけど、結構修正してます。
+ *
  * Revision 1.10  2003/03/15 14:43:43  tfuruka1
  * ● 印刷設定を情報を格納するエリアを指定できるように変更した。プレビュー
  *    時の印刷設定に対応する為の修正である。
@@ -492,15 +496,72 @@ DialogProcPs(
     return FALSE;    
 }
 
+//
+// ━━━━━━以下は個別設定のコールバック集です━━━━━━━━━━
+//
+static BOOL CALLBACK
+DoInitDialogKbt(
+    HWND hWnd,                                  // ハンドル
+    HWND hWndFocus,                             // フォーカスハンドル
+    LPARAM lParam                               // 初期化パラメータ
+    )
+{
+    DbgPrint(NULL, 'D', "InitDialog(個別)");
+
+    // タイトルの設定
+    SetDlgItemText(hWnd, IDC_ED_TITLE, PrtInfoTmp.szTitle);
+    return TRUE;
+}
+
+static VOID
+DoCommandKbt(
+    HWND hWnd,                                  // ハンドル
+    int id,                                     // コントロールID
+    HWND hWndCtl,                               // コントロールのハンドル
+    UINT codeNotify                             // 通知コード
+    )
+{
+    // 現在は特に処理なし
+    switch (id) {                               // コントロール番号
+    default:
+        break;
+    }
+}
+
+static void
+DoCloseKbt(HWND hWnd)
+{
+    DbgPrint(NULL, 'D', "Close(個別)");
+
+    GetDlgItemText(hWnd, IDC_ED_TITLE, PrtInfoTmp.szTitle, 255);
+}
+
+static BOOL
+DialogProcKbt(
+    HWND hWnd,                                  // ダイアログボックスのハンドル
+    UINT uMsg,                                  // メッセージ
+    WPARAM wParam,                              // 第1メッセージ パラメータ
+    LPARAM lParam                               // 第2メッセージ パラメータ
+    )
+{
+    switch (uMsg) {
+        HANDLE_MSG(hWnd, WM_INITDIALOG, DoInitDialogKbt);
+        HANDLE_MSG(hWnd, WM_COMMAND, DoCommandKbt);
+        HANDLE_MSG(hWnd, WM_DESTROY, DoCloseKbt);
+    }
+    return FALSE;    
+}
+
 // ━━━━━━━━━━━━━━━━━━━━━━━━
 // ━━━━━━ セットアップダイアログ ━━━━━━
 // ━━━━━━━━━━━━━━━━━━━━━━━━
 VOID
 SetupPrtStyle(HWND hWnd, PPRT_INFO lppiArea)
 {
-    PROPSHEETPAGE psp[5];
+    PROPSHEETPAGE psp[6];
     PROPSHEETHEADER psh;
     int i;
+    int iNumOfDlg;                              // ダイアログの数
     static BOOL running = FALSE;
 
     // 現在セットアップウインドウを表示中の場合は何もしない。厳密には
@@ -513,32 +574,47 @@ SetupPrtStyle(HWND hWnd, PPRT_INFO lppiArea)
 
     running = TRUE;
 
-    for (i = 0; i < 4; i++) {
+    // ダイアログの数を設定。デフォルト設定は4、個別の場合は5
+    iNumOfDlg = (&g_PrtInfo == lppiArea) ? 4 : 5;
+
+    for (i = 0; i < iNumOfDlg; i++) {
         psp[i].dwSize = sizeof(PROPSHEETPAGE);
         psp[i].dwFlags = PSP_USETITLE | PSH_USEHICON;
         psp[i].hInstance = (HINSTANCE)GetWindowLong(hWnd, GWL_HINSTANCE);
         psp[i].lParam = i;
     }
-    
-    psp[0].hIcon = LoadIcon(NULL, IDI_APPLICATION);
-    psp[0].pszTemplate = MAKEINTRESOURCE(IDD_SETUP);
-    psp[0].pfnDlgProc = (DLGPROC)DialogProcCom;
-    psp[0].pszTitle = "共通設定";
 
-    psp[1].hIcon = LoadIcon(psp[1].hInstance, MAKEINTRESOURCE(IDI_MAIL));
-    psp[1].pszTemplate = MAKEINTRESOURCE(IDD_MAIL);
-    psp[1].pfnDlgProc = (DLGPROC)DialogProcMail;
-    psp[1].pszTitle = "e-mail印刷";
+    i = 0;
+    psp[i].hIcon = LoadIcon(NULL, IDI_APPLICATION);
+    psp[i].pszTemplate = MAKEINTRESOURCE(IDD_SETUP);
+    psp[i].pfnDlgProc = (DLGPROC)DialogProcCom;
+    psp[i].pszTitle = "共通設定";
 
-    psp[2].hIcon = LoadIcon(psp[2].hInstance, MAKEINTRESOURCE(IDI_TEXT));
-    psp[2].pszTemplate = MAKEINTRESOURCE(IDD_TEXT);
-    psp[2].pfnDlgProc = (DLGPROC)DialogProcText;
-    psp[2].pszTitle = "テキスト印刷";
+    i++;
+    psp[i].hIcon = LoadIcon(psp[i].hInstance, MAKEINTRESOURCE(IDI_MAIL));
+    psp[i].pszTemplate = MAKEINTRESOURCE(IDD_MAIL);
+    psp[i].pfnDlgProc = (DLGPROC)DialogProcMail;
+    psp[i].pszTitle = "e-mail印刷";
 
-    psp[3].hIcon = LoadIcon(psp[3].hInstance, MAKEINTRESOURCE(IDI_PS));
-    psp[3].pszTemplate = MAKEINTRESOURCE(IDD_PS);
-    psp[3].pfnDlgProc = (DLGPROC)DialogProcPs;
-    psp[3].pszTitle = "PostScript";
+    i++;
+    psp[i].hIcon = LoadIcon(psp[i].hInstance, MAKEINTRESOURCE(IDI_TEXT));
+    psp[i].pszTemplate = MAKEINTRESOURCE(IDD_TEXT);
+    psp[i].pfnDlgProc = (DLGPROC)DialogProcText;
+    psp[i].pszTitle = "テキスト印刷";
+
+    i++;
+    psp[i].hIcon = LoadIcon(psp[i].hInstance, MAKEINTRESOURCE(IDI_PS));
+    psp[i].pszTemplate = MAKEINTRESOURCE(IDD_PS);
+    psp[i].pfnDlgProc = (DLGPROC)DialogProcPs;
+    psp[i].pszTitle = "PostScript";
+
+    // 以下の設定は、個別設定の時のみ有効になるが、設定は常に行う。デ
+    // フォルト設定の場合は表示されない。
+    i++;
+    psp[i].hIcon = LoadIcon(psp[i].hInstance, MAKEINTRESOURCE(IDI_KOBETSU));
+    psp[i].pszTemplate = MAKEINTRESOURCE(IDD_KOBETSU);
+    psp[i].pfnDlgProc = (DLGPROC)DialogProcKbt;
+    psp[i].pszTitle = "個別設定";
 
     memset(&psh, 0, sizeof(PROPSHEETHEADER));
     psh.dwSize = sizeof(PROPSHEETHEADER);
@@ -549,7 +625,7 @@ SetupPrtStyle(HWND hWnd, PPRT_INFO lppiArea)
     psh.pszCaption = (LPSTR)SETUP_CAPTION;
     psh.hIcon = LoadIcon(NULL, IDI_ASTERISK);
     psh.ppsp = (LPCPROPSHEETPAGE)&psp;
-    psh.nPages = 4;
+    psh.nPages = iNumOfDlg;
 
     // 現在の内容を複写
     memcpy(&PrtInfoTmp, lppiArea, sizeof(PRT_INFO));
