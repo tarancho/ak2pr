@@ -1,10 +1,13 @@
-/* -*- mode: c; coding: sjis; -*-
- * Time-stamp: <2001-02-06 02:47:40 tfuruka1>
+/* -*- mode: c; coding: sjis-dos; -*-
+ * Time-stamp: <2001-02-06 02:49:02 tfuruka1>
  *
  * 「ak2psのようなもの」のクライアントの共通処理部
  *
- * $Id: clientCommon.c,v 1.1 2001/02/05 17:47:43 tfuruka1 Exp $
+ * $Id: clientCommon.c,v 1.2 2001/02/05 17:49:24 tfuruka1 Exp $
  * $Log: clientCommon.c,v $
+ * Revision 1.2  2001/02/05 17:49:24  tfuruka1
+ * 改行コードの修正
+ *
  * Revision 1.1  2001/02/05 17:47:43  tfuruka1
  * Initial revision
  *
@@ -89,3 +92,4 @@ int ak2prClientCommon(int __argc, char **_argv)
     }
     return 0;
 }
+
