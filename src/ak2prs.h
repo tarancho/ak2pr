@@ -2,8 +2,11 @@
  *
  * 「ak2psのようなもの」のサーバ側のヘッダファイル
  *
- * $Id: ak2prs.h,v 1.13 2003/02/25 15:34:40 tfuruka1 Exp $
+ * $Id: ak2prs.h,v 1.14 2003/03/01 09:12:44 tfuruka1 Exp $
  * $Log: ak2prs.h,v $
+ * Revision 1.14  2003/03/01 09:12:44  tfuruka1
+ * ●リリース用として変更[Version]は[2.1]
+ *
  * Revision 1.13  2003/02/25 15:34:40  tfuruka1
  * ●行番号出力制御処理を追加
  * ●Version を 2.1 へ変更。以前は1.7だったが、公開を2.0で行ってしまった
@@ -81,7 +84,7 @@
 #ifndef _AK2PRS_H_
 #define _AK2PRS_H_
 
-#define TIMESTAMP "Time-stamp: <2003-02-26 00:33:14 tfuruka1>"
+#define TIMESTAMP "Time-stamp: <2003-02-27 08:04:46 tfuruka1>"
 #define VERSION   "Version 2.1"
 
 #include <windows.h>
@@ -112,7 +115,7 @@
 #define SV_EXE_NAME "ak2prSV.EXE"
 
 #define COPYRIGHT   "ak2pr " VERSION\
-" Copyright 1997-2001 By T.Furukawa\n(tfuruka1@nifty.com)" TIMESTAMP
+" Copyright 1997-2003 By T.Furukawa\n(tfuruka1@nifty.com)" TIMESTAMP
 
 // 1バイト目が漢字コードか否かチェックするマクロ
 #define IsKanjiSJIS(c)  (((c) >= 0x81 && (c) <= 0x9f) ||\
