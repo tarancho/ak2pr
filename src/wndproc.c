@@ -2,8 +2,13 @@
  *
  * 「ak2psのようなもの」のウインドウプロシジャ
  *
- * $Id: wndproc.c,v 1.14 2003/03/16 00:21:56 tfuruka1 Exp $
+ * $Id: wndproc.c,v 1.15 2003/03/29 12:52:08 tfuruka1 Exp $
  * $Log: wndproc.c,v $
+ * Revision 1.15  2003/03/29 12:52:08  tfuruka1
+ * ● リストビューのカラムの幅の初期値を少し変更した。
+ * ● ツールボタンに「クリップボード印刷」を追加した。なので、当然、クリッ
+ *    プボード印刷の処理を追加した。
+ *
  * Revision 1.14  2003/03/16 00:21:56  tfuruka1
  * ● プレビューから印刷設定を行うと、設定が有効にならない項目があったの
  *    で、修正した。
@@ -70,7 +75,7 @@
 // (replace-regexp "/\\*\\(.+\\)\\*/" "//\\1")
 // (replace-regexp "[ \t]+$" "")
 
-#define TIME_STAMP "Time-stamp: <2003-03-16 09:14:19 tfuruka1>"
+#define TIME_STAMP "Time-stamp: <2003-03-29 02:55:04 tfuruka1>"
 
 #include "ak2prs.h"
 
@@ -113,7 +118,7 @@ DoCreate(
         {LVCF_FMT | LVCF_WIDTH | LVCF_TEXT | LVCF_SUBITEM,
          LVCFMT_LEFT, 20,"段組数", 1},
         {LVCF_FMT | LVCF_WIDTH | LVCF_TEXT | LVCF_SUBITEM,
-         LVCFMT_LEFT, 70,"フォントサイズ", 2},
+         LVCFMT_LEFT, 50,"フォントサイズ", 2},
         {LVCF_FMT | LVCF_WIDTH | LVCF_TEXT | LVCF_SUBITEM,
          LVCFMT_LEFT, 20,"タブストップ", 3},
         {LVCF_FMT | LVCF_WIDTH | LVCF_TEXT | LVCF_SUBITEM,
@@ -125,21 +130,22 @@ DoCreate(
         {LVCF_FMT | LVCF_WIDTH | LVCF_TEXT | LVCF_SUBITEM,
          LVCFMT_LEFT, 180,"タイトル", 6},
         {LVCF_FMT | LVCF_WIDTH | LVCF_TEXT | LVCF_SUBITEM,
-         LVCFMT_LEFT, 20,"行番号", 7},
+         LVCFMT_LEFT, 40,"行番号", 7},
         {0, 0, 100, NULL, 0}};
     TBBUTTON tbb[] = {
         {0, IDM_SETUP, TBSTATE_ENABLED, TBSTYLE_BUTTON, 0, 0},
         {1, IDM_TESTPRT, TBSTATE_ENABLED, TBSTYLE_BUTTON, 0, 0},
+        {2, IDM_PASTE, TBSTATE_ENABLED, TBSTYLE_BUTTON, 0, 0},
         {0, 0, TBSTATE_ENABLED, TBSTYLE_SEP, 0, 0},
-        {2, IDM_STOP, TBSTATE_ENABLED /*| TBSTATE_CHECKED | TBSTATE_ELLIPSES*/,
+        {3, IDM_STOP, TBSTATE_ENABLED /*| TBSTATE_CHECKED | TBSTATE_ELLIPSES*/,
          TBSTYLE_CHECK, 0, 0},
-        {3, IDM_DELETE, TBSTATE_ENABLED, TBSTYLE_BUTTON, 0, 0},
+        {4, IDM_DELETE, TBSTATE_ENABLED, TBSTYLE_BUTTON, 0, 0},
         {0, 0, TBSTATE_ENABLED, TBSTYLE_SEP, 0, 0},
-        {4, IDM_MAIL, TBSTATE_ENABLED, TBSTYLE_BUTTON, 0, 0},
-        {5, IDM_HTTP, TBSTATE_ENABLED, TBSTYLE_BUTTON, 0, 0},
-        {6, IDM_SHOW, TBSTATE_ENABLED, TBSTYLE_BUTTON, 0, 0},
+        {5, IDM_MAIL, TBSTATE_ENABLED, TBSTYLE_BUTTON, 0, 0},
+        {6, IDM_HTTP, TBSTATE_ENABLED, TBSTYLE_BUTTON, 0, 0},
+        {7, IDM_SHOW, TBSTATE_ENABLED, TBSTYLE_BUTTON, 0, 0},
         {0, 0, TBSTATE_ENABLED, TBSTYLE_SEP, 0, 0},
-        {7, IDM_EXIT, TBSTATE_ENABLED, TBSTYLE_BUTTON, 0, 0}
+        {8, IDM_EXIT, TBSTATE_ENABLED, TBSTYLE_BUTTON, 0, 0}
     };
 
     hWndOwn = pcs->hwndParent;                  // オーナウインドウハンドル
@@ -454,6 +460,10 @@ DoCommand(
         // わない
         SendMessage(hWndTool, TB_CHECKBUTTON, IDM_STOP,
                     MAKELONG(g_MailBox.bStop, 0));
+        break;
+    case IDM_PASTE:
+        // クリップボードの内容を印刷する
+        SendPrintFromStdin(TRUE, NULL, NULL, 0, 8, 0, PT_TEXT, 0, 0, -1);
         break;
     }
 }
