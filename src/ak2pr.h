@@ -1,10 +1,13 @@
 /* -*- mode: c++; coding: sjis-dos;-*-
- * Time-stamp: <2001-08-19 08:56:59 tfuruka1>
+ * Time-stamp: <2001-10-01 21:46:18 tfuruka1>
  *
  * 「ak2psのようなもの」の共通ヘッダファイル(クライアント用)
  *
- * $Id: ak2pr.h,v 1.3 2001/08/19 04:41:03 tfuruka1 Exp $
+ * $Id: ak2pr.h,v 1.4 2001/10/01 13:22:28 tfuruka1 Exp $
  * $Log: ak2pr.h,v $
+ * Revision 1.4  2001/10/01 13:22:28  tfuruka1
+ * 用紙の向きを指定出来るように修正（関数の引数の追加）。
+ *
  * Revision 1.3  2001/08/19 04:41:03  tfuruka1
  * PostScriptファイルの暫定対応（ただ単にDistillerの監視フォルダに放り込
  * むだけ）。
@@ -86,7 +89,8 @@ SendPrintFromFileCopy(
     int nNumOfUp,                               // 段組数
     int nTab,                                   // タブ幅
     double fFontSize,                           // フォントサイズ
-    int nType                                   // 印刷データタイプ
+    int nType,                                  // 印刷データタイプ
+    int nOrientation                            // 用紙の向き
     );
 /*--------------------------------------------------------------------
  * 標準入力の内容を読み込みプリントサーバへ印刷情報を送信する。
@@ -98,7 +102,8 @@ SendPrintFromStdin(
     int nNumOfUp,                               // 段組数
     int nTab,                                   // タブ幅
     double fFontSize,                           // フォントサイズ
-    int nType                                   // 印刷データタイプ
+    int nType,                                  // 印刷データタイプ
+    int nOrientation                            // 用紙の向き
     );
 /*--------------------------------------------------------------------
  * lpstrで指定された書式文字列を書式に従って編集し表示ウィンドウへ表示
