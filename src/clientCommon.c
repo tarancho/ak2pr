@@ -1,10 +1,13 @@
 /* -*- mode: c++; coding: sjis-dos; -*-
- * Time-stamp: <2004-01-11 20:28:20 tfuruka1>
+ * Time-stamp: <2004-01-12 18:00:47 tfuruka1>
  *
  * 「ak2psのようなもの」のクライアントの共通処理部
  *
- * $Id: clientCommon.c,v 1.13 2004/01/11 11:28:51 tfuruka1 Exp $
+ * $Id: clientCommon.c,v 1.14 2004/01/12 09:54:42 tfuruka1 Exp $
  * $Log: clientCommon.c,v $
+ * Revision 1.14  2004/01/12 09:54:42  tfuruka1
+ * ・ 短辺綴じと長辺綴じのコマンドオプションを追加しました。
+ *
  * Revision 1.13  2004/01/11 11:28:51  tfuruka1
  * 古いコメントが残っていたのを修正しました。コメントの修正のみです。
  *
@@ -68,7 +71,7 @@ static void Usage(LPTSTR arg)
 {
     printf("Usage: %s [-o{p|l}] [-m{PLAIN|MAIL|PS_ACROBAT|PS_GHOST}]\n"
            "\t\t[-fフォントサイズ] [-tタブ幅] [-u段組数] [-Tタイトル]\n"
-           "\t\t[-Jタイトル] [-s用紙サイズ] [-n[-]] [-P] [-S]\n"
+           "\t\t[-Jタイトル] [-s用紙サイズ] [-n[-]] [-P] [-S] [-b{s|l}]\n"
            "\t\t[ファイル名...]\n\n"
            "\t-o 用紙の向きを指定します。デフォルトはサーバの設定。\n"
            "\t\tp PORTRAIT\n"
@@ -89,6 +92,9 @@ static void Usage(LPTSTR arg)
            "\t-P 指定しても何もしません。\n"
            "\t-S サーバを起動する時に印刷停止状態で起動します。\n"
            "\t   サーバが既に起動している場合は意味を持ちません。\n"
+           "\t-b 長辺綴じ・短辺綴じを指定します。デフォルトはサーバの設定。\n"
+           "\t\t s 短辺綴じ\n"
+           "\t\t l 長辺綴じ\n"
            "\tファイル名 印刷するファイル名を指定します。\n"
            "\t\t指定しなかった場合は、標準入力から読み込みます。\n"
            "\t\t複数ファイル指定できます。\n--\n",
@@ -109,6 +115,7 @@ int ak2prClientCommon(int __argc, char **_argv)
     short dmPaperSize = 0;                      // 用紙サイズはデフォルト
     int bNum = -1;                              // 行番号出力のデフォルト
     // ↑booleanではないので注意：最初はbooleanにしていたのだが・・・
+    int nBinding = -1;                          // 短辺・長辺綴じはデフォルト
 
     szSVOption[0] = '\0';
     strcpy(szBuf, "DBG: ");
@@ -147,6 +154,7 @@ int ak2prClientCommon(int __argc, char **_argv)
             break;
         }
         switch (*(*(__argv + i) + 1)) {
+        case 'P':                               // このパラメータは無視
         case 'D':
             // Emacsが付与するオプションだがデバイスオプションは無視す
             // る。EmacsからPostScriptのファイルを印刷するときに
@@ -184,6 +192,16 @@ int ak2prClientCommon(int __argc, char **_argv)
                 break;
             case 'l': case 'L':
                 nOrientation = DMORIENT_LANDSCAPE;
+                break;
+            }
+            continue;
+        case 'b':
+            switch (*(*(__argv + i) + 2)) {
+            case 's': case 'S':                 // 短辺綴じ
+                nBinding = 1;
+                break;
+            case 'l': case 'L':                 // 長辺綴じ
+                nBinding = 0;
                 break;
             }
             continue;
@@ -233,9 +251,6 @@ int ak2prClientCommon(int __argc, char **_argv)
                 i++;
             }
             continue;
-        case 'P':                               // このパラメータは無視
-            Syslog(FALSE, "%s は無視します", *(__argv + i));
-            continue;
         default:
             Syslog(TRUE, "-ERROR: Invalid Argument (%s)", *(__argv + i));
             Usage(*__argv);
@@ -245,7 +260,7 @@ int ak2prClientCommon(int __argc, char **_argv)
 
     if (i >= __argc) {                          // ファイル名指定なしの場合
         SendPrintFromStdin(FALSE, NULL, pszTitle, nUp, nTab, fFont, nFtype,
-                           nOrientation, dmPaperSize, bNum);
+                           nOrientation, dmPaperSize, bNum, nBinding);
         return 0;
     }
     else if (i == (__argc - 1)) {               // ファイルが一つだけ指定された
@@ -259,7 +274,8 @@ int ak2prClientCommon(int __argc, char **_argv)
             }
         }
         SendPrintFromFileCopy(NULL, pszTitle, *(__argv + i), nUp, nTab,
-                              fFont, nFtype, nOrientation, dmPaperSize, bNum);
+                              fFont, nFtype, nOrientation, dmPaperSize,
+                              bNum, nBinding);
         return 0;
     }
 
@@ -274,7 +290,8 @@ int ak2prClientCommon(int __argc, char **_argv)
             }
         }
         SendPrintFromFileCopy(NULL, szTitle, *(__argv + i), nUp, nTab,
-                              fFont, nFtype, nOrientation, dmPaperSize, bNum);
+                              fFont, nFtype, nOrientation, dmPaperSize,
+                              bNum, nBinding);
     }
     return 0;
 }
