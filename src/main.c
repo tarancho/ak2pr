@@ -1,10 +1,13 @@
 /* -*- mode: c++; coding: sjis-dos; -*-
- * Time-stamp: <2003-03-14 21:22:04 tfuruka1>
+ * Time-stamp: <2003-03-29 02:50:43 tfuruka1>
  *
  * 「ak2psのようなもの」のサーバ側メイン処理
  *
- * $Id: main.c,v 1.3 2003/03/14 15:23:37 tfuruka1 Exp $
+ * $Id: main.c,v 1.4 2003/03/29 12:45:28 tfuruka1 Exp $
  * $Log: main.c,v $
+ * Revision 1.4  2003/03/29 12:45:28  tfuruka1
+ * ● アクセラレータを処理するように対応した。
+ *
  * Revision 1.3  2003/03/14 15:23:37  tfuruka1
  * ● 起動オプションを追加した。-S オプションを指定したときに「印刷停止」
  *    状態で動作するようにした。
@@ -32,8 +35,10 @@ WinMain(
     )
 {
     MSG msg;                                    // メッセージ
+    HACCEL hAcc;                                // アクセラレータ
     HWND hWnd;
     int i;
+
 
     // クリティカルセクションの初期化
     InitializeCriticalSection(&g_csCriticalSection);
@@ -68,10 +73,18 @@ WinMain(
         return 0;
     }
 
+    if (!(hAcc = LoadAccelerators(hInstance, MAKEINTRESOURCE(IDR_ACC)))) {
+        MessageBox(NULL, "アクセラレータのハンドル取得失敗", "", MB_ERROR);
+    }
+
     // メッセージループ
     while (GetMessage(&msg, NULL, 0, 0)) {
-        TranslateMessage(&msg);
-        DispatchMessage(&msg);
+        // アクセラレータの処理を実行し、結果が0の時はメッセージ処理を
+        // 行う
+        if (!TranslateAccelerator(hWnd, hAcc, &msg)) {
+            TranslateMessage(&msg);
+            DispatchMessage(&msg);
+        }
     }
 
     return msg.wParam;
