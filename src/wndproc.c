@@ -2,8 +2,11 @@
  *
  * 「ak2psのようなもの」のウインドウプロシジャ
  *
- * $Id: wndproc.c,v 1.9 2001/12/23 10:20:47 tfuruka1 Exp $
+ * $Id: wndproc.c,v 1.10 2003/02/25 15:30:53 tfuruka1 Exp $
  * $Log: wndproc.c,v $
+ * Revision 1.10  2003/02/25 15:30:53  tfuruka1
+ * 行番号出力の制御追加による修正
+ *
  * Revision 1.9  2001/12/23 10:20:47  tfuruka1
  * ●ツールバーを新規追加
  * ●ドラッグ＆ドロップを追加（作業ディレクトリ内のファイルは印刷対象外と
@@ -49,7 +52,7 @@
 // (replace-regexp "/\\*\\(.+\\)\\*/" "//\\1")
 // (replace-regexp "[ \t]+$" "")
 
-#define TIME_STAMP "Time-stamp: <2001-12-23 18:20:47 tfuruka1>"
+#define TIME_STAMP "Time-stamp: <2003-02-26 00:10:50 tfuruka1>"
 
 #include "ak2prs.h"
 
@@ -103,6 +106,8 @@ DoCreate(
          LVCFMT_LEFT, 100,"印刷フォーマット", 7},
         {LVCF_FMT | LVCF_WIDTH | LVCF_TEXT | LVCF_SUBITEM,
          LVCFMT_LEFT, 180,"タイトル", 6},
+        {LVCF_FMT | LVCF_WIDTH | LVCF_TEXT | LVCF_SUBITEM,
+         LVCFMT_LEFT, 20,"行番号", 7},
         {0, 0, 100, NULL, 0}};
     TBBUTTON tbb[] = {
         {0, IDM_SETUP, TBSTATE_ENABLED, TBSTYLE_BUTTON, 0, 0},
@@ -314,6 +319,9 @@ DoCopyData(
     }
     if (!pPrtInfo->bPreView) {
         pPrtInfo->bPreView = g_PrtInfo.bPreView;
+    }
+    if (-1 == pPrtInfo->bNum) {
+        pPrtInfo->bNum = g_PrtInfo.bNum;
     }
 
     // パラメータで設定出来ない値を設定する
@@ -542,7 +550,7 @@ SendPrintDirectory(LPTSTR lpszFile)
             if (0 != _strnicmp(szFile, GetTempDirectoryName(),
                                strlen(GetTempDirectoryName()))) {
                 SendPrintFromFileCopy(NULL, NULL, szFile, 0, 0, 0,
-                                      PT_TEXT, 0, 0);
+                                      PT_TEXT, 0, 0, -1);
             }
             else {
                 DbgPrint(NULL, 'W', "%sは作業ディレクトリ内のファイルです",
@@ -591,7 +599,7 @@ DoDropFiles(
             if (0 != _strnicmp(szFile, GetTempDirectoryName(),
                                strlen(GetTempDirectoryName()))) {
                 SendPrintFromFileCopy(NULL, NULL, szFile, 0, 0, 0,
-                                      PT_TEXT, 0, 0);
+                                      PT_TEXT, 0, 0, -1);
             }
             else {
                 DbgPrint(NULL, 'W', "%sは作業ディレクトリ内のファイルです",
