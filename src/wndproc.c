@@ -2,8 +2,11 @@
  *
  * 「ak2psのようなもの」のウインドウプロシジャ
  *
- * $Id: wndproc.c,v 1.18 2004/06/18 00:57:56 tfuruka1 Exp $
+ * $Id: wndproc.c,v 1.19 2004/08/21 01:01:01 tfuruka1 Exp $
  * $Log: wndproc.c,v $
+ * Revision 1.19  2004/08/21 01:01:01  tfuruka1
+ * テキスト印刷に於いて「行間」と「罫線連結」が有効になるようにしました。
+ *
  * Revision 1.18  2004/06/18 00:57:56  tfuruka1
  * 改行コードの修正のみです。
  *
@@ -84,7 +87,7 @@
 // (replace-regexp "/\\*\\(.+\\)\\*/" "//\\1")
 // (replace-regexp "[ \t]+$" "")
 
-#define TIME_STAMP "Time-stamp: <2004-06-18 09:42:45 tfuruka1>"
+#define TIME_STAMP "Time-stamp: <2004-08-21 09:26:29 tfuruka1>"
 
 #include "ak2prs.h"
 
@@ -378,6 +381,8 @@ DoCopyData(
     pPrtInfo->bNoRcvHeader = g_PrtInfo.bNoRcvHeader;
     pPrtInfo->bNoCopyright = g_PrtInfo.bNoCopyright;
     pPrtInfo->bDebug = g_PrtInfo.bDebug;
+    pPrtInfo->bKeisen = g_PrtInfo.bKeisen;
+    pPrtInfo->nBaseLine = g_PrtInfo.nBaseLine;
 
     memcpy(&pPrtInfo->lfTHF, &g_PrtInfo.lfTHF, sizeof(LOGFONT));
     memcpy(&pPrtInfo->lfPPF, &g_PrtInfo.lfPPF, sizeof(LOGFONT));

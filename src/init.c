@@ -1,10 +1,13 @@
 /* -*- mode: c++; coding: sjis-dos; -*-
- * Time-stamp: <2004-06-18 09:36:58 tfuruka1>
+ * Time-stamp: <2004-08-21 09:16:14 tfuruka1>
  *
  * 「ak2psのようなもの」のサーバの初期化処理
  *
- * $Id: init.c,v 1.11 2004/06/18 00:57:56 tfuruka1 Exp $
+ * $Id: init.c,v 1.12 2004/08/21 01:01:01 tfuruka1 Exp $
  * $Log: init.c,v $
+ * Revision 1.12  2004/08/21 01:01:01  tfuruka1
+ * テキスト印刷に於いて「行間」と「罫線連結」が有効になるようにしました。
+ *
  * Revision 1.11  2004/06/18 00:57:56  tfuruka1
  * 改行コードの修正のみです。
  *
@@ -104,7 +107,7 @@ static BOOL GetPrivateProfileData(
     LPBYTE lpByte, lpSave, lpszData;
     DWORD cbData;
     BYTE szWk[16], szKey[256];
- 
+
     sprintf(szKey, "%s.ByteSize", lpszKey);
     GetPrivateProfileString(SEC_DEVICE, szKey, BAD_STR, szWk, 15, lpszProfile);
     if (IsBadStr(szWk)) {
@@ -126,7 +129,7 @@ static BOOL GetPrivateProfileData(
         return FALSE;
     }
     lpSave = lpszData;
-    
+
     if (NULL == (*lphGlobal = GlobalAlloc(GMEM_MOVEABLE, cbData))) {
         free(lpszData);
         return FALSE;
@@ -172,7 +175,7 @@ static BOOL WritePrivateProfileData(
     LPBYTE lpszStore;
     LPBYTE lpByte = lpData;
     TCHAR szBuf[16], szKey[256];
-    
+
     if (NULL == (lpszStore = malloc(cbData * 4))) {
         return FALSE;
     }
@@ -198,7 +201,7 @@ static BOOL WritePrivateProfileData(
     WritePrivateProfileString(lpszSec, szKey, szBuf, szFileName);
     sprintf(szKey, "%s.Data", lpszKey);
     WritePrivateProfileString(lpszSec, szKey, lpszStore, szFileName);
-    
+
     free(lpszStore);
 
     return TRUE;
@@ -243,7 +246,16 @@ GetDefaultPrtInfo(void)
     g_PrtInfo.bKeisen = IsBadStr(szBuf) ? FALSE : atoi(szBuf);
 
     GET_PROFILE(PROFILE_SEC, KEY_BASELINE);
-    g_PrtInfo.nBaseLine = IsBadStr(szBuf) ? 1 : atoi(szBuf);
+    g_PrtInfo.nBaseLine = IsBadStr(szBuf) ? IDC_R_ENGLISH : atoi(szBuf);
+    switch (g_PrtInfo.nBaseLine) {
+    case IDC_R_NOINTERLINE:
+    case IDC_R_ENGLISH:
+    case IDC_R_JAPAN:
+    case IDC_R_AUTO:
+        break;
+    default:
+        g_PrtInfo.nBaseLine = IDC_R_ENGLISH;
+    }
 
     GET_PROFILE(PROFILE_SEC, KEY_BNUM);
     g_PrtInfo.bNum = IsBadStr(szBuf) ? FALSE : atoi(szBuf);

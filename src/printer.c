@@ -1,10 +1,13 @@
 /* -*- mode: c++; coding: sjis-dos; -*-
- * Time-stamp: <2004-08-16 23:06:09 tfuruka1>
+ * Time-stamp: <2004-08-21 09:03:12 tfuruka1>
  *
  * 「ak2psのようなもの」のプリンタ制御関連
  *
- * $Id: printer.c,v 1.10 2004/08/16 14:23:25 tfuruka1 Exp $
+ * $Id: printer.c,v 1.11 2004/08/21 01:01:01 tfuruka1 Exp $
  * $Log: printer.c,v $
+ * Revision 1.11  2004/08/21 01:01:01  tfuruka1
+ * テキスト印刷に於いて「行間」と「罫線連結」が有効になるようにしました。
+ *
  * Revision 1.10  2004/08/16 14:23:25  tfuruka1
  * 罫線が連結しない場合がある問題を修正しました。
  *
@@ -45,10 +48,6 @@
 
 #include "ak2prs.h"
 #include "ak2pr.h"
-
-// フォントのテンプレート
-//static LOGFONT lft = {-13, 0, 0, 0, 800, 0, 0, 0, SHIFTJIS_CHARSET,
-//                      3, 2, 1, 49, TEXT("ＭＳ ゴシック")};
 
 // プリンタの固有情報
 static int nPaperWidth, nPaperHeight;           // 用紙のサイズ
@@ -763,18 +762,34 @@ PutcPrinter(
         }
     }
 
-    // メールの印刷時のみ
-    if (PT_MAIL == g_MailBox.PrtInfo.nType) {
-        if (IsKanjiSJIS(*szBuf)) {
-            TCHAR szTmp[4];
-            memcpy(szTmp, szBuf, 2);
-            szTmp[2] = '\0';
-            if (strstr(szKeisen, szTmp)) {
-                bKeisen = TRUE;
-            }
-            bKanji = TRUE;
+    // 改行幅の調整
+    if (IsKanjiSJIS(*szBuf)) {
+        TCHAR szTmp[4];
+        memcpy(szTmp, szBuf, 2);
+        szTmp[2] = '\0';
+        if (strstr(szKeisen, szTmp)) {
+            bKeisen = TRUE;
         }
+        bKanji = TRUE;
     }
+    switch (g_MailBox.PrtInfo.nBaseLine) {
+    case IDC_R_JAPAN:
+        bKanji = TRUE;
+        break;
+    case IDC_R_ENGLISH:
+        bKanji = FALSE;
+        break;
+    case IDC_R_NOINTERLINE:
+        bKeisen = TRUE;
+        break;
+    case IDC_R_AUTO:
+    default:
+        if (!g_MailBox.PrtInfo.bKeisen) {
+            bKeisen = FALSE;
+        }
+        break;
+    }
+
 
     // デバッグモードの場合は、文字の回りを矩形で囲む
     if (g_MailBox.PrtInfo.bDebug) {
@@ -851,19 +866,35 @@ PutsPrinter(LPTSTR szBuf)
         TextOut(g_MailBox.hDC, nCurrentX, nCurrentY, szBuf, strlen(szBuf));
         nCurrentX += Size.cx;
 
-        if (PT_MAIL == g_MailBox.PrtInfo.nType) {
-            for (i = 0; i < (int)strlen(szBuf); i++) {
-                if (IsKanjiSJIS(*(LPBYTE)(szBuf + i))) {
-                    TCHAR szTmp[4];
-                    memcpy(szTmp, szBuf + i, 2);
-                    szTmp[2] = '\0';
-                    if (strstr(szKeisen, szTmp)) {
-                        bKeisen = TRUE;
-                    }
-                    bKanji = TRUE;
-                    i++;
+        // 改行幅の調整
+        for (i = 0; i < (int)strlen(szBuf); i++) {
+            if (IsKanjiSJIS(*(LPBYTE)(szBuf + i))) {
+                TCHAR szTmp[4];
+                memcpy(szTmp, szBuf + i, 2);
+                szTmp[2] = '\0';
+                if (strstr(szKeisen, szTmp)) {
+                    bKeisen = TRUE;
                 }
+                bKanji = TRUE;
+                i++;
             }
+        }
+        switch (g_MailBox.PrtInfo.nBaseLine) {
+        case IDC_R_JAPAN:
+            bKanji = TRUE;
+            break;
+        case IDC_R_ENGLISH:
+            bKanji = FALSE;
+            break;
+        case IDC_R_NOINTERLINE:
+            bKeisen = TRUE;
+            break;
+        case IDC_R_AUTO:
+        default:
+            if (!g_MailBox.PrtInfo.bKeisen) {
+                bKeisen = FALSE;
+            }
+            break;
         }
         
         if (szTmp[0]) {                         // 改行文字が存在する

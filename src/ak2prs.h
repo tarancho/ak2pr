@@ -2,8 +2,11 @@
  *
  * 「ak2psのようなもの」のサーバ側のヘッダファイル
  *
- * $Id: ak2prs.h,v 1.22 2004/06/18 00:57:43 tfuruka1 Exp $
+ * $Id: ak2prs.h,v 1.23 2004/08/21 01:01:01 tfuruka1 Exp $
  * $Log: ak2prs.h,v $
+ * Revision 1.23  2004/08/21 01:01:01  tfuruka1
+ * テキスト印刷に於いて「行間」と「罫線連結」が有効になるようにしました。
+ *
  * Revision 1.22  2004/06/18 00:57:43  tfuruka1
  * 改行コードの修正のみです。
  *
@@ -113,8 +116,8 @@
 #ifndef _AK2PRS_H_
 #define _AK2PRS_H_
 
-#define TIMESTAMP "Time-stamp: <2004-06-18 09:44:51 tfuruka1>"
-#define VERSION   "Version 2.3 ($Name:  $)"
+#define TIMESTAMP "Time-stamp: <2004-08-21 09:33:29 tfuruka1>"
+#define VERSION   "Version 2.4 Beta-1($Name:  $)"
 
 #include <windows.h>
 #include <windowsx.h>

@@ -1,5 +1,5 @@
 /* -*- mode: c++; coding: sjis-dos; -*-
- * Time-stamp: <2004-06-18 09:41:27 tfuruka1>
+ * Time-stamp: <2004-08-21 08:30:49 tfuruka1>
  *
  * 「ak2psのようなもの」の印字設定
  *
@@ -10,8 +10,11 @@
  * ていない場合は、実行されない。この事を知らなかったので、不可解な現
  * 象が発生していました（INIT_DIALOGが常に発生していると思っていた）。
  *
- * $Id: setup.c,v 1.14 2004/06/18 00:57:56 tfuruka1 Exp $
+ * $Id: setup.c,v 1.15 2004/08/21 01:01:01 tfuruka1 Exp $
  * $Log: setup.c,v $
+ * Revision 1.15  2004/08/21 01:01:01  tfuruka1
+ * テキスト印刷に於いて「行間」と「罫線連結」が有効になるようにしました。
+ *
  * Revision 1.14  2004/06/18 00:57:56  tfuruka1
  * 改行コードの修正のみです。
  *
@@ -431,21 +434,14 @@ DoInitDialogText(
     LPARAM lParam                               // 初期化パラメータ
     )
 {
-    UINT id;
-
     DbgPrint(NULL, 'D', "InitDialog(Text)");
 
     // 罫線連結のチェック
     CheckDlgButton(hWnd, IDC_C_KEISEN, PrtInfoTmp.bKeisen ? TRUE : FALSE);
+    // 行番号のチェック
     CheckDlgButton(hWnd, IDC_C_NUM, PrtInfoTmp.bNum ? TRUE : FALSE);
-
-    switch (PrtInfoTmp.nBaseLine) {
-    case 0: id = IDC_R_NOINTERLINE; break;
-    case 1: id = IDC_R_ENGLISH; break;
-    case 2: id = IDC_R_JAPAN; break;
-    default: id = IDC_R_AUTO; break;
-    }
-    CheckDlgButton(hWnd, id, TRUE);
+    // ベースライン
+    CheckRadioButton(hWnd, IDC_R_JAPAN, IDC_R_AUTO, PrtInfoTmp.nBaseLine);
 
     return TRUE;
 }
@@ -460,26 +456,21 @@ DoCommandText(
 {
     switch (id) {                               // コントロール番号
     case IDC_R_NOINTERLINE:
-        PrtInfoTmp.nBaseLine = 0;
-        break;
     case IDC_R_ENGLISH:
-        PrtInfoTmp.nBaseLine = 1;
-        break;
     case IDC_R_JAPAN:
-        PrtInfoTmp.nBaseLine = 2;
-        break;
     case IDC_R_AUTO:
-        PrtInfoTmp.nBaseLine = 9;
+        PrtInfoTmp.nBaseLine = id;
         break;
     case IDC_DEFAULT:
         PrtInfoTmp.bNum = TRUE;
-        PrtInfoTmp.nBaseLine = 1;
+        PrtInfoTmp.nBaseLine = IDC_R_ENGLISH;
         PrtInfoTmp.bKeisen = FALSE;
 
         CheckDlgButton(hWnd, IDC_C_KEISEN, FALSE);
         CheckDlgButton(hWnd, IDC_C_NUM, TRUE);
         CheckDlgButton(hWnd, IDC_R_ENGLISH, TRUE);
-
+        // ベースライン
+        CheckRadioButton(hWnd, IDC_R_JAPAN, IDC_R_AUTO, PrtInfoTmp.nBaseLine);
         break;
     }
 }
@@ -493,6 +484,17 @@ DoCloseText(HWND hWnd)
     PrtInfoTmp.bKeisen = IsDlgButtonChecked(hWnd, IDC_C_KEISEN);
     // 行番号
     PrtInfoTmp.bNum = IsDlgButtonChecked(hWnd, IDC_C_NUM);
+
+    // ベースラインスキップ
+    if (IsDlgButtonChecked(hWnd, IDC_R_NOINTERLINE)) {
+        PrtInfoTmp.nBaseLine = IDC_R_NOINTERLINE;
+    } else if (IsDlgButtonChecked(hWnd, IDC_R_ENGLISH)) {
+        PrtInfoTmp.nBaseLine = IDC_R_ENGLISH;
+    } else if (IsDlgButtonChecked(hWnd, IDC_R_JAPAN)) {
+        PrtInfoTmp.nBaseLine = IDC_R_JAPAN;
+    } else {
+        PrtInfoTmp.nBaseLine = IDC_R_AUTO;
+    }
 }
 
 static BOOL

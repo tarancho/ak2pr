@@ -25,12 +25,14 @@
 #define IDC_C_NORHEAD                   1006
 #define IDC_DEFAULT                     1007
 #define IDC_PICTURE                     1008
-#define IDC_R_JAPAN                     1010
-#define IDC_R_ENGLISH                   1011
+
+#define IDC_R_JAPAN                     1009
+#define IDC_R_ENGLISH                   1010
+#define IDC_R_NOINTERLINE               1011
 #define IDC_R_AUTO                      1012
-#define IDC_C_KEISEN                    1013
-#define IDC_C_NUM                       1014
-#define IDC_R_NOINTERLINE               1015
+
+#define IDC_C_KEISEN                    1014
+#define IDC_C_NUM                       1015
 #define IDC_PRINTER                     1016
 #define IDC_BUTTON1                     1017
 #define IDC_ED_ACRIN                    1018
