@@ -1,10 +1,13 @@
 /* -*- mode: c++; coding: sjis-dos;-*-
- * Time-stamp: <2004-06-18 09:27:42 tfuruka1>
+ * Time-stamp: <2004-12-23 19:37:10 tfuruka1>
  *
  * 「ak2psのようなもの」の共通ヘッダファイル(クライアント用)
  *
- * $Id: ak2pr.h,v 1.11 2004/06/18 00:57:43 tfuruka1 Exp $
+ * $Id: ak2pr.h,v 1.12 2004/12/23 13:14:24 tfuruka1 Exp $
  * $Log: ak2pr.h,v $
+ * Revision 1.12  2004/12/23 13:14:24  tfuruka1
+ * 折り返し動作をコマンド引数に追加した事と、それに共なう修正。
+ *
  * Revision 1.11  2004/06/18 00:57:43  tfuruka1
  * 改行コードの修正のみです。
  *
@@ -118,7 +121,8 @@ SendPrintFromFileCopy(
     int nOrientation,                           // 用紙の向き
     short dmPaperSize,                          // 用紙サイズ
     int bNum,                                   // 行番号
-    int nBinding                                // 綴じ方向
+    int nBinding,                               // 綴じ方向
+    int nSingleLine                             // 折り返し動作
     );
 /*-------------------------------------------------------------------- 
  * 標準入力の内容を読み込みプリントサーバへ印刷情報を送信する。標準入
@@ -136,7 +140,8 @@ SendPrintFromStdin(
     int nOrientation,                           // 用紙の向き
     short dmPaperSize,                          // 用紙サイズ
     int bNum,                                   // 行番号
-    int nBinding                                // 綴じ方向
+    int nBinding,                               // 綴じ方向
+    int nSingleLine                             // 折り返し動作
     );
 /*--------------------------------------------------------------------
  * lpstrで指定された書式文字列を書式に従って編集し表示ウィンドウへ表示
@@ -212,18 +217,17 @@ GetPaperSizeComment(short dmPaperSize);
  * PostScript ファイルから、Titleを得る。
  * *-------------------------------------------------------------------*/
 LPCTSTR WINAPI
-    GetPSTitle(LPCTSTR lpszFile,                // PSファイル名
-               LPTSTR lpszTitle,                // タイトル格納エリア
-               int cbMax                        // 格納最大文字数
-               );
+GetPSTitle(LPCTSTR lpszFile,                    // PSファイル名
+           LPTSTR lpszTitle,                    // タイトル格納エリア
+           int cbMax                            // 格納最大文字数
+    );
 /* -------------------------------------------------------------------
  * クリップボードの内容をファイルに出力する
  * *-----------------------------------------------------------------*/
 BOOL WINAPI
-    ReadClipBoardToFP(HWND hWnd,                /* クリップボードをオー
-                                                 * プンするウインドウ：
-                                                 * NULLは現在のタスク
-                                                 *  */
-                      FILE *fp                  /* ファイルポインタ */
-                      );
+ReadClipBoardToFP(HWND hWnd,                   // クリップボードをオー
+                                               // プンするウインドウ： 
+                                               // NULLは現在のタスク
+                  FILE *fp                      // ファイルポインタ
+    );
 #endif //_AK2PR_H_

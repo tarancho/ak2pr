@@ -1,10 +1,22 @@
 /* -*- mode: c++; coding: sjis-dos; -*-
- * Time-stamp: <2004-06-18 09:32:37 tfuruka1>
+ * Time-stamp: <2004-12-23 20:35:40 tfuruka1>
+ * $Id: clientCommon.c,v 1.17 2004/12/23 13:14:24 tfuruka1 Exp $
+ * $Name:  $
  *
  * 「ak2psのようなもの」のクライアントの共通処理部
  *
- * $Id: clientCommon.c,v 1.16 2004/06/18 00:57:43 tfuruka1 Exp $
+ * 備忘録
+ *
+ *   オプションが増えた場合は、このファイルと、
+ *   dllmain.c(SendPrintFromStdin 等の関数の引数が変更になる可能性が大
+ *   なので) の修正が必要になります。さらに、SendPrintFromStdin等の関
+ *   数の引数が変更になった事により、wndproc.c のその関数を呼び出して
+ *   いる箇所の変更が必要になります。
+ *
  * $Log: clientCommon.c,v $
+ * Revision 1.17  2004/12/23 13:14:24  tfuruka1
+ * 折り返し動作をコマンド引数に追加した事と、それに共なう修正。
+ *
  * Revision 1.16  2004/06/18 00:57:43  tfuruka1
  * 改行コードの修正のみです。
  *
@@ -81,29 +93,35 @@ static void Usage(LPTSTR arg)
     printf("Usage: %s [-o{p|l}] [-m{PLAIN|MAIL|PS_ACROBAT|PS_GHOST}]\n"
            "\t\t[-fフォントサイズ] [-tタブ幅] [-u段組数] [-Tタイトル]\n"
            "\t\t[-Jタイトル] [-s用紙サイズ] [-n[-]] [-P] [-S] [-b{s|l}]\n"
+           "\t\t[-l{m|s}]\n"
            "\t\t[ファイル名...]\n\n"
+           "\t特に明記していない限り、オプションを省略した場合の動作は\n"
+           "\tサーバの設定値を使用します。\n"
            "\t-o 用紙の向きを指定します。デフォルトはサーバの設定。\n"
            "\t\tp PORTRAIT\n"
            "\t\tl LANDSCAPE\n"
-           "\t-m ファイルの種類を指定します。デフォルトはサーバの設定。\n"
+           "\t-m ファイルの種類を指定します。デフォルトはプレーンテキスト。\n"
            "\t\tPLAIN      プレーンテキストファイル\n"
            "\t\tMAIL       インターネットメール(SJIS)\n"
            "\t\tPS_ACROBAT PostScriptファイル(Acrobat Distillerで変換)\n"
            "\t\tPS_GHOST   PostScriptファイル(GhostScriptで印刷)\n"
-           "\t-f フォントサイズを指定します。デフォルトはサーバの設定。\n"
-           "\t-t タブ幅を指定します。デフォルトはサーバの設定。\n"
-           "\t-u 段組数を指定します。デフォルトはサーバの設定。\n"
+           "\t-f フォントサイズを指定します。\n"
+           "\t-t タブ幅を指定します。\n"
+           "\t-u 段組数を指定します。\n"
            "\t-T タイトルを指定します(-Jと同じ)。デフォルトはファイル名。\n"
            "\t-J タイトルを指定します(-Tと同じ)。デフォルトはファイル名。\n"
-           "\t-s 用紙サイズを指定します。デフォルトはサーバの設定。\n"
-           "\t-n[-] 行番号を出力します。指定しない場合はサーバの設定。\n"
+           "\t-s 用紙サイズを指定します。\n"
+           "\t-n[-] 行番号を出力します。\n"
            "\t      -n-を指定した場合は行番号を出力しない。\n"
            "\t-P 指定しても何もしません。\n"
            "\t-S サーバを起動する時に印刷停止状態で起動します。\n"
            "\t   サーバが既に起動している場合は意味を持ちません。\n"
-           "\t-b 長辺綴じ・短辺綴じを指定します。デフォルトはサーバの設定。\n"
+           "\t-b 長辺綴じ・短辺綴じを指定します。\n"
            "\t\t s 短辺綴じ\n"
            "\t\t l 長辺綴じ\n"
+           "\t-l 文字が右側に食み出した時の動作を指定します。\n"
+           "\t\t m マルチライン(右側に食み出した文字は折り返して印刷)\n"
+           "\t\t s シングルライン(右側に食み出した文字は印刷しません)\n"
            "\tファイル名 印刷するファイル名を指定します。\n"
            "\t\t指定しなかった場合は、標準入力から読み込みます。\n"
            "\t\t複数ファイル指定できます。\n--\n",
@@ -125,6 +143,7 @@ int ak2prClientCommon(int __argc, char **_argv)
     int bNum = -1;                              // 行番号出力のデフォルト
     // ↑booleanではないので注意：最初はbooleanにしていたのだが・・・
     int nBinding = -1;                          // 短辺・長辺綴じはデフォルト
+    int nSingleLine = -1;                       // 折り返しはデフォルト
 
     szSVOption[0] = '\0';
     strcpy(szBuf, "DBG: ");
@@ -142,8 +161,7 @@ int ak2prClientCommon(int __argc, char **_argv)
         if (*(__argv + i + 1)) {
             if (4095 > (strlen(szBuf) + 2)) {
                 strcat(szBuf, ", ");
-            }
-            else {
+            } else {
                 break;
             }
         }
@@ -193,6 +211,21 @@ int ak2prClientCommon(int __argc, char **_argv)
                 return 1;
             }
             continue;
+        case 'l':
+            switch (*(*(__argv + i) + 2)) {
+            case 'm': case 'M':
+                nSingleLine = 0;
+                break;
+            case 's': case 'S':
+                nSingleLine = 1;
+                break;
+            case '\0':
+            default:
+                printf("-lオプションのパラメータが不正です: %s\n",
+                       *(__argv + i));
+                return 1;
+            }
+            continue;
         case 's':
             if (!(dmPaperSize = GetPaperSizeDevMode(*(__argv + i) + 2))) {
                 printf("用紙サイズが不正です: %s\n%s", *(__argv + i) + 2,
@@ -224,21 +257,16 @@ int ak2prClientCommon(int __argc, char **_argv)
             if (*(*(__argv + i) + 2)) {
                 if (0 == stricmp("PLAIN", *(__argv + i) + 2)) {
                     nFtype = PT_TEXT;
-                }
-                else if (0 == stricmp("MAIL", *(__argv + i) + 2)) {
+                } else if (0 == stricmp("MAIL", *(__argv + i) + 2)) {
                     nFtype = PT_MAIL;
-                }
-                else if (0 == stricmp("PS_ACROBAT", *(__argv + i) + 2)) {
+                } else if (0 == stricmp("PS_ACROBAT", *(__argv + i) + 2)) {
                     nFtype = PT_PS_ACROBAT;
-                }
-                else if (0 == stricmp("PS_GHOST", *(__argv + i) + 2)) {
+                } else if (0 == stricmp("PS_GHOST", *(__argv + i) + 2)) {
                     nFtype = PT_PS_GHOST;
-                }
-                else {
+                } else {
                     nFtype = PT_TEXT;
                 }
-            }
-            else {
+            } else {
                 nFtype = PT_MAIL;
             }
             continue;
@@ -260,8 +288,7 @@ int ak2prClientCommon(int __argc, char **_argv)
         case 'T': case 'J':
             if (*(*(__argv + i) + 2)) {
                 pszTitle = strncpy(szTitle, *(__argv + i) + 2, 128);
-            }
-            else if (*(__argv+ i + 1)) {
+            } else if (*(__argv+ i + 1)) {
                 pszTitle = strncpy(szTitle, *(__argv + i + 1), 128);
                 i++;
             }
@@ -273,12 +300,12 @@ int ak2prClientCommon(int __argc, char **_argv)
         }
     }
 
-    if (i >= __argc) {                          // ファイル名指定なしの場合
+    if (i >= __argc) {                     // ファイル名指定なしの場合
         SendPrintFromStdin(FALSE, NULL, pszTitle, nUp, nTab, fFont, nFtype,
-                           nOrientation, dmPaperSize, bNum, nBinding);
+                           nOrientation, dmPaperSize, bNum, nBinding,
+                           nSingleLine);
         return 0;
-    }
-    else if (i == (__argc - 1)) {               // ファイルが一つだけ指定された
+    } else if (i == (__argc - 1)) {    // ファイルが一つだけ指定された
         // PostScriptファイルの場合は、タイトルをファイルから得る
         if ((PT_PS_ACROBAT == nFtype) || (PT_PS_GHOST == nFtype)) {
             (LPCTSTR)pszTitle
@@ -290,7 +317,7 @@ int ak2prClientCommon(int __argc, char **_argv)
         }
         SendPrintFromFileCopy(NULL, pszTitle, *(__argv + i), nUp, nTab,
                               fFont, nFtype, nOrientation, dmPaperSize,
-                              bNum, nBinding);
+                              bNum, nBinding, nSingleLine);
         return 0;
     }
 
@@ -306,7 +333,7 @@ int ak2prClientCommon(int __argc, char **_argv)
         }
         SendPrintFromFileCopy(NULL, szTitle, *(__argv + i), nUp, nTab,
                               fFont, nFtype, nOrientation, dmPaperSize,
-                              bNum, nBinding);
+                              bNum, nBinding, nSingleLine);
     }
     return 0;
 }

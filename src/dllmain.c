@@ -1,10 +1,13 @@
 /* -*- mode: C++; coding: sjis-dos; -*-
- * Time-stamp: <2004-06-18 09:32:48 tfuruka1>
+ * Time-stamp: <2004-12-23 19:47:54 tfuruka1>
+ * $Id: dllmain.c,v 1.20 2004/12/23 13:14:24 tfuruka1 Exp $
  *
  * ak2ps のようなものの共通 DLL
  *
- * $Id: dllmain.c,v 1.19 2004/06/18 00:57:57 tfuruka1 Exp $
  * $Log: dllmain.c,v $
+ * Revision 1.20  2004/12/23 13:14:24  tfuruka1
+ * 折り返し動作をコマンド引数に追加した事と、それに共なう修正。
+ *
  * Revision 1.19  2004/06/18 00:57:57  tfuruka1
  * 改行コードの修正のみです。
  *
@@ -488,7 +491,8 @@ SendPrintFromStdin(
     int nOrientation,                           // 用紙の向き
     short dmPaperSize,                          // 用紙サイズ
     int bNum,                                   // 行番号の印刷
-    int nBinding                                // 綴じ方向
+    int nBinding,                               // 綴じ方向
+    int nSingleLine                             // 折り返し動作
     )
 {
     PRT_INFO PrtInfo;                           // プリントファイル情報
@@ -500,8 +504,7 @@ SendPrintFromStdin(
     memset((LPVOID)&PrtInfo, 0, sizeof(PRT_INFO));
     if (lpszTitle) {
         strncpy(PrtInfo.szTitle, lpszTitle, 255);
-    }
-    else {
+    } else {
         strcpy(PrtInfo.szTitle, bClipBoard ? "Clipboard" : "stdin");
     }
 
@@ -514,6 +517,7 @@ SendPrintFromStdin(
     PrtInfo.bPreView = FALSE;
     PrtInfo.bNum = bNum;                        // 行番号の印刷(-1:サーバ)
     PrtInfo.bShortBinding = nBinding;           // 綴じ方向(-1:サーバ)
+    PrtInfo.nSingleLine = nSingleLine;          // 折り返し動作
 
     // 作業ファイルを作成する
     strcpy(PrtInfo.szFileName, PrtInfo.szTitle); 
@@ -559,7 +563,8 @@ SendPrintFromFileCopy(
     int nOrientation,                           // 用紙の向き
     short dmPaperSize,                          // 用紙サイズ
     int bNum,                                   // 行番号印刷
-    int nBinding                                // 綴じ方向
+    int nBinding,                               // 綴じ方向
+    int nSingleLine                             // 折り返し動作
     )
 {
     PRT_INFO PrtInfo;                           // プリントファイル情報
@@ -586,8 +591,7 @@ SendPrintFromFileCopy(
     memset((LPVOID)&PrtInfo, 0, sizeof(PRT_INFO));
     if (lpszTitle) {
         strncpy(PrtInfo.szTitle, lpszTitle, 255);
-    }
-    else {
+    } else {
         strncpy(PrtInfo.szTitle, GetLongBaseName(lpszFileName), 255);
     }
 
@@ -600,6 +604,7 @@ SendPrintFromFileCopy(
     PrtInfo.bPreView = FALSE;
     PrtInfo.bNum = bNum;                        // 行番号印刷(Booleanではない)
     PrtInfo.bShortBinding = nBinding;           // 綴じ方向(-1:サーバ)
+    PrtInfo.nSingleLine = nSingleLine;          // 折り返し動作
 
     // 作業ファイルを作成する
     strcpy(PrtInfo.szFileName, PrtInfo.szTitle); 
@@ -624,9 +629,10 @@ SendPrintFromFileCopy(
  * UNIXのSyslogの簡易版。常にdebug.local7しか出力しません。
  * *-------------------------------------------------------------------*/
 VOID WINAPI
-    Syslog(BOOL bStdOut,                        // T:stdoutにも出力
-           LPCSTR lpstr,                        // 書式printfと同じ
-           ...                                  // 引数
+Syslog(
+    BOOL bStdOut,                        // T:stdoutにも出力
+    LPCSTR lpstr,                        // 書式printfと同じ
+    ...                                  // 引数
     )
 {
     WSADATA wsaData;
@@ -746,10 +752,10 @@ GetPaperSizeComment(short dmPaperSize)
 #define PS_TITLE_STR "%%Title:"
 
 LPCTSTR WINAPI
-    GetPSTitle(LPCTSTR lpszFile,                // PSファイル名
-               LPTSTR lpszTitle,                // タイトル格納エリア
-               int cbMax                        // 格納最大文字数
-               )
+GetPSTitle(LPCTSTR lpszFile,                    // PSファイル名
+           LPTSTR lpszTitle,                    // タイトル格納エリア
+           int cbMax                            // 格納最大文字数
+    )
 {
     FILE *fp;
     TCHAR szBuf[1024], *p;
@@ -770,8 +776,7 @@ LPCTSTR WINAPI
     fclose(fp);
     if (p) {
         strncpy(lpszTitle, p + strlen(PS_TITLE_STR), cbMax);
-    }
-    else {
+    } else {
         strncpy(lpszTitle, "unclear title", cbMax);
     }
     TrimString(lpszTitle);

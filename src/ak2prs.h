@@ -2,8 +2,11 @@
  *
  * 「ak2psのようなもの」のサーバ側のヘッダファイル
  *
- * $Id: ak2prs.h,v 1.25 2004/12/23 08:11:56 tfuruka1 Exp $
+ * $Id: ak2prs.h,v 1.26 2004/12/23 13:14:24 tfuruka1 Exp $
  * $Log: ak2prs.h,v $
+ * Revision 1.26  2004/12/23 13:14:24  tfuruka1
+ * 折り返し動作をコマンド引数に追加した事と、それに共なう修正。
+ *
  * Revision 1.25  2004/12/23 08:11:56  tfuruka1
  * シングルライン印刷(食ミ出した部分を印刷しない)に対応しました。とりあえ
  * ず、サーバ側の設定のみです。
@@ -124,7 +127,8 @@
 #define _AK2PRS_H_
 
 #include "ver.h"
-#define VERSION   "Version " MAKE_VERSION "($Name:  $)"
+#define VERSION       "ak2pr Version " MAKE_VERSION "($Name:  $)"
+#define COPYRIGHT_STR "Copyright(C) 1997-2004 By T.Furukawa"
 
 #include <windows.h>
 #include <windowsx.h>
@@ -153,8 +157,8 @@
 
 #define SV_EXE_NAME "ak2prSV.EXE"
 
-#define COPYRIGHT   "ak2pr " VERSION \
-" Copyright 1997-2004 By T.Furukawa\n(tfuruka1@nifty.com)" TIMESTAMP
+#define COPYRIGHT VERSION " " COPYRIGHT_STR\
+"\n(tfuruka1@nifty.com)" TIMESTAMP
 
 // 1バイト目が漢字コードか否かチェックするマクロ
 #define IsKanjiSJIS(c)  (((c) >= 0x81 && (c) <= 0x9f) ||\
@@ -391,6 +395,7 @@ void PrintText(void);
 BOOL PrintPreview(HWND hWnd, PPREVIEW_INFO);
 void SetPreViewPos(LPRECT lprc);
 void GetPreViewPos(LPRECT lprc);
+VOID ShowVersion(HWND hWnd);
 
 VOID WINAPI LsFontToCOMBO(HWND hWnd);
 BOOL WINAPI GetLogFont(LPLOGFONT lplf);
