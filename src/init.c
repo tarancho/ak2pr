@@ -1,10 +1,23 @@
 /* -*- mode: c++; coding: sjis-dos; -*-
- * Time-stamp: <2004-08-21 09:16:14 tfuruka1>
+ * Time-stamp: <2004-12-23 16:12:46 tfuruka1>
+ * $Id: init.c,v 1.13 2004/12/23 08:11:56 tfuruka1 Exp $
+ * $Name:  $
  *
  * 「ak2psのようなもの」のサーバの初期化処理
  *
- * $Id: init.c,v 1.12 2004/08/21 01:01:01 tfuruka1 Exp $
+ * 備忘録
+ *
+ *   印刷オプション等を追加した場合、init.c, setup.c に修正が必要なの
+ *   はファイル名から判断するのは容易ですが、その他にも以下のファイル
+ *   に修正が必要になります。
+ *
+ *     wndproc.c - WM_COPYDATA の処理部
+ *
  * $Log: init.c,v $
+ * Revision 1.13  2004/12/23 08:11:56  tfuruka1
+ * シングルライン印刷(食ミ出した部分を印刷しない)に対応しました。とりあえ
+ * ず、サーバ側の設定のみです。
+ *
  * Revision 1.12  2004/08/21 01:01:01  tfuruka1
  * テキスト印刷に於いて「行間」と「罫線連結」が有効になるようにしました。
  *
@@ -62,6 +75,7 @@
 #define KEY_BASELINE "nBaseLine"
 #define KEY_BPREVIEW "bPreview"
 #define KEY_BDEBUG   "bDebug"
+#define KEY_BSINGLE_LINE "bSingleLine"
 #define KEY_BNOCOPYRIGHT "bNoCopyrightPrint"
 #define KEY_BSHORT_BINDING "bShortBinding"
 
@@ -263,6 +277,9 @@ GetDefaultPrtInfo(void)
     GET_PROFILE(PROFILE_SEC, KEY_BSHORT_BINDING);
     g_PrtInfo.bShortBinding = IsBadStr(szBuf) ? FALSE : atoi(szBuf);
 
+    GET_PROFILE(PROFILE_SEC, KEY_BSINGLE_LINE);
+    g_PrtInfo.nSingleLine = IsBadStr(szBuf) ? FALSE : atoi(szBuf);
+
     // フォント情報を得る
     GET_PROFILE(SEC_FONT, KEY_THF);
     strncpy(g_PrtInfo.lfTHF.lfFaceName, IsBadStr(szBuf) ? FN_MSM : szBuf,
@@ -306,7 +323,7 @@ GetDefaultPrtInfo(void)
 }
 
 /*--------------------------------------------------------------------
- *
+ * 印刷設定情報を書き戻す
  * *-------------------------------------------------------------------*/
 void
 SetDefaultPrtInfo(void)
@@ -353,6 +370,9 @@ SetDefaultPrtInfo(void)
 
     sprintf(szBuf, "%d", g_PrtInfo.bShortBinding);
     WRT_PROFILE(PROFILE_SEC, KEY_BSHORT_BINDING, szBuf);
+
+    sprintf(szBuf, "%d", g_PrtInfo.nSingleLine);
+    WRT_PROFILE(PROFILE_SEC, KEY_BSINGLE_LINE, szBuf);
 
     // フォント情報の書き込み
     WRT_PROFILE(SEC_FONT, KEY_THF, g_PrtInfo.lfTHF.lfFaceName);

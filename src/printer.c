@@ -1,10 +1,15 @@
 /* -*- mode: c++; coding: sjis-dos; -*-
- * Time-stamp: <2004-08-21 09:03:12 tfuruka1>
+ * Time-stamp: <2004-12-23 16:22:17 tfuruka1>
+ * $Id: printer.c,v 1.12 2004/12/23 08:11:56 tfuruka1 Exp $
+ * $Name:  $
  *
  * 「ak2psのようなもの」のプリンタ制御関連
  *
- * $Id: printer.c,v 1.11 2004/08/21 01:01:01 tfuruka1 Exp $
  * $Log: printer.c,v $
+ * Revision 1.12  2004/12/23 08:11:56  tfuruka1
+ * シングルライン印刷(食ミ出した部分を印刷しない)に対応しました。とりあえ
+ * ず、サーバ側の設定のみです。
+ *
  * Revision 1.11  2004/08/21 01:01:01  tfuruka1
  * テキスト印刷に於いて「行間」と「罫線連結」が有効になるようにしました。
  *
@@ -736,11 +741,22 @@ PutcPrinter(
     // 印字した結果、幅を超えないか調べる
     GetTextExtentPoint32(g_MailBox.hDC, szBuf, cbString, &Size);
     if ((nCurrentX + Size.cx) > nEndX) {        // 幅を超えている
+        // シングルライン印刷の場合は、以降行が変わるまで、印刷しない
+        // ようにする
+        if (g_MailBox.PrtInfo.nSingleLine) {
+            // 如何なる幅の文字でも、これ以降は印刷しないように必ず幅
+            // を越えるようにしておく。例えば、プロポーショナルフォン
+            // トで最初にMが出現して、その後、iが出現した場合、Mは印刷
+            // できないが、iは印刷できる現象が発生するのを抑止するのが
+            // 目的です
+            nCurrentX = nEndX;
+            return TRUE;
+        }
+
         nCurrentX = nStartX;
         if (bKeisen) {
             nCurrentY += nBasePoint;
-        }
-        else {
+        } else {
             nCurrentY += (bKanji ? nBaseLineK : nBaseLine);
         }
         bKanji = bKeisen = FALSE;

@@ -2,8 +2,12 @@
  *
  * 「ak2psのようなもの」のサーバ側のヘッダファイル
  *
- * $Id: ak2prs.h,v 1.24 2004/08/21 11:12:49 tfuruka1 Exp $
+ * $Id: ak2prs.h,v 1.25 2004/12/23 08:11:56 tfuruka1 Exp $
  * $Log: ak2prs.h,v $
+ * Revision 1.25  2004/12/23 08:11:56  tfuruka1
+ * シングルライン印刷(食ミ出した部分を印刷しない)に対応しました。とりあえ
+ * ず、サーバ側の設定のみです。
+ *
  * Revision 1.24  2004/08/21 11:12:49  tfuruka1
  * VersionをVersionファイルから取得するようにしました。
  *
@@ -211,6 +215,7 @@ typedef struct _PrtInfo{
     BOOL bDebug;                                // T: デバッグ印刷
     BOOL bNoCopyright;                          // T: Copyrightを印刷しない
     BOOL bShortBinding;                         // T: 短編綴じ
+    int nSingleLine;                            // T: 折り返さない
     double fFontSize;                           // フォントサイズ --- Point
     LOGFONT lfTHF;                              // 等幅フォント情報
     LOGFONT lfPPF;                         // プロポーショナルフォント

@@ -1,9 +1,13 @@
 /* -*- mode: c++; coding: sjis-dos; -*-
+ * $Id: wndproc.c,v 1.20 2004/12/23 08:12:08 tfuruka1 Exp $
  *
  * 「ak2psのようなもの」のウインドウプロシジャ
  *
- * $Id: wndproc.c,v 1.19 2004/08/21 01:01:01 tfuruka1 Exp $
  * $Log: wndproc.c,v $
+ * Revision 1.20  2004/12/23 08:12:08  tfuruka1
+ * シングルライン印刷(食ミ出した部分を印刷しない)に対応しました。とりあえ
+ * ず、サーバ側の設定のみです。
+ *
  * Revision 1.19  2004/08/21 01:01:01  tfuruka1
  * テキスト印刷に於いて「行間」と「罫線連結」が有効になるようにしました。
  *
@@ -87,7 +91,7 @@
 // (replace-regexp "/\\*\\(.+\\)\\*/" "//\\1")
 // (replace-regexp "[ \t]+$" "")
 
-#define TIME_STAMP "Time-stamp: <2004-08-21 09:26:29 tfuruka1>"
+#define TIME_STAMP "Time-stamp: <2004-12-23 16:12:48 tfuruka1>"
 
 #include "ak2prs.h"
 
@@ -368,6 +372,9 @@ DoCopyData(
     if (-1 == pPrtInfo->bShortBinding) {
         pPrtInfo->bShortBinding = g_PrtInfo.bShortBinding;
     }
+    if (-1 == pPrtInfo->nSingleLine) {
+        pPrtInfo->nSingleLine = g_PrtInfo.nSingleLine;
+    }
 
     // PostScript関連は現状、コマンドラインから入力できないので、全て
     // デフォルトの値を使用する。
@@ -634,13 +641,11 @@ SendPrintDirectory(LPTSTR lpszFile)
 
                 if (0 != lstrcmpi(szFile, GetTempDirectoryName())) {
                     SendPrintDirectory(szFile);
-                }
-                else {
+                } else {
                     DbgPrint(NULL, 'W', "%sは作業ディレクトリです", szFile);
                 }
             }
-        }
-        else {
+        } else {
             // ディレクトリ以外の場合は、印刷要求を行う。但し、作業ディ
             // レクトリ内のファイルは印字しない。無限ループしちゃうの
             // で。
@@ -648,8 +653,7 @@ SendPrintDirectory(LPTSTR lpszFile)
                                strlen(GetTempDirectoryName()))) {
                 SendPrintFromFileCopy(NULL, NULL, szFile, 0, 0, 0,
                                       PT_TEXT, 0, 0, -1, -1);
-            }
-            else {
+            } else {
                 DbgPrint(NULL, 'W', "%sは作業ディレクトリ内のファイルです",
                          szFile);
             }
@@ -690,15 +694,13 @@ DoDropFiles(
         // ディレクトリの場合は、その下のファイルを検索する
         if (FILE_ATTRIBUTE_DIRECTORY & dwFa) {
             SendPrintDirectory(szFile);
-        }
-        else {
+        } else {
             // 作業ファイル内のファイル以外の場合は、印刷要求を行う
             if (0 != _strnicmp(szFile, GetTempDirectoryName(),
                                strlen(GetTempDirectoryName()))) {
                 SendPrintFromFileCopy(NULL, NULL, szFile, 0, 0, 0,
                                       PT_TEXT, 0, 0, -1, -1);
-            }
-            else {
+            } else {
                 DbgPrint(NULL, 'W', "%sは作業ディレクトリ内のファイルです",
                          szFile);
             }
