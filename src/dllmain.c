@@ -1,10 +1,14 @@
 /* -*- mode: C++; coding: sjis-dos; -*-
- * Time-stamp: <2003-03-19 23:46:40 tfuruka1>
+ * Time-stamp: <2003-04-12 06:34:32 tfuruka1>
  *
  * ak2ps のようなものの共通 DLL
  *
- * $Id: dllmain.c,v 1.14 2003/03/29 12:43:59 tfuruka1 Exp $
+ * $Id: dllmain.c,v 1.15 2003/04/11 21:40:44 tfuruka1 Exp $
  * $Log: dllmain.c,v $
+ * Revision 1.15  2003/04/11 21:40:44  tfuruka1
+ * GetLongBaseName関数で自動変数のポインタを返却していたバグを修正（露見
+ * していなかったが、メモリ破壊をおこす可能性あり）
+ *
  * Revision 1.14  2003/03/29 12:43:59  tfuruka1
  * ● SendPrintFromStdin関数でクリップボードの内容を読み込む処理を追加し
  *    た。
@@ -331,7 +335,7 @@ LPCTSTR WINAPI
 GetLongBaseName(LPCTSTR lpszPath)
 {
     HANDLE hFile;
-    WIN32_FIND_DATA wfd;
+    static WIN32_FIND_DATA wfd;
 
     hFile = FindFirstFile(lpszPath, &wfd);
     if (INVALID_HANDLE_VALUE == hFile) {
