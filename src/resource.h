@@ -25,12 +25,10 @@
 #define IDC_C_NORHEAD                   1006
 #define IDC_DEFAULT                     1007
 #define IDC_PICTURE                     1008
-
 #define IDC_R_JAPAN                     1009
 #define IDC_R_ENGLISH                   1010
 #define IDC_R_NOINTERLINE               1011
 #define IDC_R_AUTO                      1012
-
 #define IDC_C_KEISEN                    1014
 #define IDC_C_NUM                       1015
 #define IDC_PRINTER                     1016
@@ -40,10 +38,12 @@
 #define IDC_ED_GSOP                     1021
 #define IDC_BT_GSOP                     1022
 #define IDC_CHK_PREVIEW                 1023
+#define IDC_BT_GS_REF                   1023
 #define IDC_C_DEBUG                     1024
 #define IDC_CHK_NOCOPYRIGHT             1025
 #define IDC_ED_TITLE                    1025
 #define IDC_CHK_SHORT_BINDING           1026
+#define IDC_CHK_SINGLE_LINE             1027
 #define IDC_COMBO_THF                   1028
 #define IDC_COMBO_PPF                   1029
 #define IDC_COMBO_OF                    1030
