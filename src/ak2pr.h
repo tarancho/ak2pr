@@ -1,10 +1,14 @@
 /* -*- mode: c++; coding: sjis-dos;-*-
- * Time-stamp: <2003-02-25 23:52:54 tfuruka1>
+ * Time-stamp: <2003-03-14 21:58:03 tfuruka1>
  *
  * 「ak2psのようなもの」の共通ヘッダファイル(クライアント用)
  *
- * $Id: ak2pr.h,v 1.7 2003/02/25 15:32:01 tfuruka1 Exp $
+ * $Id: ak2pr.h,v 1.8 2003/03/14 16:01:06 tfuruka1 Exp $
  * $Log: ak2pr.h,v $
+ * Revision 1.8  2003/03/14 16:01:06  tfuruka1
+ * ● 関数の仕様変更及び、新規追加によるプロトタイプの変更(Syslog,
+ *    ExecutePrtServer, GetPSTitle)を行った。
+ *
  * Revision 1.7  2003/02/25 15:32:01  tfuruka1
  * 行番号出力制御による修正
  *
@@ -161,15 +165,16 @@ DbgDump(
  * *-------------------------------------------------------------------*/
 VOID WINAPI
 Syslog(
-    LPCSTR lpstr,                               // 書式printfと同じ
-    ...                                         // 引数
+       BOOL bStdOut,                            // T:標準出力へも出力
+       LPCSTR lpstr,                            // 書式printfと同じ
+       ...                                      // 引数
     );
 /*--------------------------------------------------------------------
  * プリントサーバを起動する。正常に起動出来た場合は TRUE を返却する。起
  * 動できなかった場合は FALSE を返す。
  * *-------------------------------------------------------------------*/
 BOOL WINAPI
-ExecutePrtServer(VOID);
+ExecutePrtServer(LPCTSTR lpszOption);
 /*-------------------------------------------------------------------- 
  * 指定可能な用紙サイズの一覧を返却する。
  * 
@@ -187,4 +192,14 @@ GetPaperSizeDevMode(LPTSTR cmdOpt);
  * *-------------------------------------------------------------------*/
 LPCTSTR WINAPI
 GetPaperSizeComment(short dmPaperSize);
+
+/*--------------------------------------------------------------------
+ * PostScript ファイルから、Titleを得る。
+ * *-------------------------------------------------------------------*/
+LPCTSTR WINAPI
+    GetPSTitle(LPCTSTR lpszFile,                // PSファイル名
+               LPTSTR lpszTitle,                // タイトル格納エリア
+               int cbMax                        // 格納最大文字数
+               );
+
 #endif //_AK2PR_H_
