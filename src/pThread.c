@@ -1,10 +1,15 @@
 /* -*- mode: C++; coding: sjis-dos; -*-
- * Time-stamp: <2001-10-01 22:07:18 tfuruka1>
+ * Time-stamp: <2001-12-06 22:58:01 tfuruka1>
  *
  * 「ak2psのようなもの」の印刷スレッド
  *
- * $Id: pThread.c,v 1.5 2001/10/01 13:20:05 tfuruka1 Exp $
+ * $Id: pThread.c,v 1.6 2001/12/06 14:01:17 tfuruka1 Exp $
  * $Log: pThread.c,v $
+ * Revision 1.6  2001/12/06 14:01:17  tfuruka1
+ * DEVMODE構造体の複写が完全でなかった問題を修正。sizeof(DEVMODE)から、
+ * dmDriverExtra + dmSizeへ変更した。(環境によっては、CreateDCで落ちる事
+ * があったので)
+ *
  * Revision 1.5  2001/10/01 13:20:05  tfuruka1
  * 用紙の向きを指定出来るように修正。
  *
@@ -131,7 +136,8 @@ PrintThread(LPDWORD lpIDThread)
     HANDLE hFile;                               // FindFile用のハンドル
     LPDEVNAMES lpDevNames;
     LPDEVMODE lpDevMode;
-    DEVMODE DevMode;                            // プリンタデバイス
+    LPDEVMODE lpWkDevMode;                      // プリンタデバイス
+    LONG cbDevMode;                             // プリンタデバイスサイズ
     HDC hDC;                                    // プリンタデバイスコンテキスト
 
     DbgPrint(NULL, 'I', "印刷Thread起動完了");
@@ -168,21 +174,29 @@ PrintThread(LPDWORD lpIDThread)
 
         // 用紙の向きを書き換えるので、オリジナルをコピーして、用紙の
         // 向きを設定する
-        memcpy(&DevMode, lpDevMode, sizeof(DEVMODE));
+        cbDevMode = lpDevMode->dmSize + lpDevMode->dmDriverExtra;
+        if (lpWkDevMode = malloc(cbDevMode)) {
+            memcpy(lpWkDevMode, lpDevMode, cbDevMode);
 
-        // 用紙の向きが指定されている場合は設定し直す
-        if (g_MailBox.PrtInfo.nOrientation) {
-            DevMode.dmOrientation = g_MailBox.PrtInfo.nOrientation;
+            // 用紙の向きが指定されている場合は設定し直す
+            if (g_MailBox.PrtInfo.nOrientation) {
+                lpWkDevMode->dmOrientation = g_MailBox.PrtInfo.nOrientation;
+            }
+
+            DbgPrint(NULL, 'I', "デバイス情報:%s, %s, %s",
+                     (PCHAR)lpDevNames + lpDevNames->wDriverOffset,
+                     (PCHAR)lpDevNames + lpDevNames->wDeviceOffset,
+                     (PCHAR)lpDevNames + lpDevNames->wOutputOffset);
+
+            hDC = CreateDC((PCHAR)lpDevNames + lpDevNames->wDriverOffset,
+                           (PCHAR)lpDevNames + lpDevNames->wDeviceOffset,
+                           NULL, lpWkDevMode);
+            free(lpWkDevMode);
         }
-
-        DbgPrint(NULL, 'I', "デバイス情報:%s, %s, %s",
-                 (PCHAR)lpDevNames + lpDevNames->wDriverOffset,
-                 (PCHAR)lpDevNames + lpDevNames->wDeviceOffset,
-                 (PCHAR)lpDevNames + lpDevNames->wOutputOffset);
-
-        hDC = CreateDC((PCHAR)lpDevNames + lpDevNames->wDriverOffset,
-                       (PCHAR)lpDevNames + lpDevNames->wDeviceOffset,
-                       NULL, &DevMode);
+        else {
+            hDC = NULL;
+            DbgPrint(NULL, 'E', "メモリ不足(DEVMODE確保)");
+        }
         g_MailBox.hDC = hDC;
 
         GlobalUnlock(g_MailBox.hDevNames);
