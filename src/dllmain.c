@@ -1,31 +1,20 @@
 /* -*- mode: C++; coding: sjis-dos; -*-
- * Time-stamp: <2000-11-05 15:05:35 tfuruka1>
+ * Time-stamp: <2001-02-06 02:36:02 tfuruka1>
  *
  * ak2ps のようなものの共通 DLL
  *
- * $Id: dllmain.c,v 1.1 2001/02/05 17:35:32 tfuruka1 Exp $
+ * $Id: dllmain.c,v 1.2 2001/02/05 17:38:02 tfuruka1 Exp $
  * $Log: dllmain.c,v $
+ * Revision 1.2  2001/02/05 17:38:02  tfuruka1
+ * RCSがおかしくなったので、復旧した。過去の修正内容は以下の通り。
+ * ●標準入力から読み込んだバイト数がゼロの場合は処理を行わないように修正
+ *   した。
+ * ●Syslog関数を追加した。主な目的はデバッグ用である。
+ * ●GetLongBaseName関数を追加した。
+ *
  * Revision 1.1  2001/02/05 17:35:32  tfuruka1
  * Initial revision
  *
- * Revision 1.3  2000/11/05 06:07:03  tfuruka1
- * 標準入力から読み込んだバイト数がゼロの場合は処理を行わないように修正し
- * た。
- *
- * Revision 1.2  2000/11/04 13:52:09  tfuruka1
- * Syslog関数を追加した。主な目的はデバッグ用である。
- *
- * Revision 1.1  2000/11/04 13:50:26  tfuruka1
- * Initial revision
- *
- * Revision 1.3  2000/10/22 11:21:55  tfuruka1
- * RCSがおかしくなったので復旧した。
- *
- * Revision 1.2  2000/10/22 09:37:57  tfuruka1
- * GetLongBaseName関数を追加した。
- *
- * Revision 1.1  1999/12/16 04:25:57  tfuruka1
- * Initial revision
  *
  */
 #include "ak2prs.h"
