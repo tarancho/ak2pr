@@ -2,8 +2,12 @@
  *
  * 「ak2psのようなもの」のサーバ側のヘッダファイル
  *
- * $Id: ak2prs.h,v 1.18 2003/04/11 21:38:02 tfuruka1 Exp $
+ * $Id: ak2prs.h,v 1.19 2004/01/11 11:07:35 tfuruka1 Exp $
  * $Log: ak2prs.h,v $
+ * Revision 1.19  2004/01/11 11:07:35  tfuruka1
+ * Version番号の変更のみ。バッファ名にリダイレクト記号が含まれていた場合
+ * に作業ファイルの作成に失敗する問題を修正(dllmain.c)。
+ *
  * Revision 1.18  2003/04/11 21:38:02  tfuruka1
  * ● Version番号の変更のみ --- 露見していなかったが、メモリ破壊を起こす
  *    可能性があった部分を修正 (dllmain.c) ---
@@ -99,8 +103,8 @@
 #ifndef _AK2PRS_H_
 #define _AK2PRS_H_
 
-#define TIMESTAMP "Time-stamp: <2003-04-12 06:35:45 tfuruka1>"
-#define VERSION   "Version 2.3 beta-1"
+#define TIMESTAMP "Time-stamp: <2004-01-11 20:06:13 tfuruka1>"
+#define VERSION   "Version 2.3 beta-2"
 
 #include <windows.h>
 #include <windowsx.h>
