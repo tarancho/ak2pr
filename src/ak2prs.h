@@ -2,8 +2,12 @@
  *
  * 「ak2psのようなもの」のサーバ側のヘッダファイル
  *
- * $Id: ak2prs.h,v 1.1 2001/02/05 17:16:50 tfuruka1 Exp $
+ * $Id: ak2prs.h,v 1.2 2001/08/18 16:34:06 tfuruka1 Exp $
  * $Log: ak2prs.h,v $
+ * Revision 1.2  2001/08/18 16:34:06  tfuruka1
+ * ●PRT_INFO構造体からbDeleteメンバを削除した。
+ * ●DeleteQueue関数が新規追加されたので、プロトタイプ宣言を追加した。
+ *
  * Revision 1.1  2001/02/05 17:16:50  tfuruka1
  * Initial revision
  *
@@ -14,7 +18,7 @@
 #ifndef _AK2PRS_H_
 #define _AK2PRS_H_
 
-#define TIMESTAMP "Time-stamp: <2001-02-06 02:16:39 tfuruka1>"
+#define TIMESTAMP "Time-stamp: <2001-08-19 01:01:17 tfuruka1>"
 #define VERSION   "1.02"
 
 #include <windows.h>
@@ -89,7 +93,6 @@ typedef struct _PrtInfo{
     int nTab;                                   // TAB幅
     int nType;                                  // 印刷タイプ
     CHAR szTimeStamp[64];
-    BOOL bDelete;                               // 印刷後削除する
     CHAR szTimeStamp1[64];
     int nBaseLine;                              // 0: Non, 1:E, 2:J, 9:A
     BOOL bNum;                                  // T: 行番号印刷
@@ -160,7 +163,11 @@ DeQueue(
     HWND hWnd,                                  // ハンドル
     PPRT_INFO pPrtInfo                          // 印刷情報
     );
-
+int
+DeleteQueue(
+    HWND hWnd,                                  // ハンドル
+    BOOL bForce                                 // T:全て削除
+    );
 BOOL
 SetupPrinter(
     HWND hWnd,                                  // ハンドル
