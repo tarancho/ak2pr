@@ -2,8 +2,11 @@
  *
  * 「ak2psのようなもの」のサーバ側のヘッダファイル
  *
- * $Id: ak2prs.h,v 1.16 2003/03/15 14:45:58 tfuruka1 Exp $
+ * $Id: ak2prs.h,v 1.17 2003/03/29 12:56:15 tfuruka1 Exp $
  * $Log: ak2prs.h,v $
+ * Revision 1.17  2003/03/29 12:56:15  tfuruka1
+ * ● 公開用Versionの取得 ─── Version 2.2 ───
+ *
  * Revision 1.16  2003/03/15 14:45:58  tfuruka1
  * ● プレビュー時の印刷設定に対応するための修正に伴う定数の追加とプロト
  *    タイプの修正を行った。
@@ -92,8 +95,8 @@
 #ifndef _AK2PRS_H_
 #define _AK2PRS_H_
 
-#define TIMESTAMP "Time-stamp: <2003-03-15 22:59:34 tfuruka1>"
-#define VERSION   "Version 2.2+Beta2"
+#define TIMESTAMP "Time-stamp: <2003-03-29 10:41:58 tfuruka1>"
+#define VERSION   "Version 2.2"
 
 #include <windows.h>
 #include <windowsx.h>
