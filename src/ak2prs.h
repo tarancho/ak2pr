@@ -2,8 +2,12 @@
  *
  * 「ak2psのようなもの」のサーバ側のヘッダファイル
  *
- * $Id: ak2prs.h,v 1.19 2004/01/11 11:07:35 tfuruka1 Exp $
+ * $Id: ak2prs.h,v 1.20 2004/01/12 09:57:53 tfuruka1 Exp $
  * $Log: ak2prs.h,v $
+ * Revision 1.20  2004/01/12 09:57:53  tfuruka1
+ * 短辺綴じと長辺綴じに対応しました。それに合わせてVerison番号も変更しま
+ * した。
+ *
  * Revision 1.19  2004/01/11 11:07:35  tfuruka1
  * Version番号の変更のみ。バッファ名にリダイレクト記号が含まれていた場合
  * に作業ファイルの作成に失敗する問題を修正(dllmain.c)。
@@ -103,8 +107,8 @@
 #ifndef _AK2PRS_H_
 #define _AK2PRS_H_
 
-#define TIMESTAMP "Time-stamp: <2004-01-11 20:06:13 tfuruka1>"
-#define VERSION   "Version 2.3 beta-2"
+#define TIMESTAMP "Time-stamp: <2004-01-12 18:57:26 tfuruka1>"
+#define VERSION   "Version 2.3 beta-3"
 
 #include <windows.h>
 #include <windowsx.h>
@@ -194,6 +198,7 @@ typedef struct _PrtInfo{
     BOOL bPreView;                              // T: プレビュー
     BOOL bDebug;                                // T: デバッグ印刷
     BOOL bNoCopyright;                          // T: Copyrightを印刷しない
+    BOOL bShortBinding;                         // T: 短編綴じ
     double fFontSize;                           // フォントサイズ --- Point
 
     // ----- 以下はPostScript印刷時の情報
