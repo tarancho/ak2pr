@@ -1,10 +1,13 @@
 /* -*- mode: c++; coding: sjis-dos; -*-
- * Time-stamp: <2001-08-19 11:45:09 tfuruka1>
+ * Time-stamp: <2001-08-19 17:14:12 tfuruka1>
  *
  * 「ak2psのようなもの」のサーバの初期化処理
  *
- * $Id: init.c,v 1.2 2001/08/19 04:36:41 tfuruka1 Exp $
+ * $Id: init.c,v 1.3 2001/08/19 08:55:39 tfuruka1 Exp $
  * $Log: init.c,v $
+ * Revision 1.3  2001/08/19 08:55:39  tfuruka1
+ * PostScriptファイルを印刷するときにGhostScriptを呼び出せるようにした。
+ *
  * Revision 1.2  2001/08/19 04:36:41  tfuruka1
  * PostScriptファイルの暫定対応（ただ単にDistillerの監視フォルダに放り込
  * むだけ）。
@@ -35,7 +38,8 @@
 
 #define SEC_PS       "PostScript"
 #define KEY_ACRIN    "AcrobatDistillerWatchdogFolderIN"
-#define KEY_GS       "GhostScript"
+#define KEY_GS       "GhostScript.Path"
+#define KEY_GSOP     "GhostScript.Option"
 
 #define BAD_STR      "(^_^;"
 #define GET_PROFILE(sec, key) GetPrivateProfileString((sec), (key),\
@@ -213,6 +217,9 @@ GetDefaultPrtInfo(void)
 
     GET_PROFILE(SEC_PS, KEY_GS);
     strncpy(g_MailBox.szGsPath, szBuf, MAX_PATH);
+
+    GET_PROFILE(SEC_PS, KEY_GSOP);
+    strncpy(g_MailBox.szGsOpt, szBuf, 512);
 }
 
 /*--------------------------------------------------------------------
@@ -271,6 +278,7 @@ SetDefaultPrtInfo(void)
     // PostScript情報関連の書き込み
     WRT_PROFILE(SEC_PS, KEY_ACRIN, g_MailBox.szAcrobat);
     WRT_PROFILE(SEC_PS, KEY_GS, g_MailBox.szGsPath);
+    WRT_PROFILE(SEC_PS, KEY_GSOP, g_MailBox.szGsOpt);
 }
 
 /*--------------------------------------------------------------------

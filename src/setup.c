@@ -1,10 +1,13 @@
 /* -*- mode: c++; coding: sjis-dos; -*-
- * Time-stamp: <2001-08-19 12:47:54 tfuruka1>
+ * Time-stamp: <2001-08-19 17:21:53 tfuruka1>
  *
  * 「ak2psのようなもの」の印字設定
  *
- * $Id: setup.c,v 1.3 2001/08/19 04:33:53 tfuruka1 Exp $
+ * $Id: setup.c,v 1.4 2001/08/19 08:54:55 tfuruka1 Exp $
  * $Log: setup.c,v $
+ * Revision 1.4  2001/08/19 08:54:55  tfuruka1
+ * PostScriptファイルを印刷するときにGhostScriptを呼び出せるようにした。
+ *
  * Revision 1.3  2001/08/19 04:33:53  tfuruka1
  * PostScriptファイルの暫定対応（ただ単にDistillerの監視フォルダに放り込
  * むだけ）。
@@ -21,6 +24,8 @@
 // (replace-regexp "[ \t]+$" "")
 
 #include "ak2prs.h"
+
+#define GS_DEF_OPT "-dNOPAUSE -dBATCH -sDEVICE=mswinpr2"
 
 PRT_INFO g_PrtInfo;                             // デフォルト印刷情報
 static PRT_INFO PrtInfoTmp;                     // 印刷情報作業用
@@ -59,7 +64,6 @@ GetOpenFileNameWrap(
     if (!GetOpenFileName(&of)) return NULL;
     return lpszFileName;
 }
-
 
 //
 // ━━━━━━以下は共通設定のコールバック集です━━━━━━━━━━
@@ -370,6 +374,7 @@ DoInitDialogPs(
 {
     SetDlgItemText(hWnd, IDC_ED_ACRIN, g_MailBox.szAcrobat);
     SetDlgItemText(hWnd, IDC_ED_GHOST, g_MailBox.szGsPath);
+    SetDlgItemText(hWnd, IDC_ED_GSOP, g_MailBox.szGsOpt);
     return TRUE;
 }
 
@@ -381,26 +386,9 @@ DoCommandPs(
     UINT codeNotify                             // 通知コード
     )
 {
-    TCHAR szBuf[1024];
-
     switch (id) {                               // コントロール番号
-    case IDC_BT_ACRIN:
-        GetDlgItemText(hWnd, IDC_ED_ACRIN, szBuf, MAX_PATH);
-        if (GetOpenFileNameWrap(hWnd,
-                                "全てのファイル\0*.*\0\0",
-                                "Acrobat Distillerの監視フォルダ[In]",
-                                szBuf)) {
-            SetDlgItemText(hWnd, IDC_ED_ACRIN, szBuf);
-        }
-        break;
-    case IDC_BT_GHOST:
-        GetDlgItemText(hWnd, IDC_ED_GHOST, szBuf, MAX_PATH);
-        if (GetOpenFileNameWrap(hWnd,
-                                "実行ファイル\0*.exe\0\0",
-                                "GhostScript",
-                                szBuf)) {
-            SetDlgItemText(hWnd, IDC_ED_GHOST, szBuf);
-        }
+    case IDC_BT_GSOP:
+        SetDlgItemText(hWnd, IDC_ED_GSOP, GS_DEF_OPT);
         break;
     }
 }
@@ -410,6 +398,7 @@ DoClosePs(HWND hWnd)
 {
     GetDlgItemText(hWnd, IDC_ED_ACRIN, g_MailBox.szAcrobat, MAX_PATH);
     GetDlgItemText(hWnd, IDC_ED_GHOST, g_MailBox.szGsPath, MAX_PATH);
+    GetDlgItemText(hWnd, IDC_ED_GSOP, g_MailBox.szGsOpt, 512);
 }
 
 static BOOL

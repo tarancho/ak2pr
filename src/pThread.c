@@ -1,10 +1,13 @@
 /* -*- mode: C++; coding: sjis-dos; -*-
- * Time-stamp: <2001-08-19 12:09:33 tfuruka1>
+ * Time-stamp: <2001-08-19 17:53:51 tfuruka1>
  *
  * 「ak2psのようなもの」の印刷スレッド
  *
- * $Id: pThread.c,v 1.3 2001/08/19 04:34:21 tfuruka1 Exp $
+ * $Id: pThread.c,v 1.4 2001/08/19 08:54:28 tfuruka1 Exp $
  * $Log: pThread.c,v $
+ * Revision 1.4  2001/08/19 08:54:28  tfuruka1
+ * PostScriptファイルを印刷するときにGhostScriptを呼び出せるようにした。
+ *
  * Revision 1.3  2001/08/19 04:34:21  tfuruka1
  * PostScriptファイルの暫定対応（ただ単にDistillerの監視フォルダに放り込
  * むだけ）。
@@ -26,6 +29,75 @@
 
 MAILBOX g_MailBox;                              // スレッド間メールボックス
 
+static long WINAPI
+ProcessExec(HWND hWnd,
+            LPCTSTR lpszCmd,
+            LPHANDLE lphProcess,
+            LPHANDLE lphThread)
+{
+    long ret;
+    STARTUPINFO stInfo;
+    PROCESS_INFORMATION procInfo;
+
+    stInfo.cb = sizeof(STARTUPINFO);
+    stInfo.lpReserved = NULL;
+    stInfo.lpDesktop = NULL;
+    stInfo.lpTitle = NULL;
+    stInfo.dwFlags = STARTF_USESHOWWINDOW;
+    stInfo.cbReserved2 = 0;
+    stInfo.lpReserved2 = NULL;
+    stInfo.wShowWindow = SW_MINIMIZE;
+    ret = CreateProcess(NULL, (LPTSTR)lpszCmd, NULL, NULL, FALSE, 0, NULL,
+                        NULL, &stInfo, &procInfo);
+
+    if (!ret) {
+        int nErr = GetLastError();
+        DbgPrint(0, 'E', "%s", GetLastErrorMessage(lpszCmd, nErr));
+        return 0;
+    }
+    *lphProcess = procInfo.hProcess;
+    *lphThread = procInfo.hThread;
+    return procInfo.dwProcessId;
+}
+
+static ULONG WINAPI
+ProcessWait(long id)
+{
+    DWORD exitCode;
+    HANDLE hProcess;
+    long ret;
+
+    hProcess = OpenProcess(PROCESS_QUERY_INFORMATION, 1, id);
+    do {
+        Sleep(100);
+        ret = GetExitCodeProcess(hProcess, &exitCode);
+    } while (exitCode == STILL_ACTIVE);
+    return exitCode;
+}
+
+static VOID
+PrintPSGhost(VOID)
+{
+    long idProcess;
+    ULONG uExitCode;
+    HANDLE hProcess, hThread;
+    TCHAR szCom[2048];
+
+    sprintf(szCom, "\"%s\" %s \"%s\"", g_MailBox.szGsPath, g_MailBox.szGsOpt,
+            g_MailBox.PrtInfo.szFileName);
+    DbgPrint(0, 'I', "プロセス起動:[%s]", szCom);
+
+    if (!(idProcess =
+          ProcessExec(g_MailBox.hWnd, szCom, &hProcess, &hThread))) {
+        return;
+    }
+
+    uExitCode = ProcessWait(idProcess);
+    DbgPrint(0, 'I', "プロセス終了: ExitCode=%u", uExitCode);
+    CloseHandle(hThread);
+    CloseHandle(hProcess);
+}
+
 static VOID
 PrintPSAcrobat(VOID)
 {
@@ -34,7 +106,7 @@ PrintPSAcrobat(VOID)
     sprintf(szAcrFile, "%s/%s", g_MailBox.szAcrobat,
             BaseName(g_MailBox.PrtInfo.szFileName));
 
-    DbgPrint(0, 'I', "コピー中...[%s]→[%s]", 
+    DbgPrint(0, 'I', "コピー中...[%s]→[%s]",
              g_MailBox.PrtInfo.szFileName, szAcrFile);
     if (!CopyFile(g_MailBox.PrtInfo.szFileName, szAcrFile, FALSE)) {
         DbgPrint(0, 'E', "コピー失敗: %s",
@@ -157,15 +229,15 @@ PrintThread(LPDWORD lpIDThread)
         case PT_PS_ACROBAT:                     // PostScript(Acrobat)
             PrintPSAcrobat();
             break;
-        case PT_PS_GHOST:
-            DbgPrint(NULL, 'W', "未だ作ってません");
+        case PT_PS_GHOST:                       // PostScript(GhostScript)
+            PrintPSGhost();
             break;
         default:
             DbgPrint(NULL, 'E', "PrtInfo.nTypeの値が不正です()",
                      g_MailBox.PrtInfo.nType);
         }
 
-        // 作業用ファイルをを削除する
+        // 作業用ファイルを削除する
         if (DeleteFile(g_MailBox.PrtInfo.szFileName)) {
             DbgPrint(NULL, 'I', "ファイル[%s]を削除しました",
                      g_MailBox.PrtInfo.szFileName);
