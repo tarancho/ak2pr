@@ -1,10 +1,14 @@
 /* -*- mode: c++; coding: sjis-dos; -*-
- * Time-stamp: <2001-02-06 02:02:52 tfuruka1>
+ * Time-stamp: <2001-08-19 12:47:54 tfuruka1>
  *
  * 「ak2psのようなもの」の印字設定
  *
- * $Id: setup.c,v 1.2 2001/02/05 17:03:33 tfuruka1 Exp $
+ * $Id: setup.c,v 1.3 2001/08/19 04:33:53 tfuruka1 Exp $
  * $Log: setup.c,v $
+ * Revision 1.3  2001/08/19 04:33:53  tfuruka1
+ * PostScriptファイルの暫定対応（ただ単にDistillerの監視フォルダに放り込
+ * むだけ）。
+ *
  * Revision 1.2  2001/02/05 17:03:33  tfuruka1
  * プリンタの設定を、メニューからプロパティシートの「共通」へ移動した。
  *
@@ -20,6 +24,42 @@
 
 PRT_INFO g_PrtInfo;                             // デフォルト印刷情報
 static PRT_INFO PrtInfoTmp;                     // 印刷情報作業用
+
+static LPTSTR WINAPI
+GetOpenFileNameWrap(
+    HWND hWnd,
+    LPCTSTR lpszFilter,
+    LPCTSTR lpszTitle,
+    LPTSTR lpszFileName
+    )
+{
+    OPENFILENAME of;
+
+    of.lStructSize       = sizeof(OPENFILENAME);
+    of.hwndOwner         = hWnd;
+    of.hInstance         = NULL;
+    of.lpstrFilter = lpszFilter;
+    of.lpstrCustomFilter = NULL;
+    of.nMaxCustFilter    = 0;
+    of.nFilterIndex      = 0;
+    of.lpstrFile         = lpszFileName;
+    of.nMaxFile          = MAX_PATH;
+    of.lpstrFileTitle    = NULL;
+    of.nMaxFileTitle     = 0;
+    of.lpstrInitialDir   = NULL;
+    of.lpstrTitle        = lpszTitle;
+    of.Flags             = OFN_HIDEREADONLY;
+    of.nFileOffset       = 0;
+    of.nFileExtension    = 0;
+    of.lpstrDefExt       = NULL;
+    of.lCustData         = 0;
+    of.lpfnHook          = NULL;
+    of.lpTemplateName    = NULL;
+
+    if (!GetOpenFileName(&of)) return NULL;
+    return lpszFileName;
+}
+
 
 //
 // ━━━━━━以下は共通設定のコールバック集です━━━━━━━━━━
@@ -318,14 +358,87 @@ DialogProcText(
     return FALSE;    
 }
 
+//
+// ━━━━━━以下はPostScriptのコールバック集です━━━━━━━━━━
+//
+static BOOL CALLBACK
+DoInitDialogPs(
+    HWND hWnd,                                  // ハンドル
+    HWND hWndFocus,                             // フォーカスハンドル
+    LPARAM lParam                               // 初期化パラメータ
+    )
+{
+    SetDlgItemText(hWnd, IDC_ED_ACRIN, g_MailBox.szAcrobat);
+    SetDlgItemText(hWnd, IDC_ED_GHOST, g_MailBox.szGsPath);
+    return TRUE;
+}
+
+static VOID
+DoCommandPs(
+    HWND hWnd,                                  // ハンドル
+    int id,                                     // コントロールID
+    HWND hWndCtl,                               // コントロールのハンドル
+    UINT codeNotify                             // 通知コード
+    )
+{
+    TCHAR szBuf[1024];
+
+    switch (id) {                               // コントロール番号
+    case IDC_BT_ACRIN:
+        GetDlgItemText(hWnd, IDC_ED_ACRIN, szBuf, MAX_PATH);
+        if (GetOpenFileNameWrap(hWnd,
+                                "全てのファイル\0*.*\0\0",
+                                "Acrobat Distillerの監視フォルダ[In]",
+                                szBuf)) {
+            SetDlgItemText(hWnd, IDC_ED_ACRIN, szBuf);
+        }
+        break;
+    case IDC_BT_GHOST:
+        GetDlgItemText(hWnd, IDC_ED_GHOST, szBuf, MAX_PATH);
+        if (GetOpenFileNameWrap(hWnd,
+                                "実行ファイル\0*.exe\0\0",
+                                "GhostScript",
+                                szBuf)) {
+            SetDlgItemText(hWnd, IDC_ED_GHOST, szBuf);
+        }
+        break;
+    }
+}
+
+static void
+DoClosePs(HWND hWnd)
+{
+    GetDlgItemText(hWnd, IDC_ED_ACRIN, g_MailBox.szAcrobat, MAX_PATH);
+    GetDlgItemText(hWnd, IDC_ED_GHOST, g_MailBox.szGsPath, MAX_PATH);
+}
+
+static BOOL
+DialogProcPs(
+    HWND hWnd,                                  // ダイアログボックスのハンドル
+    UINT uMsg,                                  // メッセージ
+    WPARAM wParam,                              // 第1メッセージ パラメータ
+    LPARAM lParam                               // 第2メッセージ パラメータ
+    )
+{
+    switch (uMsg) {
+        HANDLE_MSG(hWnd, WM_INITDIALOG, DoInitDialogPs);
+        HANDLE_MSG(hWnd, WM_COMMAND, DoCommandPs);
+        HANDLE_MSG(hWnd, WM_DESTROY, DoClosePs);
+    }
+    return FALSE;    
+}
+
+// ━━━━━━━━━━━━━━━━━━━━━━━━
+// ━━━━━━ セットアップダイアログ ━━━━━━
+// ━━━━━━━━━━━━━━━━━━━━━━━━
 VOID
 SetupPrtStyle(HWND hWnd)
 {
-    PROPSHEETPAGE psp[4];
+    PROPSHEETPAGE psp[5];
     PROPSHEETHEADER psh;
     int i;
 
-    for (i = 0; i < 3; i++) {
+    for (i = 0; i < 4; i++) {
         psp[i].dwSize = sizeof(PROPSHEETPAGE);
         psp[i].dwFlags = PSP_USETITLE | PSH_USEHICON;
         psp[i].hInstance = (HINSTANCE)GetWindowLong(hWnd, GWL_HINSTANCE);
@@ -345,6 +458,10 @@ SetupPrtStyle(HWND hWnd)
     psp[2].pfnDlgProc = (DLGPROC)DialogProcText;
     psp[2].pszTitle = "テキスト印刷";
 
+    psp[3].pszTemplate = MAKEINTRESOURCE(IDD_PS);
+    psp[3].pfnDlgProc = (DLGPROC)DialogProcPs;
+    psp[3].pszTitle = "PostScript";
+
     memset(&psh, 0, sizeof(PROPSHEETHEADER));
     psh.dwSize = sizeof(PROPSHEETHEADER);
     psh.dwFlags = PSH_USEHICON | PSH_PROPSHEETPAGE | PSH_PROPTITLE | 
@@ -354,7 +471,7 @@ SetupPrtStyle(HWND hWnd)
     psh.pszCaption = (LPSTR)"印刷スタイルの設定";
     psh.hIcon = LoadIcon(NULL, IDI_ASTERISK);
     psh.ppsp = (LPCPROPSHEETPAGE)&psp;
-    psh.nPages = 3;
+    psh.nPages = 4;
     i = PropertySheet(&psh);
 
     if (1 != i) {

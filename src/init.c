@@ -1,10 +1,14 @@
 /* -*- mode: c++; coding: sjis-dos; -*-
- * Time-stamp: <2001-02-06 02:41:47 tfuruka1>
+ * Time-stamp: <2001-08-19 11:45:09 tfuruka1>
  *
  * 「ak2psのようなもの」のサーバの初期化処理
  *
- * $Id: init.c,v 1.1 2001/02/05 17:41:51 tfuruka1 Exp $
+ * $Id: init.c,v 1.2 2001/08/19 04:36:41 tfuruka1 Exp $
  * $Log: init.c,v $
+ * Revision 1.2  2001/08/19 04:36:41  tfuruka1
+ * PostScriptファイルの暫定対応（ただ単にDistillerの監視フォルダに放り込
+ * むだけ）。
+ *
  * Revision 1.1  2001/02/05 17:41:51  tfuruka1
  * Initial revision
  *
@@ -29,12 +33,15 @@
 #define KEY_DEVNAME  "DeviceName"
 #define KEY_DEVMODE  "DeviceMode"
 
+#define SEC_PS       "PostScript"
+#define KEY_ACRIN    "AcrobatDistillerWatchdogFolderIN"
+#define KEY_GS       "GhostScript"
+
 #define BAD_STR      "(^_^;"
-#define GET_PROFILE(key) GetPrivateProfileString(PROFILE_SEC, (key),\
-                                                 BAD_STR, szBuf, 1023,\
-                                                 szProfile)
-#define WRT_PROFILE(key, val) WritePrivateProfileString(PROFILE_SEC, (key),\
-                                                        val, szProfile)
+#define GET_PROFILE(sec, key) GetPrivateProfileString((sec), (key),\
+                             BAD_STR, szBuf, 1023, szProfile)
+#define WRT_PROFILE(sec, key, val) WritePrivateProfileString((sec), (key),\
+                                   val, szProfile)
 #define IsBadStr(str) (0 == strcmp((str), BAD_STR))
 
 /*--------------------------------------------------------------------
@@ -162,28 +169,28 @@ GetDefaultPrtInfo(void)
 
     wsprintf(szProfile, "%s/%s", GetMyDir(), PROFILE_NAME);
 
-    GET_PROFILE(KEY_NUMOFUP);
+    GET_PROFILE(PROFILE_SEC, KEY_NUMOFUP);
     g_PrtInfo.nNumOfUp = IsBadStr(szBuf) ? 2 : atoi(szBuf);
 
-    GET_PROFILE(KEY_TAB);
+    GET_PROFILE(PROFILE_SEC, KEY_TAB);
     g_PrtInfo.nTab = IsBadStr(szBuf) ? 8 : atoi(szBuf);
 
-    GET_PROFILE(KEY_FONT);
+    GET_PROFILE(PROFILE_SEC, KEY_FONT);
     g_PrtInfo.fFontSize = IsBadStr(szBuf) ? 10.0 : atof(szBuf);
 
-    GET_PROFILE(KEY_BNORCVH);
+    GET_PROFILE(PROFILE_SEC, KEY_BNORCVH);
     g_PrtInfo.bNoRcvHeader = IsBadStr(szBuf) ? FALSE : atoi(szBuf);
 
-    GET_PROFILE(KEY_BCOLOR);
+    GET_PROFILE(PROFILE_SEC, KEY_BCOLOR);
     g_PrtInfo.bColor = IsBadStr(szBuf) ? FALSE : atoi(szBuf);
 
-    GET_PROFILE(KEY_BKEISEN);
+    GET_PROFILE(PROFILE_SEC, KEY_BKEISEN);
     g_PrtInfo.bKeisen = IsBadStr(szBuf) ? FALSE : atoi(szBuf);
 
-    GET_PROFILE(KEY_BASELINE);
+    GET_PROFILE(PROFILE_SEC, KEY_BASELINE);
     g_PrtInfo.nBaseLine = IsBadStr(szBuf) ? 1 : atoi(szBuf);
 
-    GET_PROFILE(KEY_BNUM);
+    GET_PROFILE(PROFILE_SEC, KEY_BNUM);
     g_PrtInfo.bNum = IsBadStr(szBuf) ? FALSE : atoi(szBuf);
 
     // プリンタのデバイス情報を得る
@@ -199,6 +206,13 @@ GetDefaultPrtInfo(void)
         g_MailBox.hDevNames = NULL;
         g_MailBox.hDevMode = NULL;
     }
+
+    // PostScript関連情報を得る
+    GET_PROFILE(SEC_PS, KEY_ACRIN);
+    strncpy(g_MailBox.szAcrobat, szBuf, MAX_PATH);
+
+    GET_PROFILE(SEC_PS, KEY_GS);
+    strncpy(g_MailBox.szGsPath, szBuf, MAX_PATH);
 }
 
 /*--------------------------------------------------------------------
@@ -213,28 +227,28 @@ SetDefaultPrtInfo(void)
     wsprintf(szProfile, "%s/%s", GetMyDir(), PROFILE_NAME);
 
     sprintf(szBuf, "%d", g_PrtInfo.nNumOfUp);
-    WRT_PROFILE(KEY_NUMOFUP, szBuf);
+    WRT_PROFILE(PROFILE_SEC, KEY_NUMOFUP, szBuf);
 
     sprintf(szBuf, "%d", g_PrtInfo.nTab);
-    WRT_PROFILE(KEY_TAB, szBuf);
+    WRT_PROFILE(PROFILE_SEC, KEY_TAB, szBuf);
 
     sprintf(szBuf, "%f", g_PrtInfo.fFontSize);
-    WRT_PROFILE(KEY_FONT, szBuf);
+    WRT_PROFILE(PROFILE_SEC, KEY_FONT, szBuf);
 
     sprintf(szBuf, "%d", g_PrtInfo.bNoRcvHeader);
-    WRT_PROFILE(KEY_BNORCVH, szBuf);
+    WRT_PROFILE(PROFILE_SEC, KEY_BNORCVH, szBuf);
 
     sprintf(szBuf, "%d", g_PrtInfo.bColor);
-    WRT_PROFILE(KEY_BCOLOR, szBuf);
+    WRT_PROFILE(PROFILE_SEC, KEY_BCOLOR, szBuf);
 
     sprintf(szBuf, "%d", g_PrtInfo.bKeisen);
-    WRT_PROFILE(KEY_BKEISEN, szBuf);
+    WRT_PROFILE(PROFILE_SEC, KEY_BKEISEN, szBuf);
 
     sprintf(szBuf, "%d", g_PrtInfo.nBaseLine);
-    WRT_PROFILE(KEY_BASELINE, szBuf);
+    WRT_PROFILE(PROFILE_SEC, KEY_BASELINE, szBuf);
 
     sprintf(szBuf, "%d", g_PrtInfo.bNum);
-    WRT_PROFILE(KEY_BNUM, szBuf);
+    WRT_PROFILE(PROFILE_SEC, KEY_BNUM, szBuf);
 
     // デバイス情報の書き込み
     if (g_MailBox.hDevNames && g_MailBox.hDevMode) {
@@ -253,6 +267,10 @@ SetDefaultPrtInfo(void)
                                 lpData, cbData, szProfile);
         GlobalUnlock(g_MailBox.hDevNames);
     }
+
+    // PostScript情報関連の書き込み
+    WRT_PROFILE(SEC_PS, KEY_ACRIN, g_MailBox.szAcrobat);
+    WRT_PROFILE(SEC_PS, KEY_GS, g_MailBox.szGsPath);
 }
 
 /*--------------------------------------------------------------------

@@ -1,10 +1,14 @@
 /* -*- mode: C++; coding: sjis-dos; -*-
- * Time-stamp: <2001-08-19 01:16:53 tfuruka1>
+ * Time-stamp: <2001-08-19 12:09:33 tfuruka1>
  *
  * 「ak2psのようなもの」の印刷スレッド
  *
- * $Id: pThread.c,v 1.2 2001/08/18 16:17:38 tfuruka1 Exp $
+ * $Id: pThread.c,v 1.3 2001/08/19 04:34:21 tfuruka1 Exp $
  * $Log: pThread.c,v $
+ * Revision 1.3  2001/08/19 04:34:21  tfuruka1
+ * PostScriptファイルの暫定対応（ただ単にDistillerの監視フォルダに放り込
+ * むだけ）。
+ *
  * Revision 1.2  2001/08/18 16:17:38  tfuruka1
  * ●PRT_INFO構造体からbDeleteメンバを削除したので（常に一旦作業ファイル
  *   にコピーするようにしたので、このメンバは必要なくなった）、参照しない
@@ -21,6 +25,24 @@
 #include "ak2pr.h"
 
 MAILBOX g_MailBox;                              // スレッド間メールボックス
+
+static VOID
+PrintPSAcrobat(VOID)
+{
+    TCHAR szAcrFile[MAX_PATH * 2];
+
+    sprintf(szAcrFile, "%s/%s", g_MailBox.szAcrobat,
+            BaseName(g_MailBox.PrtInfo.szFileName));
+
+    DbgPrint(0, 'I', "コピー中...[%s]→[%s]", 
+             g_MailBox.PrtInfo.szFileName, szAcrFile);
+    if (!CopyFile(g_MailBox.PrtInfo.szFileName, szAcrFile, FALSE)) {
+        DbgPrint(0, 'E', "コピー失敗: %s",
+                 GetLastErrorMessage("CopyFile()", GetLastError()));
+        return;
+    }
+    DbgPrint(0, 'I', "コピー完了");
+}
 
 /* -------------------------------------------------------------------
  * 印刷スレッド。スレッドのサスペンドは自分自身で行うが、スレッドのリ
@@ -124,15 +146,26 @@ PrintThread(LPDWORD lpIDThread)
         }
         FindClose(hFile);
 
-        // タイプがメールの場合
-        if (PT_MAIL == g_MailBox.PrtInfo.nType) {
+        // 印刷データ毎に処理を振り分ける
+        switch (g_MailBox.PrtInfo.nType) {
+        case PT_MAIL:
             PrintMail();                        // メール印刷処理
-        }
-        else {
+            break;
+        case PT_TEXT:
             PrintText();                        // テキスト印刷処理
+            break;
+        case PT_PS_ACROBAT:                     // PostScript(Acrobat)
+            PrintPSAcrobat();
+            break;
+        case PT_PS_GHOST:
+            DbgPrint(NULL, 'W', "未だ作ってません");
+            break;
+        default:
+            DbgPrint(NULL, 'E', "PrtInfo.nTypeの値が不正です()",
+                     g_MailBox.PrtInfo.nType);
         }
 
-        // ファイル削除指定がある場合はファイルを削除する
+        // 作業用ファイルをを削除する
         if (DeleteFile(g_MailBox.PrtInfo.szFileName)) {
             DbgPrint(NULL, 'I', "ファイル[%s]を削除しました",
                      g_MailBox.PrtInfo.szFileName);

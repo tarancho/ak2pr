@@ -2,8 +2,12 @@
  *
  * 「ak2psのようなもの」のサーバ側のヘッダファイル
  *
- * $Id: ak2prs.h,v 1.3 2001/08/18 17:05:03 tfuruka1 Exp $
+ * $Id: ak2prs.h,v 1.4 2001/08/19 04:37:45 tfuruka1 Exp $
  * $Log: ak2prs.h,v $
+ * Revision 1.4  2001/08/19 04:37:45  tfuruka1
+ * PostScriptファイルの暫定対応（ただ単にDistillerの監視フォルダに放り込
+ * むだけ）。
+ *
  * Revision 1.3  2001/08/18 17:05:03  tfuruka1
  * VERSIONを上げるのを忘れてた・・・面倒なので、RCSのRevisionを使用するよ
  * うにした。
@@ -22,8 +26,8 @@
 #ifndef _AK2PRS_H_
 #define _AK2PRS_H_
 
-#define TIMESTAMP "Time-stamp: <2001-08-19 02:04:09 tfuruka1>"
-#define VERSION   "$Revision: 1.3 $"
+#define TIMESTAMP "Time-stamp: <2001-08-19 11:21:26 tfuruka1>"
+#define VERSION   "$Revision: 1.4 $"
 
 #include <windows.h>
 #include <windowsx.h>
@@ -106,10 +110,9 @@ typedef struct _PrtInfo{
     double fFontSize;                           // フォントサイズ --- Point
 } PRT_INFO, *PPRT_INFO;
 
-// nType に設定する値は以下の通り, デフォルトはPT_TEXT
-enum {PT_TEXT,                                  // 普通のテキスト
-      PT_MAIL,                                  // メール(デコード済み)
-      NUM_OF_PT};
+// nType に設定する値は以下の通り(クライアント側でも参照したいので、
+// ak2pr.hに移動), デフォルトはPT_TEXT
+
 
 // スレッド間メールボックス
 typedef struct {
@@ -127,6 +130,9 @@ typedef struct {
     TCHAR szDate[128];                          // 受信日時
     TCHAR szReference[128];                     // リファレンス
     TCHAR szMessageID[128];                     // メッセージID
+    // ----- 以下はPostScript印刷時の情報
+    TCHAR szAcrobat[MAX_PATH];                  // Distiller in フォルダ
+    TCHAR szGsPath[MAX_PATH];                   // GhostScript パス
 } MAILBOX, *PMAILBOX;
 
 // 外部定義

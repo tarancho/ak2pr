@@ -1,10 +1,14 @@
 /* -*- mode: c++; coding: sjis-dos;-*-
- * Time-stamp: <2001-08-18 23:38:57 tfuruka1>
+ * Time-stamp: <2001-08-19 08:56:59 tfuruka1>
  *
  * 「ak2psのようなもの」の共通ヘッダファイル(クライアント用)
  *
- * $Id: ak2pr.h,v 1.2 2001/08/18 16:48:20 tfuruka1 Exp $
+ * $Id: ak2pr.h,v 1.3 2001/08/19 04:41:03 tfuruka1 Exp $
  * $Log: ak2pr.h,v $
+ * Revision 1.3  2001/08/19 04:41:03  tfuruka1
+ * PostScriptファイルの暫定対応（ただ単にDistillerの監視フォルダに放り込
+ * むだけ）。
+ *
  * Revision 1.2  2001/08/18 16:48:20  tfuruka1
  * ●SendPrintFromFile関数の廃止に伴いプロトタイプ宣言を削除。
  *
@@ -17,6 +21,13 @@
 
 // 雑多な定義
 #define MB_ERROR (MB_ICONSTOP | MB_SETFOREGROUND)
+
+// 印刷データの種類
+enum {PT_TEXT,                                  // 普通のテキスト
+      PT_MAIL,                                  // メール(デコード済み)
+      PT_PS_ACROBAT, // PostScript(Acrobatで処理する)
+      PT_PS_GHOST, // PostScript(GhostScriptで処理する)
+      NUM_OF_PT};
 
 //
 // 以下はプロトタイプ
@@ -75,7 +86,7 @@ SendPrintFromFileCopy(
     int nNumOfUp,                               // 段組数
     int nTab,                                   // タブ幅
     double fFontSize,                           // フォントサイズ
-    BOOL bMail                                  // T: 印刷データはメール[mail]
+    int nType                                   // 印刷データタイプ
     );
 /*--------------------------------------------------------------------
  * 標準入力の内容を読み込みプリントサーバへ印刷情報を送信する。
@@ -87,7 +98,7 @@ SendPrintFromStdin(
     int nNumOfUp,                               // 段組数
     int nTab,                                   // タブ幅
     double fFontSize,                           // フォントサイズ
-    BOOL bMail                                  // T: 印刷データはメール[mail]
+    int nType                                   // 印刷データタイプ
     );
 /*--------------------------------------------------------------------
  * lpstrで指定された書式文字列を書式に従って編集し表示ウィンドウへ表示

@@ -1,10 +1,14 @@
 /* -*- mode: c++; coding: sjis-dos; -*-
- * Time-stamp: <2001-08-19 01:01:12 tfuruka1>
+ * Time-stamp: <2001-08-19 09:25:18 tfuruka1>
  *
  * 「ak2psのようなもの」のQueue処理
  *
- * $Id: queue.c,v 1.2 2001/08/18 16:15:10 tfuruka1 Exp $
+ * $Id: queue.c,v 1.3 2001/08/19 04:39:07 tfuruka1 Exp $
  * $Log: queue.c,v $
+ * Revision 1.3  2001/08/19 04:39:07  tfuruka1
+ * PostScriptファイルの暫定対応（ただ単にDistillerの監視フォルダに放り込
+ * むだけ）。
+ *
  * Revision 1.2  2001/08/18 16:15:10  tfuruka1
  * ●PRT_INFO構造体からbDeleteメンバを削除したので（常に一旦作業ファイル
  *   にコピーするようにしたので、このメンバは必要なくなった）、参照しない
@@ -20,6 +24,29 @@
 // (replace-regexp "[ \t]+$" "")
 
 #include "ak2prs.h"
+
+static LPCTSTR
+GetNTypeName(int nType)
+{
+    static struct {
+        int nType;
+        LPCTSTR lpszName;
+    } obj[] = {
+        {PT_TEXT, "Plain"},
+        {PT_MAIL, "Mail"},
+        {PT_PS_ACROBAT, "PostScript(ACROBAT)"},
+        {PT_PS_GHOST, "PostScript(GhostScript)"},
+        {NUM_OF_PT, NULL}
+    };
+    int i;
+
+    for (i = 0; obj[i].lpszName; i++) {
+        if (nType == obj[i].nType) {
+            return obj[i].lpszName;
+        }
+    }
+    return (LPCTSTR)"不明";
+}
 
 static void
 AdjustListWidth(HWND hWnd)
@@ -69,7 +96,7 @@ EnQueue(
             "\t%fPoint\tTabStop=%d",
             st.wYear, st.wMonth, st.wDay,
             st.wHour, st.wMinute, st.wSecond, st.wMilliseconds,
-            pPrtInfo->szTitle, PT_TEXT == pPrtInfo->nType ? "Text" : "Mail",
+            pPrtInfo->szTitle, GetNTypeName(pPrtInfo->nType),
             pPrtInfo->nNumOfUp, pPrtInfo->fFontSize, pPrtInfo->nTab);
     if (0 > (nRet = SendMessage(hWnd, LB_ADDSTRING, 0, (LPARAM)szBuf))) {
         DbgPrint(hWnd, 'E', "LB_ADDSTRING ERROR (%d)", nRet);
@@ -95,9 +122,7 @@ EnQueue(
              pPrtInfo->szTitle,
              pPrtInfo->nNumOfUp,
              pPrtInfo->nTab,
-             PT_TEXT == pPrtInfo->nType ? "テキスト" :
-             (PT_MAIL == pPrtInfo->nType ? "デコード済みメール" : 
-              "未デコードメール"),
+             GetNTypeName(pPrtInfo->nType),
              pPrtInfo->fFontSize);
 
     return TRUE;
@@ -146,9 +171,7 @@ DeQueue(
              pPrtInfo->szTitle,
              pPrtInfo->nNumOfUp,
              pPrtInfo->nTab,
-             PT_TEXT == pPrtInfo->nType ? "テキスト" :
-             (PT_MAIL == pPrtInfo->nType ? "デコード済みメール" : 
-              "未デコードメール"),
+             GetNTypeName(pPrtInfo->nType),
              pPrtInfo->fFontSize);
 
     return TRUE;

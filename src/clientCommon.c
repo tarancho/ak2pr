@@ -1,10 +1,14 @@
-/* -*- mode: c; coding: sjis-dos; -*-
- * Time-stamp: <2001-08-19 01:42:00 tfuruka1>
+/* -*- mode: c++; coding: sjis-dos; -*-
+ * Time-stamp: <2001-08-19 09:22:20 tfuruka1>
  *
  * 「ak2psのようなもの」のクライアントの共通処理部
  *
- * $Id: clientCommon.c,v 1.3 2001/08/18 16:44:17 tfuruka1 Exp $
+ * $Id: clientCommon.c,v 1.4 2001/08/19 04:39:54 tfuruka1 Exp $
  * $Log: clientCommon.c,v $
+ * Revision 1.4  2001/08/19 04:39:54  tfuruka1
+ * PostScriptファイルの暫定対応（ただ単にDistillerの監視フォルダに放り込
+ * むだけ）。
+ *
  * Revision 1.3  2001/08/18 16:44:17  tfuruka1
  * ●SendPrintFromFileが廃止され、SendPrintFromFileCopyに統合された為、
  *   SendPrintFromFileCopy関数を使用するように修正(複数ファイル指定された
@@ -17,6 +21,8 @@
  * Initial revision
  *
  */
+// (replace-regexp "/\\*\\(.+\\)\\*/" "//\\1")
+// (replace-regexp "[ \t]+$" "")
 
 #include <windows.h>
 #include <stdio.h>
@@ -27,18 +33,24 @@ int ak2prClientCommon(int __argc, char **_argv)
     double fFont = 0.0;
     int nTab = 0, nUp = 0, i;
     BYTE szTitle[256], *pszTitle = NULL;
-    BOOL bMail = FALSE;
-    {
+    int nFtype = PT_TEXT;
+
+    {                                           // For Debug
         TCHAR szBuf[4096];
         szBuf[0] = '\0';
         for (i = 1; i < __argc; i++) {
-            sprintf(szBuf + strlen(szBuf), "argv[%d]=%s, ", i, *(__argv + i));
+            sprintf(szBuf + strlen(szBuf), "argv[%d]=%s", i, *(__argv + i));
+            if (*(__argv + i + 1)) {
+                if (4095 > (strlen(szBuf) + 2)) {
+                    strcat(szBuf, ", ");
+                }
+            }
         }
         Syslog("%s", szBuf);
     }
 
     for (i = 1; i < __argc; i++) {
-        /* (page headers are not supported) を無視する emacs の 
+        /* (page headers are not supported) を無視する emacs の
            print-buffer対策 */
         if ('(' == **(__argv + i)) {
             continue;
@@ -48,7 +60,26 @@ int ak2prClientCommon(int __argc, char **_argv)
         }
         switch (*(*(__argv + i) + 1)) {
         case 'm':
-            bMail = TRUE;
+            if (*(*(__argv + i) + 2)) {
+                if (0 == stricmp("PLAIN", *(__argv + i) + 2)) {
+                    nFtype = PT_TEXT;
+                }
+                else if (0 == stricmp("MAIL", *(__argv + i) + 2)) {
+                    nFtype = PT_MAIL;
+                }
+                else if (0 == stricmp("PS_ACROBAT", *(__argv + i) + 2)) {
+                    nFtype = PT_PS_ACROBAT;
+                }
+                else if (0 == stricmp("PS_GHOST", *(__argv + i) + 2)) {
+                    nFtype = PT_PS_GHOST;
+                }
+                else {
+                    nFtype = PT_TEXT;
+                }
+            }
+            else {
+                nFtype = PT_MAIL;
+            }
             continue;
         case 'f':
             if (*(*(__argv + i) + 2)) {
@@ -83,19 +114,19 @@ int ak2prClientCommon(int __argc, char **_argv)
     }
 
     if (i >= __argc) {                          // ファイル名指定なしの場合
-        SendPrintFromStdin(NULL, pszTitle, nUp, nTab, fFont, bMail);
+        SendPrintFromStdin(NULL, pszTitle, nUp, nTab, fFont, nFtype);
         return 0;
     }
     else if (i == (__argc - 1)) {               // ファイルが一つだけ指定された
         SendPrintFromFileCopy(NULL, pszTitle, *(__argv + i), nUp, nTab,
-                              fFont, bMail);
+                              fFont, nFtype);
         return 0;
     }
 
     for (; i < __argc; i++) {
         strncpy(szTitle, GetLongBaseName(*(__argv + i)), 255);
         SendPrintFromFileCopy(NULL, szTitle, *(__argv + i), nUp, nTab,
-                              fFont, bMail);
+                              fFont, nFtype);
     }
     return 0;
 }
