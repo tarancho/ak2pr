@@ -1,5 +1,5 @@
 /* -*- mode: c++; coding: sjis-dos; -*-
- * Time-stamp: <2003-03-07 17:46:42 tfuruka1>
+ * Time-stamp: <2003-03-15 22:40:01 tfuruka1>
  *
  * 「ak2psのようなもの」の印字設定
  *
@@ -10,8 +10,12 @@
  * は、実行されない。この事を知らなかったので、不可解な現象が発生して
  * いました。
  *
- * $Id: setup.c,v 1.9 2003/03/14 15:29:49 tfuruka1 Exp $
+ * $Id: setup.c,v 1.10 2003/03/15 14:43:43 tfuruka1 Exp $
  * $Log: setup.c,v $
+ * Revision 1.10  2003/03/15 14:43:43  tfuruka1
+ * ● 印刷設定を情報を格納するエリアを指定できるように変更した。プレビュー
+ *    時の印刷設定に対応する為の修正である。
+ *
  * Revision 1.9  2003/03/14 15:29:49  tfuruka1
  * ● PostScript関連のパラメータもPRT_INFOに持つように変更した。これによっ
  *    て、ak2prのコマンドラインからGhostScriptのパス等も指定が可能になる
@@ -112,24 +116,24 @@ DoInitDialogCom(
     DbgPrint(NULL, 'D', "InitDialog(共通)");
 
     // タブ幅のセット
-    sprintf(szBuf, "%d", g_PrtInfo.nTab);
+    sprintf(szBuf, "%d", PrtInfoTmp.nTab);
     SetDlgItemText(hWnd, IDC_TABSTOP, szBuf);
     // フォントサイズのセット
-    sprintf(szBuf, "%f", g_PrtInfo.fFontSize);
+    sprintf(szBuf, "%f", PrtInfoTmp.fFontSize);
     SetDlgItemText(hWnd, IDC_FONTSIZE, szBuf);
     // 段組数のセット
-    sprintf(szBuf, "%d", g_PrtInfo.nNumOfUp);
+    sprintf(szBuf, "%d", PrtInfoTmp.nNumOfUp);
     SetDlgItemText(hWnd, IDC_NUP, szBuf);
 
     // プレビューの実行有無
-    CheckDlgButton(hWnd, IDC_CHK_PREVIEW, g_PrtInfo.bPreView ? TRUE : FALSE);
+    CheckDlgButton(hWnd, IDC_CHK_PREVIEW, PrtInfoTmp.bPreView ? TRUE : FALSE);
 
     // デバッグ印刷の実行有無
-    CheckDlgButton(hWnd, IDC_C_DEBUG, g_PrtInfo.bDebug ? TRUE : FALSE);
+    CheckDlgButton(hWnd, IDC_C_DEBUG, PrtInfoTmp.bDebug ? TRUE : FALSE);
 
     // Copyright情報の印刷有無
     CheckDlgButton(hWnd, IDC_CHK_NOCOPYRIGHT,
-                   g_PrtInfo.bNoCopyright ? TRUE : FALSE);
+                   PrtInfoTmp.bNoCopyright ? TRUE : FALSE);
 
     return TRUE;
 }
@@ -279,10 +283,10 @@ DoInitDialogMail(
     DbgPrint(NULL, 'D', "InitDialog(e-mail)");
 
     // カラー印刷のチェック
-    CheckDlgButton(hWnd, IDC_C_COLOR, g_PrtInfo.bColor ? TRUE : FALSE);
+    CheckDlgButton(hWnd, IDC_C_COLOR, PrtInfoTmp.bColor ? TRUE : FALSE);
     // Receivedヘッダの印字チェック
     CheckDlgButton(hWnd, IDC_C_NORHEAD,
-                   g_PrtInfo.bNoRcvHeader ? TRUE : FALSE);
+                   PrtInfoTmp.bNoRcvHeader ? TRUE : FALSE);
 
     return TRUE;
 }
@@ -354,10 +358,10 @@ DoInitDialogText(
     DbgPrint(NULL, 'D', "InitDialog(Text)");
 
     // 罫線連結のチェック
-    CheckDlgButton(hWnd, IDC_C_KEISEN, g_PrtInfo.bKeisen ? TRUE : FALSE);
-    CheckDlgButton(hWnd, IDC_C_NUM, g_PrtInfo.bNum ? TRUE : FALSE);
+    CheckDlgButton(hWnd, IDC_C_KEISEN, PrtInfoTmp.bKeisen ? TRUE : FALSE);
+    CheckDlgButton(hWnd, IDC_C_NUM, PrtInfoTmp.bNum ? TRUE : FALSE);
 
-    switch (g_PrtInfo.nBaseLine) {
+    switch (PrtInfoTmp.nBaseLine) {
     case 0: id = IDC_R_NOINTERLINE; break;
     case 1: id = IDC_R_ENGLISH; break;
     case 2: id = IDC_R_JAPAN; break;
@@ -492,7 +496,7 @@ DialogProcPs(
 // ━━━━━━ セットアップダイアログ ━━━━━━
 // ━━━━━━━━━━━━━━━━━━━━━━━━
 VOID
-SetupPrtStyle(HWND hWnd)
+SetupPrtStyle(HWND hWnd, PPRT_INFO lppiArea)
 {
     PROPSHEETPAGE psp[5];
     PROPSHEETHEADER psh;
@@ -548,7 +552,7 @@ SetupPrtStyle(HWND hWnd)
     psh.nPages = 4;
 
     // 現在の内容を複写
-    memcpy(&PrtInfoTmp, &g_PrtInfo, sizeof(PRT_INFO));
+    memcpy(&PrtInfoTmp, lppiArea, sizeof(PRT_INFO));
 
     i = PropertySheet(&psh);
 
@@ -559,8 +563,11 @@ SetupPrtStyle(HWND hWnd)
     }
 
     // 設定結果を反映
-    memcpy(&g_PrtInfo, &PrtInfoTmp, sizeof(PRT_INFO));
+    memcpy(lppiArea, &PrtInfoTmp, sizeof(PRT_INFO));
 
-    // 初期化ファイルへも反映
-    SetDefaultPrtInfo();
+    // 設定したエリアがデフォルトオプションエリアと同じ場合
+    if (&g_PrtInfo == lppiArea) {
+        // 初期化ファイルへも反映
+        SetDefaultPrtInfo();
+    }
 }
