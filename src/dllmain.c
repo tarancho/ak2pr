@@ -1,10 +1,13 @@
 /* -*- mode: C++; coding: sjis-dos; -*-
- * Time-stamp: <2004-01-11 20:47:01 tfuruka1>
+ * Time-stamp: <2004-01-12 16:51:22 tfuruka1>
  *
  * ak2ps のようなものの共通 DLL
  *
- * $Id: dllmain.c,v 1.17 2004/01/11 11:48:06 tfuruka1 Exp $
+ * $Id: dllmain.c,v 1.18 2004/01/12 09:58:24 tfuruka1 Exp $
  * $Log: dllmain.c,v $
+ * Revision 1.18  2004/01/12 09:58:24  tfuruka1
+ * 長辺綴じと短辺綴じに対応しました。
+ *
  * Revision 1.17  2004/01/11 11:48:06  tfuruka1
  * 作業ファイルの作成ルーチンにSyslogを追加しました。
  *
@@ -481,7 +484,8 @@ SendPrintFromStdin(
     int nType,                                  // 印刷データタイプ
     int nOrientation,                           // 用紙の向き
     short dmPaperSize,                          // 用紙サイズ
-    int bNum                                    // 行番号の印刷
+    int bNum,                                   // 行番号の印刷
+    int nBinding                                // 綴じ方向
     )
 {
     PRT_INFO PrtInfo;                           // プリントファイル情報
@@ -506,6 +510,7 @@ SendPrintFromStdin(
     PrtInfo.dmPaperSize = dmPaperSize;
     PrtInfo.bPreView = FALSE;
     PrtInfo.bNum = bNum;                        // 行番号の印刷(-1:サーバ)
+    PrtInfo.bShortBinding = nBinding;           // 綴じ方向(-1:サーバ)
 
     // 作業ファイルを作成する
     strcpy(PrtInfo.szFileName, PrtInfo.szTitle); 
@@ -550,7 +555,8 @@ SendPrintFromFileCopy(
     int nType,                                  // 印刷データタイプ
     int nOrientation,                           // 用紙の向き
     short dmPaperSize,                          // 用紙サイズ
-    int bNum                                    // 行番号印刷
+    int bNum,                                   // 行番号印刷
+    int nBinding                                // 綴じ方向
     )
 {
     PRT_INFO PrtInfo;                           // プリントファイル情報
@@ -590,6 +596,7 @@ SendPrintFromFileCopy(
     PrtInfo.dmPaperSize = dmPaperSize;
     PrtInfo.bPreView = FALSE;
     PrtInfo.bNum = bNum;                        // 行番号印刷(Booleanではない)
+    PrtInfo.bShortBinding = nBinding;           // 綴じ方向(-1:サーバ)
 
     // 作業ファイルを作成する
     strcpy(PrtInfo.szFileName, PrtInfo.szTitle); 
@@ -762,7 +769,7 @@ LPCTSTR WINAPI
         strncpy(lpszTitle, p + strlen(PS_TITLE_STR), cbMax);
     }
     else {
-        strncpy(lpszTitle, "タイトル不明", cbMax);
+        strncpy(lpszTitle, "unclear title", cbMax);
     }
     TrimString(lpszTitle);
     Syslog(FALSE, "DBG:GetPSTitle[%s]", lpszTitle);

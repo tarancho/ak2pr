@@ -1,10 +1,13 @@
 /* -*- mode: c++; coding: sjis-dos; -*-
- * Time-stamp: <2003-03-16 09:15:35 tfuruka1>
+ * Time-stamp: <2004-01-12 17:56:23 tfuruka1>
  *
  * 「ak2psのようなもの」のプリンタ制御関連
  *
- * $Id: printer.c,v 1.6 2003/03/16 00:20:53 tfuruka1 Exp $
+ * $Id: printer.c,v 1.7 2004/01/12 09:55:49 tfuruka1 Exp $
  * $Log: printer.c,v $
+ * Revision 1.7  2004/01/12 09:55:49  tfuruka1
+ * 長辺綴じと短辺綴じに対応しました。
+ *
  * Revision 1.6  2003/03/16 00:20:53  tfuruka1
  * ● プレビュー後の印刷設定で反映されない項目があったので、修正した。
  *
@@ -376,7 +379,11 @@ BeginPage(void)
     hOldPen = SelectObject(g_MailBox.hDC, hPen);
     hOldBrush = SelectObject(g_MailBox.hDC, hBrush);
 
-    if (nPaperWidth > nPaperHeight) {           // 横置きの場合
+    if (((nPaperWidth > nPaperHeight)
+         && !g_MailBox.PrtInfo.bShortBinding)   // 横置きの長辺綴じ
+        || (!(nPaperWidth > nPaperHeight)
+         && g_MailBox.PrtInfo.bShortBinding)    // 縦置きの短辺綴じ
+        ) { 
         RoundRect(g_MailBox.hDC,
                   nStartX = nDPIW / 2 - nPaperMarginW,
                   nStartY = nDPIH - nPaperMarginH,
@@ -425,7 +432,12 @@ BeginPage(void)
     hOldPen = SelectObject(g_MailBox.hDC, hPen);
     hOldBrush = SelectObject(g_MailBox.hDC, hBrush);
 
-    if (nPaperWidth > nPaperHeight) {           // 横置きの場合
+    if (((nPaperWidth > nPaperHeight)
+          && !g_MailBox.PrtInfo.bShortBinding)  // 横置きの長辺綴じ
+        || (!(nPaperWidth > nPaperHeight)
+          && g_MailBox.PrtInfo.bShortBinding)   // 縦置きの短辺綴じ
+        ) {  
+
         pt[0].x = nCenter = GetPrtCenter(GPC_W);
         pt[1].y = pt[2].y = ConvX2Dt(10, nDPIH, CX_PT);
         pt[0].y = 0;
@@ -444,7 +456,12 @@ BeginPage(void)
     // 2 HOLE PUNCHI を描画する。但し実際の正しい規格(JIS?)を私は知り
     // ません。物差しで計って, 穴と穴の距離を8cm, 穴の直径を5.5mm, 用
     // 紙の端から穴の頂点迄の距離を1cmとして描画しています。
-    if (nPaperWidth > nPaperHeight) {           // 横置きの場合
+    if (((nPaperWidth > nPaperHeight)
+         && !g_MailBox.PrtInfo.bShortBinding)   // 横置きの長辺綴じ
+        || (!(nPaperWidth > nPaperHeight)
+            && g_MailBox.PrtInfo.bShortBinding) // 縦置きの短辺綴じ
+        ){
+
         double fbtHole = ConvX2Dt(8, nDPIW, CX_CM);
         double f2rHoleW = ConvX2Dt(.55, nDPIW, CX_CM);
         double f2rHoleH = ConvX2Dt(.55, nDPIH, CX_CM);
@@ -503,7 +520,12 @@ BeginPage(void)
                           400, FALSE, FALSE, FALSE, FALSE);
     hOldFont = SelectObject(g_MailBox.hDC, hFont);
 
-    if (nPaperWidth > nPaperHeight) {           // 横置きの場合
+    if (((nPaperWidth > nPaperHeight)
+         && !g_MailBox.PrtInfo.bShortBinding)   // 横置きの長辺綴じ場合
+        || (!(nPaperWidth > nPaperHeight) 
+            && g_MailBox.PrtInfo.bShortBinding) // 縦置きの短辺綴じ
+        ){ 
+
         rc.left = nDPIW / 2 - nPaperMarginW;
     }
     else {                                      // 縦置きの場合
@@ -578,7 +600,12 @@ BOOL EndPageDocument(void)
     hFont = CreatePrtFont(FN_MSPG, ConvX2Dt(18, nDPIH, CX_PT),
                           700, FALSE, FALSE, FALSE, TRUE);
     hOldFont = SelectObject(g_MailBox.hDC, hFont);
-    if (nPaperWidth > nPaperHeight) {           // 横置きの場合
+    if (((nPaperWidth > nPaperHeight)
+          && !g_MailBox.PrtInfo.bShortBinding)  // 横置きの長辺綴じ場合
+        || (!(nPaperWidth > nPaperHeight)
+          && g_MailBox.PrtInfo.bShortBinding)   // 縦置きの短辺綴じ
+        ) {
+
         rc.left = nDPIW / 2 - nPaperMarginW;
         rc.top = nDPIH - nPaperMarginH;
     }

@@ -2,8 +2,11 @@
  *
  * 「ak2psのようなもの」のウインドウプロシジャ
  *
- * $Id: wndproc.c,v 1.15 2003/03/29 12:52:08 tfuruka1 Exp $
+ * $Id: wndproc.c,v 1.16 2004/01/12 10:00:54 tfuruka1 Exp $
  * $Log: wndproc.c,v $
+ * Revision 1.16  2004/01/12 10:00:54  tfuruka1
+ * 長辺綴じと短辺綴じに対応しました。
+ *
  * Revision 1.15  2003/03/29 12:52:08  tfuruka1
  * ● リストビューのカラムの幅の初期値を少し変更した。
  * ● ツールボタンに「クリップボード印刷」を追加した。なので、当然、クリッ
@@ -75,7 +78,7 @@
 // (replace-regexp "/\\*\\(.+\\)\\*/" "//\\1")
 // (replace-regexp "[ \t]+$" "")
 
-#define TIME_STAMP "Time-stamp: <2003-03-29 02:55:04 tfuruka1>"
+#define TIME_STAMP "Time-stamp: <2004-01-12 17:10:24 tfuruka1>"
 
 #include "ak2prs.h"
 
@@ -353,6 +356,9 @@ DoCopyData(
     if (-1 == pPrtInfo->bNum) {
         pPrtInfo->bNum = g_PrtInfo.bNum;
     }
+    if (-1 == pPrtInfo->bShortBinding) {
+        pPrtInfo->bShortBinding = g_PrtInfo.bShortBinding;
+    }
 
     // PostScript関連は現状、コマンドラインから入力できないので、全て
     // デフォルトの値を使用する。
@@ -463,7 +469,7 @@ DoCommand(
         break;
     case IDM_PASTE:
         // クリップボードの内容を印刷する
-        SendPrintFromStdin(TRUE, NULL, NULL, 0, 8, 0, PT_TEXT, 0, 0, -1);
+        SendPrintFromStdin(TRUE, NULL, NULL, 0, 8, 0, PT_TEXT, 0, 0, -1, -1);
         break;
     }
 }
@@ -625,7 +631,7 @@ SendPrintDirectory(LPTSTR lpszFile)
             if (0 != _strnicmp(szFile, GetTempDirectoryName(),
                                strlen(GetTempDirectoryName()))) {
                 SendPrintFromFileCopy(NULL, NULL, szFile, 0, 0, 0,
-                                      PT_TEXT, 0, 0, -1);
+                                      PT_TEXT, 0, 0, -1, -1);
             }
             else {
                 DbgPrint(NULL, 'W', "%sは作業ディレクトリ内のファイルです",
@@ -674,7 +680,7 @@ DoDropFiles(
             if (0 != _strnicmp(szFile, GetTempDirectoryName(),
                                strlen(GetTempDirectoryName()))) {
                 SendPrintFromFileCopy(NULL, NULL, szFile, 0, 0, 0,
-                                      PT_TEXT, 0, 0, -1);
+                                      PT_TEXT, 0, 0, -1, -1);
             }
             else {
                 DbgPrint(NULL, 'W', "%sは作業ディレクトリ内のファイルです",
