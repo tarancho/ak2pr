@@ -1,10 +1,25 @@
 /* -*- mode: c++; coding: sjis-dos; -*-
- * Time-stamp: <2001-12-23 16:50:56 tfuruka1>
+ * Time-stamp: <2003-03-01 02:17:08 tfuruka1>
  *
  * 「ak2psのようなもの」の印字設定
  *
- * $Id: setup.c,v 1.7 2001/12/23 10:13:56 tfuruka1 Exp $
+ * 覚書
+ *
+ * プロパティシートの夫夫のダイアログは、タブ選択したときにINIT_DIALOG
+ * のイベントが発生する。当然WM_CLOSEは、INIT_DIALOGが走っていない場合
+ * は、実行されない。この事を知らなかったので、不可解な現象が発生して
+ * いました。
+ *
+ * $Id: setup.c,v 1.8 2003/03/01 09:08:25 tfuruka1 Exp $
  * $Log: setup.c,v $
+ * Revision 1.8  2003/03/01 09:08:25  tfuruka1
+ * ●ページ設定のe-mailタブの内容がクリア（特定の手順で操作を行った場合）
+ *   される場合があったので、修正した。→プロパティシートのダイアログは、
+ *   タブを選択状態にしないと、INITDIALOGが発生しないことを知らなかった事
+ *   が起因。
+ * ●ページ設定のPostScriptタブの内容がキャンセルを選択しても反映されてし
+ *   まう問題を修正した。
+ *
  * Revision 1.7  2001/12/23 10:13:56  tfuruka1
  * ●設定ダイアログが、二つ以上表示される（できる）問題を修正した。
  * ●Copyright表示を印字しないモードをサポートした。
@@ -40,6 +55,12 @@
 
 PRT_INFO g_PrtInfo;                             // デフォルト印刷情報
 static PRT_INFO PrtInfoTmp;                     // 印刷情報作業用
+
+// 以下も印刷情報であるが、この部分は後で追加したので、少し汚いけど、
+// 外だしにしてます
+static TCHAR szAcrobat[MAX_PATH];
+static TCHAR szGsPath[MAX_PATH];
+static TCHAR szGsOpt[512];
 
 static LPTSTR WINAPI
 GetOpenFileNameWrap(
@@ -87,6 +108,9 @@ DoInitDialogCom(
     )
 {
     TCHAR szBuf[64];
+
+    // タブが選択されないと、INIT_DIALOGが走らない→走らないらしい
+    DbgPrint(NULL, 'D', "InitDialog(共通)");
 
     // タブ幅のセット
     sprintf(szBuf, "%d", g_PrtInfo.nTab);
@@ -194,6 +218,8 @@ DoCloseCom(HWND hWnd)
     int i;
     double d;
 
+    DbgPrint(NULL, 'D', "Close(共通)");
+
     GetDlgItemText(hWnd, IDC_TABSTOP, szBuf, 10);
     i = (int)strtoul(szBuf, NULL, 10);
     if (0 >= i || 32 < i) {
@@ -251,6 +277,8 @@ DoInitDialogMail(
     LPARAM lParam                               // 初期化パラメータ
     )
 {
+    DbgPrint(NULL, 'D', "InitDialog(e-mail)");
+
     // カラー印刷のチェック
     CheckDlgButton(hWnd, IDC_C_COLOR, g_PrtInfo.bColor ? TRUE : FALSE);
     // Receivedヘッダの印字チェック
@@ -289,6 +317,8 @@ DoCommandMail(
 static void
 DoCloseMail(HWND hWnd)
 {
+    DbgPrint(NULL, 'D', "Close(e-mail)");
+
     // Color印刷の指定
     PrtInfoTmp.bColor = IsDlgButtonChecked(hWnd, IDC_C_COLOR);
     // Receivedヘッダの印字指定
@@ -321,6 +351,8 @@ DoInitDialogText(
     )
 {
     UINT id;
+
+    DbgPrint(NULL, 'D', "InitDialog(Text)");
 
     // 罫線連結のチェック
     CheckDlgButton(hWnd, IDC_C_KEISEN, g_PrtInfo.bKeisen ? TRUE : FALSE);
@@ -374,6 +406,8 @@ DoCommandText(
 static void
 DoCloseText(HWND hWnd)
 {
+    DbgPrint(NULL, 'D', "Close(text)");
+
     // 罫線連結
     PrtInfoTmp.bKeisen = IsDlgButtonChecked(hWnd, IDC_C_KEISEN);
     // 行番号
@@ -406,9 +440,11 @@ DoInitDialogPs(
     LPARAM lParam                               // 初期化パラメータ
     )
 {
-    SetDlgItemText(hWnd, IDC_ED_ACRIN, g_MailBox.szAcrobat);
-    SetDlgItemText(hWnd, IDC_ED_GHOST, g_MailBox.szGsPath);
-    SetDlgItemText(hWnd, IDC_ED_GSOP, g_MailBox.szGsOpt);
+    DbgPrint(NULL, 'D', "InitDialog(PS)");
+
+    SetDlgItemText(hWnd, IDC_ED_ACRIN, szAcrobat);
+    SetDlgItemText(hWnd, IDC_ED_GHOST, szGsPath);
+    SetDlgItemText(hWnd, IDC_ED_GSOP, szGsOpt);
     return TRUE;
 }
 
@@ -430,9 +466,11 @@ DoCommandPs(
 static void
 DoClosePs(HWND hWnd)
 {
-    GetDlgItemText(hWnd, IDC_ED_ACRIN, g_MailBox.szAcrobat, MAX_PATH);
-    GetDlgItemText(hWnd, IDC_ED_GHOST, g_MailBox.szGsPath, MAX_PATH);
-    GetDlgItemText(hWnd, IDC_ED_GSOP, g_MailBox.szGsOpt, 512);
+    DbgPrint(NULL, 'D', "Close(PS)");
+
+    GetDlgItemText(hWnd, IDC_ED_ACRIN, szAcrobat, MAX_PATH);
+    GetDlgItemText(hWnd, IDC_ED_GHOST, szGsPath, MAX_PATH);
+    GetDlgItemText(hWnd, IDC_ED_GSOP, szGsOpt, 512);
 }
 
 static BOOL
@@ -509,6 +547,13 @@ SetupPrtStyle(HWND hWnd)
     psh.hIcon = LoadIcon(NULL, IDI_ASTERISK);
     psh.ppsp = (LPCPROPSHEETPAGE)&psp;
     psh.nPages = 4;
+
+    // 現在の内容を複写
+    memcpy(&PrtInfoTmp, &g_PrtInfo, sizeof(PRT_INFO));
+    strcpy(szAcrobat, g_MailBox.szAcrobat);
+    strcpy(szGsPath, g_MailBox.szGsPath);
+    strcpy(szGsOpt, g_MailBox.szGsOpt);
+
     i = PropertySheet(&psh);
 
     running = FALSE;
@@ -519,6 +564,11 @@ SetupPrtStyle(HWND hWnd)
 
     // 設定結果を反映
     memcpy(&g_PrtInfo, &PrtInfoTmp, sizeof(PRT_INFO));
+
+    strcpy(g_MailBox.szAcrobat, szAcrobat);
+    strcpy(g_MailBox.szGsPath, szGsPath);
+    strcpy(g_MailBox.szGsOpt, szGsOpt);
+
     // 初期化ファイルへも反映
     SetDefaultPrtInfo();
 }
