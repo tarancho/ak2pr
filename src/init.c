@@ -1,10 +1,13 @@
 /* -*- mode: c++; coding: sjis-dos; -*-
- * Time-stamp: <2001-12-15 01:17:39 tfuruka1>
+ * Time-stamp: <2001-12-18 13:10:25 tfuruka1>
  *
  * 「ak2psのようなもの」のサーバの初期化処理
  *
- * $Id: init.c,v 1.4 2001/12/14 17:00:24 tfuruka1 Exp $
+ * $Id: init.c,v 1.5 2001/12/18 04:10:46 tfuruka1 Exp $
  * $Log: init.c,v $
+ * Revision 1.5  2001/12/18 04:10:46  tfuruka1
+ * プレビューウインドウの保存・復帰処理を追加
+ *
  * Revision 1.4  2001/12/14 17:00:24  tfuruka1
  * プレビュー対応
  *
@@ -44,6 +47,12 @@
 #define KEY_ACRIN    "AcrobatDistillerWatchdogFolderIN"
 #define KEY_GS       "GhostScript.Path"
 #define KEY_GSOP     "GhostScript.Option"
+
+#define SEC_PREVIEW  "PreView"
+#define KEY_TOP      "top"
+#define KEY_BOTTOM   "bottom"
+#define KEY_LEFT     "left"
+#define KEY_RIGHT    "right"
 
 #define BAD_STR      "(^_^;"
 #define GET_PROFILE(sec, key) GetPrivateProfileString((sec), (key),\
@@ -292,6 +301,71 @@ SetDefaultPrtInfo(void)
 }
 
 /*--------------------------------------------------------------------
+ * プレビューウインドウのウインドウ位置をプロファイルへ書き込む
+ * *-------------------------------------------------------------------*/
+void
+SetPreViewPos(LPRECT lprc)
+{
+    TCHAR szProfile[MAX_PATH];
+    TCHAR szBuf[1024];
+
+    wsprintf(szProfile, "%s/%s", GetMyDir(), PROFILE_NAME);
+
+    sprintf(szBuf, "%d", lprc->top);
+    WRT_PROFILE(SEC_PREVIEW, KEY_TOP, szBuf);
+
+    sprintf(szBuf, "%d", lprc->bottom);
+    WRT_PROFILE(SEC_PREVIEW, KEY_BOTTOM, szBuf);
+
+    sprintf(szBuf, "%d", lprc->left);
+    WRT_PROFILE(SEC_PREVIEW, KEY_LEFT, szBuf);
+
+    sprintf(szBuf, "%d", lprc->right);
+    WRT_PROFILE(SEC_PREVIEW, KEY_RIGHT, szBuf);
+}
+
+/*--------------------------------------------------------------------
+ * プレビューウインドウのウインドウ位置をプロファイルから読み込む
+ * *-------------------------------------------------------------------*/
+void
+GetPreViewPos(LPRECT lprc)
+{
+    TCHAR szProfile[MAX_PATH];
+    TCHAR szBuf[1024];
+    int wd, ht;
+
+    wd = GetSystemMetrics(SM_CXSCREEN);
+    ht = GetSystemMetrics(SM_CYSCREEN);
+
+    wsprintf(szProfile, "%s/%s", GetMyDir(), PROFILE_NAME);
+
+    GET_PROFILE(SEC_PREVIEW, KEY_TOP);
+    lprc->top = IsBadStr(szBuf) ? (ht / 2 - 300) : atoi(szBuf);
+
+    GET_PROFILE(SEC_PREVIEW, KEY_BOTTOM);
+    lprc->bottom = IsBadStr(szBuf) ? (ht / 2 + 300) : atoi(szBuf);
+
+    GET_PROFILE(SEC_PREVIEW, KEY_LEFT);
+    lprc->left = IsBadStr(szBuf) ? (wd / 2 - 400) : atoi(szBuf);
+
+    GET_PROFILE(SEC_PREVIEW, KEY_RIGHT);
+    lprc->right = IsBadStr(szBuf) ? (wd / 2 + 400) : atoi(szBuf);
+
+    if (lprc->top > ht) {
+        lprc->top = 0;
+    }
+    if (lprc->bottom < 0) {
+        lprc->bottom = ht;
+    }
+    if (lprc->left > wd) {
+        lprc->left = 0;
+    }
+    if (lprc->right < 0) {
+        lprc->right = wd;
+    }
+}
+
+/*--------------------------------------------------------------------
  * クラス登録及びウインドウの生成を行う
  * *-------------------------------------------------------------------*/
 HWND
@@ -303,6 +377,9 @@ CreateApplication(HANDLE hInstance)
     // 印字の初期情報を読み込む
     GetDefaultPrtInfo();
     SetDefaultPrtInfo();                        // ファイルが存在しない場合
+
+    // プレビューウインドウの位置を復元する
+    GetPreViewPos(&g_MailBox.PrevInfo.rc);
 
     // デバイス情報が有効か否か調べる
     if (g_MailBox.hDevNames) {
