@@ -1,10 +1,14 @@
 /* -*- mode: c++; coding: sjis-dos; -*-
- * Time-stamp: <2003-03-15 00:18:30 tfuruka1>
+ * Time-stamp: <2004-01-12 17:09:33 tfuruka1>
  *
  * 「ak2psのようなもの」のサーバの初期化処理
  *
- * $Id: init.c,v 1.8 2003/03/14 15:21:28 tfuruka1 Exp $
+ * $Id: init.c,v 1.9 2004/01/12 09:56:58 tfuruka1 Exp $
  * $Log: init.c,v $
+ * Revision 1.9  2004/01/12 09:56:58  tfuruka1
+ * 長辺綴じと短辺綴じに対応しました。プロファイルに短辺綴じの情報を保持す
+ * るようにしました。
+ *
  * Revision 1.8  2003/03/14 15:21:28  tfuruka1
  * ● PostScript関連のパス情報も*将来*コマンドラインから指定出来るように、
  *    パス情報をMAILBOXからPRT_INFOへ移動した。
@@ -50,6 +54,7 @@
 #define KEY_BPREVIEW "bPreview"
 #define KEY_BDEBUG   "bDebug"
 #define KEY_BNOCOPYRIGHT "bNoCopyrightPrint"
+#define KEY_BSHORT_BINDING "bShortBinding"
 
 #define SEC_DEVICE   "DEVICE SETUP"
 #define KEY_DEVNAME  "DeviceName"
@@ -231,6 +236,9 @@ GetDefaultPrtInfo(void)
     GET_PROFILE(PROFILE_SEC, KEY_BNUM);
     g_PrtInfo.bNum = IsBadStr(szBuf) ? FALSE : atoi(szBuf);
 
+    GET_PROFILE(PROFILE_SEC, KEY_BSHORT_BINDING);
+    g_PrtInfo.bShortBinding = IsBadStr(szBuf) ? FALSE : atoi(szBuf);
+
     // プリンタのデバイス情報を得る
     if (!GetPrivateProfileData(SEC_DEVICE, KEY_DEVNAME,
                                &g_MailBox.hDevNames, szProfile)) {
@@ -299,6 +307,9 @@ SetDefaultPrtInfo(void)
 
     sprintf(szBuf, "%d", g_PrtInfo.bNum);
     WRT_PROFILE(PROFILE_SEC, KEY_BNUM, szBuf);
+
+    sprintf(szBuf, "%d", g_PrtInfo.bShortBinding);
+    WRT_PROFILE(PROFILE_SEC, KEY_BSHORT_BINDING, szBuf);
 
     // デバイス情報の書き込み
     if (g_MailBox.hDevNames && g_MailBox.hDevMode) {
