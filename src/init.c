@@ -1,10 +1,14 @@
 /* -*- mode: c++; coding: sjis-dos; -*-
- * Time-stamp: <2001-12-23 16:50:14 tfuruka1>
+ * Time-stamp: <2003-03-15 00:18:30 tfuruka1>
  *
  * 「ak2psのようなもの」のサーバの初期化処理
  *
- * $Id: init.c,v 1.7 2001/12/23 10:24:34 tfuruka1 Exp $
+ * $Id: init.c,v 1.8 2003/03/14 15:21:28 tfuruka1 Exp $
  * $Log: init.c,v $
+ * Revision 1.8  2003/03/14 15:21:28  tfuruka1
+ * ● PostScript関連のパス情報も*将来*コマンドラインから指定出来るように、
+ *    パス情報をMAILBOXからPRT_INFOへ移動した。
+ *
  * Revision 1.7  2001/12/23 10:24:34  tfuruka1
  * Copyrightを印字しないモードをサポートした
  *
@@ -243,13 +247,13 @@ GetDefaultPrtInfo(void)
 
     // PostScript関連情報を得る
     GET_PROFILE(SEC_PS, KEY_ACRIN);
-    strncpy(g_MailBox.szAcrobat, szBuf, MAX_PATH);
+    strncpy(g_PrtInfo.szAcrobat, szBuf, MAX_PATH);
 
     GET_PROFILE(SEC_PS, KEY_GS);
-    strncpy(g_MailBox.szGsPath, szBuf, MAX_PATH);
+    strncpy(g_PrtInfo.szGsPath, szBuf, MAX_PATH);
 
     GET_PROFILE(SEC_PS, KEY_GSOP);
-    strncpy(g_MailBox.szGsOpt, szBuf, 512);
+    strncpy(g_PrtInfo.szGsOpt, szBuf, 512);
 }
 
 /*--------------------------------------------------------------------
@@ -315,9 +319,9 @@ SetDefaultPrtInfo(void)
     }
 
     // PostScript情報関連の書き込み
-    WRT_PROFILE(SEC_PS, KEY_ACRIN, g_MailBox.szAcrobat);
-    WRT_PROFILE(SEC_PS, KEY_GS, g_MailBox.szGsPath);
-    WRT_PROFILE(SEC_PS, KEY_GSOP, g_MailBox.szGsOpt);
+    WRT_PROFILE(SEC_PS, KEY_ACRIN, g_PrtInfo.szAcrobat);
+    WRT_PROFILE(SEC_PS, KEY_GS, g_PrtInfo.szGsPath);
+    WRT_PROFILE(SEC_PS, KEY_GSOP, g_PrtInfo.szGsOpt);
 }
 
 /*--------------------------------------------------------------------
