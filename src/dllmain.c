@@ -1,10 +1,14 @@
 /* -*- mode: C++; coding: sjis-dos; -*-
- * Time-stamp: <2001-12-17 23:32:40 tfuruka1>
+ * Time-stamp: <2001-12-23 18:24:12 tfuruka1>
  *
  * ak2ps のようなものの共通 DLL
  *
- * $Id: dllmain.c,v 1.9 2001/12/17 14:33:17 tfuruka1 Exp $
+ * $Id: dllmain.c,v 1.10 2001/12/23 10:23:33 tfuruka1 Exp $
  * $Log: dllmain.c,v $
+ * Revision 1.10  2001/12/23 10:23:33  tfuruka1
+ * ●作業ディレクトリ名取得の関数を新規追加（作業ファイル作成関数から切り出
+ *   し）
+ *
  * Revision 1.9  2001/12/17 14:33:17  tfuruka1
  * syslog内部で標準出力へ出力していた処理を削除した（やっぱりうっとうしい
  * ので）。
@@ -143,6 +147,43 @@ GetLastErrorMessage(LPCSTR lpsz, DWORD dwErr)
 #endif
 }
 
+/*-------------------------------------------------------------------- 
+ * 作業用ディレクトリ名を得る。作業ディレクトリ名は書き換えてはいけま
+ * せん。
+ * *-------------------------------------------------------------------*/
+LPCTSTR WINAPI
+GetTempDirectoryName()
+{
+    static TCHAR szTempDirName[MAX_PATH] = "\0";
+    char *p1;
+    DWORD dwFA;
+    int i;
+
+    if (NULL == (p1 = getenv("TEMP"))) {
+        Syslog("%s#%d: 環境変数TEMPが見つかりません", __FILE__, __LINE__);
+        return NULL;
+    }
+
+    for (i = 0; i < 100; i++) {
+        sprintf(szTempDirName, "%s\\ak2prTempDir%d", p1, i);
+        if (0xFFFFFFFF == (dwFA = GetFileAttributes(szTempDirName))) {
+            if (0 != _mkdir(szTempDirName)) {
+                continue;
+            }
+            break;
+        }
+        if (dwFA & FILE_ATTRIBUTE_DIRECTORY) {
+            break;
+        }
+    }
+    if (100 <= i) {
+        Syslog("%s#%d: 作業ディレクトリが作成できません", __FILE__, __LINE__);
+        szTempDirName[0] ='\0';
+        return NULL;
+    }
+    return (LPCTSTR)szTempDirName;
+}
+
 /*--------------------------------------------------------------------
  * 作業ファイルを作成する。正常に作成出来た場合はファイルポインタを返
  * 却する。作成できなかった場合は NULL を返却する。mode は fopen の
@@ -153,29 +194,27 @@ GetLastErrorMessage(LPCSTR lpsz, DWORD dwErr)
 FILE * WINAPI
 MakeTempFile(
     IN const char *mode,                        // モード
-    OUT LPTSTR lpszFileName                     // 作成した作業ファイル名
+    IN OUT LPTSTR lpszFileName                  // 作成した作業ファイル名
     )
 {
-    FILE *fp;
-    char *p1;
-    SYSTEMTIME st;
     static int iCnt = 0;
+    FILE *fp;
+    time_t t;
+    TCHAR szFileName[MAX_PATH];
+    LPCTSTR lpszDir;
+
+    if (!(lpszDir = GetTempDirectoryName())) {
+        return NULL;
+    }
 
     iCnt++;
     iCnt %= 256;
 
-    GetLocalTime(&st);
+    t = time(NULL);
 
-    if (NULL == (p1 = getenv("TEMP"))) {
-        Syslog("%s#%d: 環境変数TEMPが見つかりません", __FILE__, __LINE__);
-        return NULL;
-    }
-    sprintf(lpszFileName,
-            "%s/ak2pr%02d-%02d-%02d~%02d$%02d$%02d$%03d^%02x_XXXXXX",
-            p1,
-            st.wYear % 100, st.wMonth, st.wDay,
-            st.wHour,st.wMinute, st.wSecond, st.wMilliseconds,
-            iCnt);
+    strncpy(szFileName, lpszFileName, MAX_PATH);
+    sprintf(lpszFileName, "%s\\%s%08x_%d_XXXXXX",
+            lpszDir, szFileName, t, iCnt);
     if (!_mktemp(lpszFileName)) {
         Syslog("%s#%d: 作業ファイルが作成できません", __FILE__, __LINE__);
         return NULL;
@@ -397,6 +436,7 @@ SendPrintFromStdin(
     PrtInfo.bPreView = FALSE;
 
     // 作業ファイルを作成する
+    strcpy(PrtInfo.szFileName, PrtInfo.szTitle); 
     if (NULL == (fp = MakeTempFile("wt", PrtInfo.szFileName))) {
         return FALSE;
     }
@@ -472,6 +512,7 @@ SendPrintFromFileCopy(
     PrtInfo.bPreView = FALSE;
 
     // 作業ファイルを作成する
+    strcpy(PrtInfo.szFileName, PrtInfo.szTitle); 
     if (NULL == (fp = MakeTempFile("wt", PrtInfo.szFileName))) {
         return FALSE;
     }
