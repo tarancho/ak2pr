@@ -1,10 +1,13 @@
 /* -*- mode: C++; coding: sjis-dos; -*-
- * Time-stamp: <2001-12-23 18:24:12 tfuruka1>
+ * Time-stamp: <2003-02-25 23:35:37 tfuruka1>
  *
  * ak2ps のようなものの共通 DLL
  *
- * $Id: dllmain.c,v 1.10 2001/12/23 10:23:33 tfuruka1 Exp $
+ * $Id: dllmain.c,v 1.11 2003/02/25 15:28:35 tfuruka1 Exp $
  * $Log: dllmain.c,v $
+ * Revision 1.11  2003/02/25 15:28:35  tfuruka1
+ * 行番号印刷の処理追加による対応を行った。
+ *
  * Revision 1.10  2001/12/23 10:23:33  tfuruka1
  * ●作業ディレクトリ名取得の関数を新規追加（作業ファイル作成関数から切り出
  *   し）
@@ -410,7 +413,8 @@ SendPrintFromStdin(
     double fFontSize,                           // フォントサイズ
     int nType,                                  // 印刷データタイプ
     int nOrientation,                           // 用紙の向き
-    short dmPaperSize                           // 用紙サイズ
+    short dmPaperSize,                          // 用紙サイズ
+    int bNum                                    // 行番号の印刷
     )
 {
     PRT_INFO PrtInfo;                           // プリントファイル情報
@@ -434,6 +438,7 @@ SendPrintFromStdin(
     PrtInfo.nOrientation = nOrientation;
     PrtInfo.dmPaperSize = dmPaperSize;
     PrtInfo.bPreView = FALSE;
+    PrtInfo.bNum = bNum;                        // 行番号の印刷(-1:サーバ)
 
     // 作業ファイルを作成する
     strcpy(PrtInfo.szFileName, PrtInfo.szTitle); 
@@ -471,7 +476,8 @@ SendPrintFromFileCopy(
     double fFontSize,                           // フォントサイズ
     int nType,                                  // 印刷データタイプ
     int nOrientation,                           // 用紙の向き
-    short dmPaperSize                           // 用紙サイズ
+    short dmPaperSize,                          // 用紙サイズ
+    int bNum                                    // 行番号印刷
     )
 {
     PRT_INFO PrtInfo;                           // プリントファイル情報
@@ -510,6 +516,7 @@ SendPrintFromFileCopy(
     PrtInfo.nOrientation = nOrientation;
     PrtInfo.dmPaperSize = dmPaperSize;
     PrtInfo.bPreView = FALSE;
+    PrtInfo.bNum = bNum;                        // 行番号印刷(Booleanではない)
 
     // 作業ファイルを作成する
     strcpy(PrtInfo.szFileName, PrtInfo.szTitle); 
