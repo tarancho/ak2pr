@@ -1,10 +1,14 @@
 /* -*- mode: C++; coding: sjis-dos; -*-
- * Time-stamp: <2001-12-15 01:31:10 tfuruka1>
+ * Time-stamp: <2001-12-17 23:32:40 tfuruka1>
  *
  * ak2ps のようなものの共通 DLL
  *
- * $Id: dllmain.c,v 1.8 2001/12/14 17:04:43 tfuruka1 Exp $
+ * $Id: dllmain.c,v 1.9 2001/12/17 14:33:17 tfuruka1 Exp $
  * $Log: dllmain.c,v $
+ * Revision 1.9  2001/12/17 14:33:17  tfuruka1
+ * syslog内部で標準出力へ出力していた処理を削除した（やっぱりうっとうしい
+ * ので）。
+ *
  * Revision 1.8  2001/12/14 17:04:43  tfuruka1
  * プレビュー対応
  *
@@ -518,7 +522,7 @@ Syslog(
     vsprintf(szLine + strlen(szLine), lpstr, args);
     va_end(args);
 
-    printf("%s\n", szLine);
+    //printf("%s\n", szLine);
 
     if (WSAStartup(MAKEWORD(1, 1), &wsaData) != 0) {
 		return;
