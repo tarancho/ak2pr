@@ -1,10 +1,14 @@
 /* -*- mode: C++; coding: sjis-dos; -*-
- * Time-stamp: <2001-02-06 02:46:01 tfuruka1>
+ * Time-stamp: <2003-03-01 01:10:11 tfuruka1>
  *
  * 「ak2psのようなもの」のメール印字処理
  *
- * $Id: prtMail.c,v 1.1 2001/02/05 17:46:02 tfuruka1 Exp $
+ * $Id: prtMail.c,v 1.2 2003/03/01 09:05:25 tfuruka1 Exp $
  * $Log: prtMail.c,v $
+ * Revision 1.2  2003/03/01 09:05:25  tfuruka1
+ * ●行番号の印刷に対応した
+ * ●e-mail印刷時のカラー印刷を少しカラフルにした。
+ *
  * Revision 1.1  2001/02/05 17:46:02  tfuruka1
  * Initial revision
  *
@@ -22,16 +26,20 @@
 #define SZ_RECEIVED    "Received:"
 #define SZ_MAILER      "X-Mailer:"
 
-#define MULE_GREEN RGB(33, 138, 33)
+#define MULE_GREEN RGB(0, 255, 0)
 #define MULE_BLUE  RGB(0, 0, 255)
-#define MULE_DRED  RGB(181, 32, 33)
-#define MULE_PRP   RGB(165, 32, 247)
-#define MULE_ORG   RGB(239, 177, 0)
-#define MULE_GRAY  RGB(123, 125, 123)
+#define MULE_DRED  RGB(178, 34, 34)
+#define MULE_PRP   RGB(255, 0, 255)
+#define MULE_ORG   RGB(210, 105, 30)
+#define MULE_GRAY  RGB(127, 127, 127)
+#define MULE_BROWN RGB(139, 69, 0)
 #define MULE_BLACK RGB(0, 0, 0)
 
 VOID PrintMail(void)
 {
+    const static COLORREF QuoteColor[] = {
+        MULE_GREEN, MULE_BLUE, MULE_PRP, MULE_BROWN, MULE_DRED
+    };
     static struct {
         LPTSTR szHeader;                        // ヘッダ文字列
         int nWeight;                            // ウエイト
@@ -40,8 +48,9 @@ VOID PrintMail(void)
         COLORREF crDetail;                      // カラー印刷時の色
     } Header[] = {
         {"Subject:", 400, TRUE, MULE_BLUE, MULE_DRED},
-        {"From:", 400, TRUE, MULE_BLUE, MULE_PRP},
-        {"To:", 400, FALSE, MULE_BLUE, MULE_ORG},
+        {"From:", 400, TRUE, MULE_BLUE, MULE_BROWN},
+        {"To:", 400, FALSE, MULE_BLUE, MULE_PRP},
+        {"Cc:", 400, FALSE, MULE_BLUE, MULE_PRP},
         {"Message-ID:", 400, TRUE, MULE_GREEN, MULE_GRAY},
         {"Received:", 400, FALSE, MULE_GREEN, MULE_GRAY},
         {"Mime-Version:", 400, FALSE, MULE_GREEN, MULE_GRAY},
@@ -54,17 +63,21 @@ VOID PrintMail(void)
         {"References:", 400, TRUE, MULE_GREEN, MULE_GRAY},
         {"X-Mailer:", 400, FALSE, MULE_GREEN, MULE_GRAY},
         {"Date:", 400, FALSE, MULE_GREEN, MULE_GRAY},
+        {"X-Mew:", 400, FALSE, MULE_BLUE, MULE_ORG},
+        {"Return-Path:", 400, FALSE, MULE_GREEN, MULE_GRAY},
         {NULL, 0, FALSE, 0}};
     BOOL bHeader = TRUE;
-    TCHAR szBuf[1024], szLastHeader[128];
+    TCHAR szBuf[1024], szLastHeader[128], szLine[8];
     LPTSTR p, p1;
     FILE *fp;
     int bTitle = FALSE, c, i;
+    int nLine;                                  // 行番号
     LONG lfHeight;                              // フォントの高さ
     LONG lfWeight;                              // フォントのウエイト
     BOOL lfItalic;                              // T: Italic
     BOOL lfUnderline;                           // T: Underline
     TCHAR lfFaceName[LF_FACESIZE];              // フォントフェイス名
+    COLORREF crLast = RGB(0, 0, 0);             // 最後に使用した色
 
     DbgPrint(NULL, 'I', "メール印字処理開始");
 
@@ -88,6 +101,7 @@ VOID PrintMail(void)
     }
 
     // 全ての行を処理するまで
+    nLine = 0;
     while (ufgets(szBuf, 1024 - g_MailBox.PrtInfo.nTab, fp,
                   g_MailBox.PrtInfo.nTab)) {
         lfHeight = GetPrtBasePoint();
@@ -95,11 +109,13 @@ VOID PrintMail(void)
         lfItalic = lfUnderline = FALSE;
         strcpy(lfFaceName, FN_MSM);
 
+
         // 空行の場合はMHS終了
         if ('\r' == szBuf[0] || '\n' == szBuf[0]) {
             bHeader = FALSE;
             if (g_MailBox.PrtInfo.bColor) {     // カラー印刷の場合
                 SetTextColor(g_MailBox.hDC, MULE_BLACK);
+                crLast = MULE_BLACK;
             }
         }
 
@@ -188,12 +204,29 @@ VOID PrintMail(void)
                     }
                 }
                 SetTextColor(g_MailBox.hDC, crTxt);
+                crLast = crTxt;
             }
+
+            // 行番号印刷の場合は行番号を印刷する
+            if (g_MailBox.PrtInfo.bNum) {
+                sprintf(szLine, "%4d: ", ++nLine);
+                SetTextColor(g_MailBox.hDC, MULE_BLACK);
+                if (!SetFontAndPrint(szLine, FN_COU, lfHeight, 800,
+                                     FALSE, FALSE, FALSE, FALSE)) {
+                    goto ErrorExit;
+                }
+                if (g_MailBox.PrtInfo.bColor) {     // カラー印刷の場合
+                    // 元の色に戻す
+                    SetTextColor(g_MailBox.hDC, crLast);
+                    crLast = MULE_BLACK;
+                }
+            }
+
             if (!SetFontAndPrint(szBuf, lfFaceName, lfHeight, lfWeight,
                                  lfItalic, lfUnderline, FALSE, TRUE)) {
                 goto ErrorExit;
             }
-            
+
             // : が見つからなかった場合は次の行へ
             if (p == szBuf) {
                 // リファレンスの継続
@@ -216,6 +249,7 @@ VOID PrintMail(void)
                     if (g_MailBox.PrtInfo.bColor) {// カラー印刷の場合
                         lfWeight = 400;
                         SetTextColor(g_MailBox.hDC, Header[i].crDetail);
+                        crLast = Header[i].crDetail;
                     }
                     else {
                         lfWeight = Header[i].nWeight;
@@ -232,6 +266,7 @@ VOID PrintMail(void)
             if (!Header[i].szHeader) {          // ハイライトヘッダではなかった
                 if (g_MailBox.PrtInfo.bColor) { // カラー印刷の場合
                     SetTextColor(g_MailBox.hDC, MULE_GRAY);
+                    crLast = MULE_GRAY;
                 }
                 lfWeight = 400;
                 if (!SetFontAndPrint(p, lfFaceName, lfHeight, lfWeight,
@@ -242,11 +277,47 @@ VOID PrintMail(void)
             continue;                           // 次の行を処理する
         }
 
+        /* --------------------
+         * 以下はボディ部の印刷
+         * -------------------- */
+
+        // 行番号印刷の場合は行番号を印刷する
+        if (g_MailBox.PrtInfo.bNum) {
+            sprintf(szLine, "%4d: ", ++nLine);
+            SetTextColor(g_MailBox.hDC, MULE_BLACK);
+            if (!SetFontAndPrint(szLine, FN_COU, lfHeight, 800,
+                                 FALSE, FALSE, FALSE, FALSE)) {
+                goto ErrorExit;
+            }
+            if (g_MailBox.PrtInfo.bColor) {     // カラー印刷の場合
+                // 元の色に戻す
+                SetTextColor(g_MailBox.hDC, crLast);
+                crLast = MULE_BLACK;
+            }
+        }
+
+
         // 引用記号が含まれている場合
         if (p1 = _mbschr(szBuf, '>')) {
             p = _mbschr(szBuf, '<');
             if (NULL == p || p1 < p) {
                 lfWeight = 700;
+                if (g_MailBox.PrtInfo.bColor) {     // カラー印刷の場合
+                    // 引用記号の数を数える
+                    int num = 0;
+                    int i;
+                    for (i = 0; szBuf[i]; i++) {
+                        if ('>' == szBuf[i]) {
+                            num++;
+                        }
+                        else if ('<' == szBuf[i]) {
+                            break;
+                        }
+                    }
+                    SetTextColor(g_MailBox.hDC,
+                                 QuoteColor[num % (sizeof(QuoteColor)
+                                                   / sizeof(COLORREF))]);
+                }
             }
         }
 
@@ -302,10 +373,12 @@ VOID PrintMail(void)
             }
         }
         else {
+            // 通常のボディ部
             if (!SetFontAndPrint(szBuf, lfFaceName, lfHeight, lfWeight,
                                  lfItalic, lfUnderline, FALSE, TRUE)) {
                 goto ErrorExit;
             }
+            SetTextColor(g_MailBox.hDC, MULE_BLACK);
         }
     }
 
