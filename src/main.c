@@ -1,10 +1,13 @@
 /* -*- mode: c++; coding: sjis-dos; -*-
- * Time-stamp: <2001-02-06 02:41:23 tfuruka1>
+ * Time-stamp: <2001-12-08 03:20:09 tfuruka1>
  *
  * 「ak2psのようなもの」のサーバ側メイン処理
  *
- * $Id: main.c,v 1.1 2001/02/05 17:41:23 tfuruka1 Exp $
+ * $Id: main.c,v 1.2 2001/12/07 18:21:16 tfuruka1 Exp $
  * $Log: main.c,v $
+ * Revision 1.2  2001/12/07 18:21:16  tfuruka1
+ * 二重起動の時にダイアログを表示するのを止めた。
+ *
  * Revision 1.1  2001/02/05 17:41:23  tfuruka1
  * Initial revision
  *
@@ -35,7 +38,6 @@ WinMain(
 
     // 起動済みチェックを行う
     if (IsPrtServerEnable()) {
-        MessageBox(NULL, "既に起動されています", SV_CAPTION, MB_ERROR);
         return 0;
     }
 
