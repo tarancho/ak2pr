@@ -2,8 +2,14 @@
  *
  * 「ak2psのようなもの」のサーバ側のヘッダファイル
  *
- * $Id: ak2prs.h,v 1.5 2001/08/19 09:03:25 tfuruka1 Exp $
+ * $Id: ak2prs.h,v 1.6 2001/09/28 15:49:05 tfuruka1 Exp $
  * $Log: ak2prs.h,v $
+ * Revision 1.6  2001/09/28 15:49:05  tfuruka1
+ * 【Version 1.4 にしました】ak2pr.exe, ak2prW.exeで引数をデバッグ用にダ
+ * ンプしている処理でメモリ破壊をおこしていたおばかなバグを修正しました
+ * （引数を沢山指定：例えば、ファイルを999個ぐらい指定すると、メモリを破
+ * 壊していた）。
+ *
  * Revision 1.5  2001/08/19 09:03:25  tfuruka1
  * ───── Version 1.3にしました  ─────
  * RCSのRevisionと一致させるのは無理が（頻繁に上がり過ぎるので）あるので、
@@ -39,8 +45,8 @@
 #ifndef _AK2PRS_H_
 #define _AK2PRS_H_
 
-#define TIMESTAMP "Time-stamp: <2001-08-19 17:56:36 tfuruka1>"
-#define VERSION   "Version 1.3"
+#define TIMESTAMP "Time-stamp: <2001-09-29 00:47:02 tfuruka1>"
+#define VERSION   "Version 1.4"
 
 #include <windows.h>
 #include <windowsx.h>
