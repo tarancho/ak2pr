@@ -1,10 +1,14 @@
 /* -*- mode: C++; coding: sjis-dos; -*-
- * Time-stamp: <2003-02-25 23:35:37 tfuruka1>
+ * Time-stamp: <2003-03-01 01:35:28 tfuruka1>
  *
  * ak2ps のようなものの共通 DLL
  *
- * $Id: dllmain.c,v 1.11 2003/02/25 15:28:35 tfuruka1 Exp $
+ * $Id: dllmain.c,v 1.12 2003/03/01 09:01:25 tfuruka1 Exp $
  * $Log: dllmain.c,v $
+ * Revision 1.12  2003/03/01 09:01:25  tfuruka1
+ * ● 作業ファイルの作成処理において、ファイル名に使用出来ない文字が指定去
+ *    れた場合に適切な文字に変更するように修正を行った。
+ *
  * Revision 1.11  2003/02/25 15:28:35  tfuruka1
  * 行番号印刷の処理追加による対応を行った。
  *
@@ -205,6 +209,28 @@ MakeTempFile(
     time_t t;
     TCHAR szFileName[MAX_PATH];
     LPCTSTR lpszDir;
+    int i;
+
+    // ファイル名に * や \ 等が含まれていると、正しいファイルを作成で
+    // きないので、適切な文字に置き換える
+    for (i = 0; *(lpszFileName + i); i++) {
+        // 漢字の一バイト目の場合は次の文字もスキップする
+        if (IsKanjiSJIS(*((LPBYTE)lpszFileName + i))) {
+            i++;
+            continue;
+        }
+        switch (*(lpszFileName + i)) {
+        case '*':
+        case '/':
+        case ':':
+        case '\\':
+            *(lpszFileName + i) = '-';
+            break;
+        case ' ':
+            *(lpszFileName + i) = '_';
+            break;
+        }
+    }
 
     if (!(lpszDir = GetTempDirectoryName())) {
         return NULL;
@@ -223,8 +249,8 @@ MakeTempFile(
         return NULL;
     }
     if (NULL == (fp = fopen(lpszFileName, mode))) {
-        Syslog("%s#%d: 作業ファイルをオープン作成できません(%s)",
-               __FILE__, __LINE__, strerror(0));
+        Syslog("%s#%d: 作業ファイル[%s]をオープン作成できません(%s)",
+               __FILE__, __LINE__, lpszFileName, strerror(0));
         return NULL;
     }
     return fp;
