@@ -1,10 +1,14 @@
 /* -*- mode: c++; coding: sjis-dos; -*-
- * Time-stamp: <2001-12-18 21:44:31 tfuruka1>
+ * Time-stamp: <2001-12-23 17:26:46 tfuruka1>
  *
  * 「ak2psのようなもの」のプリンタ制御関連
  *
- * $Id: printer.c,v 1.3 2001/12/18 12:58:41 tfuruka1 Exp $
+ * $Id: printer.c,v 1.4 2001/12/23 10:10:33 tfuruka1 Exp $
  * $Log: printer.c,v $
+ * Revision 1.4  2001/12/23 10:10:33  tfuruka1
+ * ●プレビュー有りの判断方法を変更した。
+ * ●Copyright表示を印字しないモードを用意した。
+ *
  * Revision 1.3  2001/12/18 12:58:41  tfuruka1
  * 段の幅を超えて文字を印字してしまう事がある問題を修正。この問題のデバッ
  * グを行う目的で、デバッグ用のチェックボックスを印刷設定の画面に追加した。
@@ -213,7 +217,7 @@ BeginDocument(void)
     di.lpszDocName = szBuf;
     di.lpszOutput = (LPTSTR)NULL;
 
-    if (g_MailBox.hDC != g_MailBox.PrevInfo.hDC) {
+    if (!g_MailBox.PrtInfo.bPreView) {
         // プリンタ出力の場合
         if (SP_ERROR == StartDoc(g_MailBox.hDC, &di)) {
             int nErr = GetLastError();
@@ -341,7 +345,7 @@ BeginPage(void)
     // ----------------------------------------------
     // 以下は一番最初の段の印刷開始時のみ実行されます
     // ----------------------------------------------
-    if (g_MailBox.hDC != g_MailBox.PrevInfo.hDC) {
+    if (!g_MailBox.PrtInfo.bPreView) {
         // プレビューの場合はこのブロック内の処理は行わない
         nError = StartPage(g_MailBox.hDC);
         if (nError <= 0) {
@@ -525,15 +529,17 @@ BeginPage(void)
     DeleteObject(hFont);
 
     // Copyright表示
-    hFont = CreatePrtFont(FN_ARIAL, ConvX2Dt(3, nDPIH, CX_PT),
-                          400, FALSE, FALSE, FALSE, FALSE);
-    hOldFont = SelectObject(g_MailBox.hDC, hFont);
+    if (!g_PrtInfo.bNoCopyright) {
+        hFont = CreatePrtFont(FN_ARIAL, ConvX2Dt(3, nDPIH, CX_PT),
+                              400, FALSE, FALSE, FALSE, FALSE);
+        hOldFont = SelectObject(g_MailBox.hDC, hFont);
 
-    DrawText(g_MailBox.hDC, COPYRIGHT, -1, &rc,
-             DT_LEFT | DT_VCENTER | DT_NOCLIP | DT_WORDBREAK);
+        DrawText(g_MailBox.hDC, COPYRIGHT, -1, &rc,
+                 DT_LEFT | DT_VCENTER | DT_NOCLIP | DT_WORDBREAK);
 
-    SelectObject(g_MailBox.hDC, hOldFont);
-    DeleteObject(hFont);
+        SelectObject(g_MailBox.hDC, hOldFont);
+        DeleteObject(hFont);
+    }
 
  Exit:
     // デバッグモードの場合は、印刷エリアを塗り潰す
@@ -543,7 +549,7 @@ BeginPage(void)
         rc.right = nEndX;
         rc.top = nStartY;
         rc.bottom = nEndY;
-        FillRect(g_MailBox.hDC, &rc, GetStockObject(LTGRAY_BRUSH));
+        DrawRect(g_MailBox.hDC, &rc, RGB(0, 0, 255), PS_SOLID);
     }
 
     return TRUE;
@@ -614,7 +620,7 @@ BOOL EndPageDocument(void)
     }
 
     // プレビューの場合ここで、プレビュー画面を表示する
-    if (g_MailBox.hDC == g_MailBox.PrevInfo.hDC) {
+    if (g_MailBox.PrtInfo.bPreView) {
         if (!bPreviewed) {
             PrintPreview(g_MailBox.hWnd, &g_MailBox.PrevInfo);
         }
@@ -641,7 +647,7 @@ EndDocument(void)
     int nErr;
 
     EndPageDocument();
-    if (g_MailBox.hDC == g_MailBox.PrevInfo.hDC) {
+    if (g_MailBox.PrtInfo.bPreView) {
         return FALSE;
     }
 
