@@ -1,10 +1,14 @@
 /* -*- mode: c++; coding: sjis-dos; -*-
- * Time-stamp: <2001-12-17 23:17:42 tfuruka1>
+ * Time-stamp: <2001-12-18 21:44:31 tfuruka1>
  *
  * 「ak2psのようなもの」のプリンタ制御関連
  *
- * $Id: printer.c,v 1.2 2001/12/18 04:06:40 tfuruka1 Exp $
+ * $Id: printer.c,v 1.3 2001/12/18 12:58:41 tfuruka1 Exp $
  * $Log: printer.c,v $
+ * Revision 1.3  2001/12/18 12:58:41  tfuruka1
+ * 段の幅を超えて文字を印字してしまう事がある問題を修正。この問題のデバッ
+ * グを行う目的で、デバッグ用のチェックボックスを印刷設定の画面に追加した。
+ *
  * Revision 1.2  2001/12/18 04:06:40  tfuruka1
  * プレビューに対応しました。
  *
@@ -332,7 +336,7 @@ BeginPage(void)
         nStartX += ConvX2Dt(5, nDPIW, CX_PT);
         nEndX -= ConvX2Dt(5, nDPIW, CX_PT);
         nPageNo++;
-        return TRUE;
+        goto Exit;
     }
     // ----------------------------------------------
     // 以下は一番最初の段の印刷開始時のみ実行されます
@@ -392,10 +396,10 @@ BeginPage(void)
         Polyline(g_MailBox.hDC, &pt[0], 2);
     }
     nEndX = (int)(nStartX + (nRight - nLeft) / g_MailBox.PrtInfo.nNumOfUp
-                  - nBaseLine);
+                  - ConvX2Dt(5, nDPIW, CX_PT));
     nStartX += ConvX2Dt(5, nDPIW, CX_PT);
     nStartY += ConvX2Dt(5, nDPIH, CX_PT);
-    nEndY -= (nBaseLine + ConvX2Dt(5, nDPIH, CX_PT));
+    nEndY -= ConvX2Dt(5, nDPIH, CX_PT);
 
     SelectObject(g_MailBox.hDC, hOldBrush);
     SelectObject(g_MailBox.hDC, hOldPen);
@@ -531,6 +535,17 @@ BeginPage(void)
     SelectObject(g_MailBox.hDC, hOldFont);
     DeleteObject(hFont);
 
+ Exit:
+    // デバッグモードの場合は、印刷エリアを塗り潰す
+    if (g_PrtInfo.bDebug) {
+        RECT rc;
+        rc.left = nStartX;
+        rc.right = nEndX;
+        rc.top = nStartY;
+        rc.bottom = nEndY;
+        FillRect(g_MailBox.hDC, &rc, GetStockObject(LTGRAY_BRUSH));
+    }
+
     return TRUE;
 }
 
@@ -665,7 +680,9 @@ PutcPrinter(
         return TRUE;
     }
 
-    if (nCurrentX > nEndX) {                    // 幅を超えている
+    // 印字した結果、幅を超えないか調べる
+    GetTextExtentPoint32(g_MailBox.hDC, szBuf, cbString, &Size);
+    if ((nCurrentX + Size.cx) > nEndX) {        // 幅を超えている
         nCurrentX = nStartX;
         if (bKeisen) {
             nCurrentY += nBasePoint;
@@ -674,6 +691,22 @@ PutcPrinter(
             nCurrentY += (bKanji ? nBaseLineK : nBaseLine);
         }
         bKanji = bKeisen = FALSE;
+
+        // 改行した結果、最後の行を超える場合は、改ページする
+        if ((nCurrentY + Size.cy) > nEndY) {
+            // 最後の段の場合は排紙する
+            if (0 == ((nPageNo - 1) % g_MailBox.PrtInfo.nNumOfUp)) {
+                if (!EndPageDocument()) {
+                    return FALSE;
+                }
+            }
+            if (!BeginPage()) {
+                return FALSE;
+            }
+            nCurrentX = nStartX;
+            nCurrentY = nStartY;
+            bKanji = bKeisen = FALSE;
+        }
     }
 
     // メールの印刷時のみ
@@ -689,8 +722,16 @@ PutcPrinter(
         }
     }
 
+    // デバッグモードの場合は、文字の回りを矩形で囲む
+    if (g_PrtInfo.bDebug) {
+        RECT rc;
+        rc.left = nCurrentX;
+        rc.right = nCurrentX + Size.cx;
+        rc.top = nCurrentY;
+        rc.bottom = nCurrentY + Size.cy;
+        DrawRect(g_MailBox.hDC, &rc, RGB(255, 0, 0), PS_SOLID);
+    }
     TextOut(g_MailBox.hDC, nCurrentX, nCurrentY, szBuf, cbString);
-    GetTextExtentPoint32(g_MailBox.hDC, szBuf, cbString, &Size);
     nCurrentX += Size.cx;
 
     return TRUE;
@@ -717,18 +758,17 @@ PutsPrinter(LPTSTR szBuf)
         bKeisen = FALSE;
     }
 
-    if (nCurrentX > nEndX) {                    // 幅を超えている
-        nCurrentX = nStartX;
-        if (bKeisen) {
-            nCurrentY += nBasePoint;
-        }
-        else {
-            nCurrentY += (bKanji ? nBaseLineK : nBaseLine);
-        }
-        bKanji = bKeisen = FALSE;
+    // 最後の文字がCR or LFの場合は待避しておく
+    szTmp[0] = '\0';
+    if ('\n' == *(szBuf + strlen(szBuf) - 1) ||
+        '\r' == *(szBuf + strlen(szBuf) - 1)) {
+        szTmp[0] = '\n';
+        *(szBuf + strlen(szBuf) - 1) = '\0';
     }
 
-    if (nCurrentY > nEndY) {                    // 最終ラインを超えている
+    // 纏めて出力できるかどうか確かめる
+    GetTextExtentPoint32(g_MailBox.hDC, szBuf, strlen(szBuf), &Size);
+    if ((nCurrentY + Size.cy) > nEndY) {        // 最終ラインを超えている
         // 最後の段の場合は排紙する
         if (0 == ((nPageNo - 1) % g_MailBox.PrtInfo.nNumOfUp)) {
             if (!EndPageDocument()) {
@@ -743,18 +783,17 @@ PutsPrinter(LPTSTR szBuf)
         bKanji = bKeisen = FALSE;
     }
 
-    // 最後の文字がCR or LFの場合は待避しておく
-    szTmp[0] = '\0';
-    if ('\n' == *(szBuf + strlen(szBuf) - 1) ||
-        '\r' == *(szBuf + strlen(szBuf) - 1)) {
-        szTmp[0] = '\n';
-        *(szBuf + strlen(szBuf) - 1) = '\0';
-    }
-
-    // 纏めて出力できるかどうか確かめる
-    GetTextExtentPoint32(g_MailBox.hDC, szBuf, strlen(szBuf), &Size);
     if ((nCurrentX + Size.cx) < nEndX) {
         // 纏めて出力可能
+        // デバッグモードの場合は、文字の回りを矩形で囲む
+        if (g_PrtInfo.bDebug) {
+            RECT rc;
+            rc.left = nCurrentX;
+            rc.right = nCurrentX + Size.cx;
+            rc.top = nCurrentY;
+            rc.bottom = nCurrentY + Size.cy;
+            DrawRect(g_MailBox.hDC, &rc, RGB(0, 255, 0), PS_SOLID);
+        }
         TextOut(g_MailBox.hDC, nCurrentX, nCurrentY, szBuf, strlen(szBuf));
         nCurrentX += Size.cx;
 
@@ -828,4 +867,38 @@ SetFontAndPrint(
     DeleteObject(hFont);
 
     return bResult;
+}
+
+/* -------------------------------------------------------------------
+ * 矩形を描画する
+ * *-----------------------------------------------------------------*/
+void WINAPI
+DrawRect(
+    HDC hDC,                                    // デバイスコンテキスト
+    LPRECT lprc,                                // 矩形座標
+    COLORREF rgb,                               // 色
+    int pnStyle                                 // 線のスタイル
+    )
+{
+    HPEN hPen, hPenOld;                         // ペン
+	LOGPEN lgpen;                               // 論理ペン
+    POINT pt[5];
+
+    // ペンの作成
+    lgpen.lopnStyle = pnStyle;                  // 実線
+    lgpen.lopnWidth.x = 1;                      // 太さ1
+    lgpen.lopnColor = rgb;                      // 色は黒
+    hPen = CreatePenIndirect(&lgpen);           // ペンの作成
+    hPenOld = SelectObject(hDC, hPen);          // 現在のペンに設定
+
+    pt[0].x = lprc->left, pt[0].y = lprc->top;
+    pt[1].x = lprc->right - 1, pt[1].y = lprc->top;
+    pt[2].x = lprc->right - 1, pt[2].y = lprc->bottom - 1;
+    pt[3].x = lprc->left, pt[3].y = lprc->bottom - 1;
+    pt[4].x = lprc->left, pt[4].y = lprc->top;
+
+    Polyline(hDC, pt, 5);
+
+    SelectObject(hDC, hPenOld);                 // ペンを元に戻す
+    DeleteObject(hPen);                         // ペンの削除
 }
