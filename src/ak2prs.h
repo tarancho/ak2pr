@@ -2,8 +2,12 @@
  *
  * 「ak2psのようなもの」のサーバ側のヘッダファイル
  *
- * $Id: ak2prs.h,v 1.14 2003/03/01 09:12:44 tfuruka1 Exp $
+ * $Id: ak2prs.h,v 1.15 2003/03/14 16:03:08 tfuruka1 Exp $
  * $Log: ak2prs.h,v $
+ * Revision 1.15  2003/03/14 16:03:08  tfuruka1
+ * ● PostScript関連の情報をMAILBOXからPRT_INFOへ移動した。将来、ak2prの
+ *    コマンドオプションとして、指定可能にする為の修正である。
+ *
  * Revision 1.14  2003/03/01 09:12:44  tfuruka1
  * ●リリース用として変更[Version]は[2.1]
  *
@@ -84,8 +88,8 @@
 #ifndef _AK2PRS_H_
 #define _AK2PRS_H_
 
-#define TIMESTAMP "Time-stamp: <2003-02-27 08:04:46 tfuruka1>"
-#define VERSION   "Version 2.1"
+#define TIMESTAMP "Time-stamp: <2003-03-14 22:26:50 tfuruka1>"
+#define VERSION   "Version 2.2+Beta2"
 
 #include <windows.h>
 #include <windowsx.h>
@@ -176,6 +180,12 @@ typedef struct _PrtInfo{
     BOOL bDebug;                                // T: デバッグ印刷
     BOOL bNoCopyright;                          // T: Copyrightを印刷しない
     double fFontSize;                           // フォントサイズ --- Point
+
+    // ----- 以下はPostScript印刷時の情報
+    TCHAR szAcrobat[MAX_PATH];                  // Distiller in フォルダ
+    TCHAR szGsPath[MAX_PATH];                   // GhostScript パス
+    TCHAR szGsOpt[512];                         // GhostScript option
+
 } PRT_INFO, *PPRT_INFO;
 
 // nType に設定する値は以下の通り(クライアント側でも参照したいので、
@@ -211,10 +221,6 @@ typedef struct {
     TCHAR szDate[128];                          // 受信日時
     TCHAR szReference[128];                     // リファレンス
     TCHAR szMessageID[128];                     // メッセージID
-    // ----- 以下はPostScript印刷時の情報
-    TCHAR szAcrobat[MAX_PATH];                  // Distiller in フォルダ
-    TCHAR szGsPath[MAX_PATH];                   // GhostScript パス
-    TCHAR szGsOpt[512];                         // GhostScript option
 } MAILBOX, *PMAILBOX;
 
 // 外部定義
