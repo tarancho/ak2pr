@@ -1,10 +1,14 @@
 /* -*- mode: C++; coding: sjis-dos; -*-
- * Time-stamp: <2003-03-14 22:09:25 tfuruka1>
+ * Time-stamp: <2003-03-19 23:46:40 tfuruka1>
  *
  * ak2ps のようなものの共通 DLL
  *
- * $Id: dllmain.c,v 1.13 2003/03/14 15:06:19 tfuruka1 Exp $
+ * $Id: dllmain.c,v 1.14 2003/03/29 12:43:59 tfuruka1 Exp $
  * $Log: dllmain.c,v $
+ * Revision 1.14  2003/03/29 12:43:59  tfuruka1
+ * ● SendPrintFromStdin関数でクリップボードの内容を読み込む処理を追加し
+ *    た。
+ *
  * Revision 1.13  2003/03/14 15:06:19  tfuruka1
  * ● Syslog関数の仕様変更に伴い、Syslog関数を使用している部分の修正を行っ
  *    た。
@@ -446,11 +450,13 @@ SendPrintData(
     return SendMessage(hWndTo, WM_COPYDATA, (WPARAM)hWnd, (LPARAM)&cds);
 }
 
-/*--------------------------------------------------------------------
- * 標準入力の内容を読み込みプリントサーバへ印刷情報を送信する。
- * *-------------------------------------------------------------------*/
+/*-------------------------------------------------------------------- 
+ * 標準入力の内容を読み込みプリントサーバへ印刷情報を送信する。標準入
+ * 力の代わりにクリップボードからテキストを読み込む事も可能である。
+ *  *-------------------------------------------------------------------*/
 BOOL WINAPI
 SendPrintFromStdin(
+    BOOL bClipBoard,                            // T:クリップボード
     HWND hWnd,                                  // ハンドル
     LPCTSTR lpszTitle,                          // タイトル未指定時は"stdin"
     int nNumOfUp,                               // 段組数
@@ -473,7 +479,7 @@ SendPrintFromStdin(
         strncpy(PrtInfo.szTitle, lpszTitle, 255);
     }
     else {
-        strcpy(PrtInfo.szTitle, "stdin");
+        strcpy(PrtInfo.szTitle, bClipBoard ? "Clipboard" : "stdin");
     }
 
     PrtInfo.nNumOfUp = nNumOfUp;
@@ -491,13 +497,19 @@ SendPrintFromStdin(
         return FALSE;
     }
 
-    // 標準入力から読み込む
-    while (fgets(szBuf, 1024, stdin)) {
-        fprintf(fp, "%s", szBuf);
-        bNotZero++;
+    if (bClipBoard) {
+        // クリップボードからファイルに読み込む
+        bNotZero = ReadClipBoardToFP(NULL, fp);
     }
-    fclose(fp);
+    else {
+        // 標準入力から読み込む
+        while (fgets(szBuf, 1024, stdin)) {
+            fprintf(fp, "%s", szBuf);
+            bNotZero++;
+        }
+    }
 
+    fclose(fp);
     if (!bNotZero) {
         unlink(PrtInfo.szFileName);
         Syslog(TRUE, "%s", "ファイルサイズが0なのでキャンセルします");
