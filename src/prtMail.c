@@ -1,10 +1,13 @@
 /* -*- mode: C++; coding: sjis-dos; -*-
- * Time-stamp: <2004-06-18 09:38:27 tfuruka1>
+ * Time-stamp: <2004-08-16 19:40:25 tfuruka1>
  *
  * 「ak2psのようなもの」のメール印字処理
  *
- * $Id: prtMail.c,v 1.4 2004/06/18 00:57:56 tfuruka1 Exp $
+ * $Id: prtMail.c,v 1.5 2004/08/16 14:24:01 tfuruka1 Exp $
  * $Log: prtMail.c,v $
+ * Revision 1.5  2004/08/16 14:24:01  tfuruka1
+ * ヘッダとボディの区切りをハイフォン8つでも認識するようにしました。
+ *
  * Revision 1.4  2004/06/18 00:57:56  tfuruka1
  * 改行コードの修正のみです。
  *
@@ -115,9 +118,10 @@ VOID PrintMail(void)
         lfItalic = lfUnderline = FALSE;
         strcpy(lfFaceName, FN_MSM);
 
-
-        // 空行の場合はMHS終了
-        if ('\r' == szBuf[0] || '\n' == szBuf[0]) {
+        // 空行の場合は MHS 終了。但し, 電信八号の場合はハイフォン 8つ
+        // でヘッダ部終了
+        if (('\r' == szBuf[0] || '\n' == szBuf[0])
+            || (0 == strncmp("--------", szBuf, 8))) {
             bHeader = FALSE;
             if (g_MailBox.PrtInfo.bColor) {     // カラー印刷の場合
                 SetTextColor(g_MailBox.hDC, MULE_BLACK);
@@ -304,7 +308,6 @@ VOID PrintMail(void)
                 crLast = MULE_BLACK;
             }
         }
-
 
         // 引用記号が含まれている場合
         if (p1 = _mbschr(szBuf, '>')) {
