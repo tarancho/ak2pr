@@ -1,0 +1,26 @@
+; -*- mode: text; coding: sjis-dos; -*-
+; Time-stamp: <2001-12-08 01:04:47 tfuruka1>
+;
+; $Id: dllmain.def,v 1.1 2001/12/07 18:25:40 tfuruka1 Exp $
+; $Log: dllmain.def,v $
+; Revision 1.1  2001/12/07 18:25:40  tfuruka1
+; Initial revision
+;
+; Revision 1.1  1999/12/16 04:29:44  tfuruka1
+; Initial revision
+;
+EXPORTS
+    GetLastErrorMessage
+    IsPrtServerEnable
+    ExecutePrtServer
+    MakeTempFile
+    SendPrintFromStdin
+    SendPrintFromFileCopy
+    GetMyDir
+    BaseName
+    DbgPrint
+    DbgDump
+    Syslog
+    GetLongBaseName
+    GetPaperSizeUsageMessage
+    GetPaperSizeDevMode
