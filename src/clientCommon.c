@@ -1,10 +1,13 @@
 /* -*- mode: c++; coding: sjis-dos; -*-
- * Time-stamp: <2001-09-29 00:39:04 tfuruka1>
+ * Time-stamp: <2001-10-01 22:08:03 tfuruka1>
  *
  * 「ak2psのようなもの」のクライアントの共通処理部
  *
- * $Id: clientCommon.c,v 1.5 2001/09/28 15:45:54 tfuruka1 Exp $
+ * $Id: clientCommon.c,v 1.6 2001/10/01 13:19:42 tfuruka1 Exp $
  * $Log: clientCommon.c,v $
+ * Revision 1.6  2001/10/01 13:19:42  tfuruka1
+ * -oオプションを追加。用紙の向きを指定出来るようにした。
+ *
  * Revision 1.5  2001/09/28 15:45:54  tfuruka1
  * 引数をデバッグ用にダンプしている場所で、メモリ破壊を起こしていた（おば
  * かな）バグを修正。
@@ -38,10 +41,11 @@ int ak2prClientCommon(int __argc, char **_argv)
     int nTab = 0, nUp = 0, i;
     BYTE szTitle[256], *pszTitle = NULL;
     int nFtype = PT_TEXT;
+    int nOrientation = 0;                       // 用紙の向きはデフォルト
 
     {                                           // For Debug
         TCHAR szBuf[4096];
-        szBuf[0] = '\0';
+        strcpy(szBuf, "DBG: ");
         for (i = 1; i < __argc; i++) {
             if (4095 < (strlen(szBuf) + strlen(*(__argv + i)) + 1)) {
                 break;
@@ -69,6 +73,16 @@ int ak2prClientCommon(int __argc, char **_argv)
             break;
         }
         switch (*(*(__argv + i) + 1)) {
+        case 'o':
+            switch (*(*(__argv + i) + 2)) {
+            case 'p': case 'P':
+                nOrientation = DMORIENT_PORTRAIT;
+                break;
+            case 'l': case 'L':
+                nOrientation = DMORIENT_LANDSCAPE;
+                break;
+            }
+            continue;
         case 'm':
             if (*(*(__argv + i) + 2)) {
                 if (0 == stricmp("PLAIN", *(__argv + i) + 2)) {
@@ -124,19 +138,20 @@ int ak2prClientCommon(int __argc, char **_argv)
     }
 
     if (i >= __argc) {                          // ファイル名指定なしの場合
-        SendPrintFromStdin(NULL, pszTitle, nUp, nTab, fFont, nFtype);
+        SendPrintFromStdin(NULL, pszTitle, nUp, nTab, fFont, nFtype,
+                           nOrientation);
         return 0;
     }
     else if (i == (__argc - 1)) {               // ファイルが一つだけ指定された
         SendPrintFromFileCopy(NULL, pszTitle, *(__argv + i), nUp, nTab,
-                              fFont, nFtype);
+                              fFont, nFtype, nOrientation);
         return 0;
     }
 
     for (; i < __argc; i++) {
         strncpy(szTitle, GetLongBaseName(*(__argv + i)), 255);
         SendPrintFromFileCopy(NULL, szTitle, *(__argv + i), nUp, nTab,
-                              fFont, nFtype);
+                              fFont, nFtype, nOrientation);
     }
     return 0;
 }
