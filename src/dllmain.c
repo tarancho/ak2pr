@@ -1,10 +1,21 @@
 /* -*- mode: C++; coding: sjis-dos; -*-
- * Time-stamp: <2003-03-01 01:35:28 tfuruka1>
+ * Time-stamp: <2003-03-14 22:09:25 tfuruka1>
  *
  * ak2ps のようなものの共通 DLL
  *
- * $Id: dllmain.c,v 1.12 2003/03/01 09:01:25 tfuruka1 Exp $
+ * $Id: dllmain.c,v 1.13 2003/03/14 15:06:19 tfuruka1 Exp $
  * $Log: dllmain.c,v $
+ * Revision 1.13  2003/03/14 15:06:19  tfuruka1
+ * ● Syslog関数の仕様変更に伴い、Syslog関数を使用している部分の修正を行っ
+ *    た。
+ * ● 作業ファイルの作成ルールを一部変更した(.を_に変更)。Distillerが作成
+ *    するPDFファイルが、拡張子以降を無視するので、出力ファイル名が重複す
+ *    るのを避けるのが目的である。
+ * ● サーバの起動関数に、サーバの起動オプションを追加した。
+ * ● Syslog関数の仕様を変更した。第一パラメータに標準出力オプションを追
+ *    加した。
+ * ● PostScriptファイルからタイトルを取得する関数を追加した。
+ *
  * Revision 1.12  2003/03/01 09:01:25  tfuruka1
  * ● 作業ファイルの作成処理において、ファイル名に使用出来ない文字が指定去
  *    れた場合に適切な文字に変更するように修正を行った。
@@ -167,7 +178,8 @@ GetTempDirectoryName()
     int i;
 
     if (NULL == (p1 = getenv("TEMP"))) {
-        Syslog("%s#%d: 環境変数TEMPが見つかりません", __FILE__, __LINE__);
+        Syslog(TRUE, "%s#%d: 環境変数TEMPが見つかりません",
+               __FILE__, __LINE__);
         return NULL;
     }
 
@@ -184,7 +196,8 @@ GetTempDirectoryName()
         }
     }
     if (100 <= i) {
-        Syslog("%s#%d: 作業ディレクトリが作成できません", __FILE__, __LINE__);
+        Syslog(TRUE, "%s#%d: 作業ディレクトリが作成できません",
+               __FILE__, __LINE__);
         szTempDirName[0] ='\0';
         return NULL;
     }
@@ -224,9 +237,13 @@ MakeTempFile(
         case '/':
         case ':':
         case '\\':
-            *(lpszFileName + i) = '-';
+            *(lpszFileName + i) = '#';
             break;
         case ' ':
+            *(lpszFileName + i) = '-';
+            break;
+        case '.':                               // Distillerが拡張子と
+                                                // 判断するので
             *(lpszFileName + i) = '_';
             break;
         }
@@ -242,14 +259,15 @@ MakeTempFile(
     t = time(NULL);
 
     strncpy(szFileName, lpszFileName, MAX_PATH);
-    sprintf(lpszFileName, "%s\\%s%08x_%d_XXXXXX",
+    sprintf(lpszFileName, "%s\\%s~%08x_%d_XXXXXX",
             lpszDir, szFileName, t, iCnt);
     if (!_mktemp(lpszFileName)) {
-        Syslog("%s#%d: 作業ファイルが作成できません", __FILE__, __LINE__);
+        Syslog(TRUE, "%s#%d: 作業ファイルが作成できません",
+               __FILE__, __LINE__);
         return NULL;
     }
     if (NULL == (fp = fopen(lpszFileName, mode))) {
-        Syslog("%s#%d: 作業ファイル[%s]をオープン作成できません(%s)",
+        Syslog(TRUE, "%s#%d: 作業ファイル[%s]をオープンできません(%s)",
                __FILE__, __LINE__, lpszFileName, strerror(0));
         return NULL;
     }
@@ -270,7 +288,7 @@ GetMyDir(VOID)
     // ファイルのフルパスを得る
     if (!GetModuleFileName(GetModuleHandle(NULL), szBuf, 1024)) {
         int nErr = GetLastError();
-        Syslog("%s#%d: %s", __FILE__, __LINE__,
+        Syslog(TRUE, "%s#%d: %s", __FILE__, __LINE__,
                GetLastErrorMessage("GetModuleHandle", nErr));
         return NULL;
     }
@@ -334,7 +352,7 @@ IsPrtServerEnable(VOID)
  * 動できなかった場合は FALSE を返す。
  * *-------------------------------------------------------------------*/
 BOOL WINAPI
-ExecutePrtServer(VOID)
+ExecutePrtServer(LPCTSTR lpszOption)
 {
     PROCESS_INFORMATION  pi;                    // プロセス情報
     STARTUPINFO sui;                            // 起動情報
@@ -350,7 +368,7 @@ ExecutePrtServer(VOID)
     }
 
     // 実行ファイルを作成する
-    sprintf(szImageName, "%s/%s", lpszMyDir, SV_EXE_NAME);
+    sprintf(szImageName, "%s/%s %s", lpszMyDir, SV_EXE_NAME, lpszOption);
 
     // プロセス情報と起動情報の初期化
     memset(&sui, 0, sizeof(STARTUPINFO));
@@ -362,7 +380,7 @@ ExecutePrtServer(VOID)
     if (!CreateProcess(NULL, szImageName, NULL, NULL, FALSE,
                        0, NULL, NULL, &sui, &pi )) {
         int nErr = GetLastError();
-        Syslog("%s#%d: %s", __FILE__, __LINE__,
+        Syslog(TRUE, "%s#%d: %s", __FILE__, __LINE__,
                GetLastErrorMessage("CreateProcess", nErr));
         return FALSE;
     }
@@ -384,7 +402,8 @@ ExecutePrtServer(VOID)
 
     // もう一度サーバーをチェックする
     if (!IsPrtServerEnable()) {
-        Syslog("%s#%d: サーバの起動に失敗したようです", __FILE__, __LINE__);
+        Syslog(TRUE, "%s#%d: サーバの起動に失敗したようです",
+               __FILE__, __LINE__);
         return FALSE;
     }
     return TRUE;                                // 正常起動
@@ -402,7 +421,7 @@ SendPrintData(
     HWND hWndTo;                                // 送信先のハンドル
     COPYDATASTRUCT cds;                         // 送信データ
 
-    if (!ExecutePrtServer()) {                  // プリンタサーバを起動
+    if (!ExecutePrtServer(NULL)) {             // プリンタサーバを起動
         return FALSE;                           // サーバが居ない
     }
 
@@ -413,7 +432,7 @@ SendPrintData(
     // サーバのハンドルを得る
     if (!(hWndTo = FindWindow(SV_CLASS, SV_CAPTION))) {
         int nErr = GetLastError();
-        Syslog("%s#%d: %s", __FILE__, __LINE__,
+        Syslog(TRUE, "%s#%d: %s", __FILE__, __LINE__,
                GetLastErrorMessage("FindWindow", nErr));
         return FALSE;
     }
@@ -481,7 +500,7 @@ SendPrintFromStdin(
 
     if (!bNotZero) {
         unlink(PrtInfo.szFileName);
-        Syslog("%s", "ファイルサイズが0なのでキャンセルします");
+        Syslog(TRUE, "%s", "ファイルサイズが0なのでキャンセルします");
         return FALSE;
     }
 
@@ -515,13 +534,13 @@ SendPrintFromFileCopy(
         LPCTSTR p;
         dwFA = GetLastError();
         p = GetLastErrorMessage("GetFileAttributes()", dwFA);
-        Syslog("%s#%d: %s %s", __FILE__, __LINE__, p, lpszFileName);
+        Syslog(TRUE, "%s#%d: %s %s", __FILE__, __LINE__, p, lpszFileName);
         return FALSE;
     }
 
     // ディレクトリの場合はエラー
     if (dwFA & FILE_ATTRIBUTE_DIRECTORY) {
-        Syslog("%s#%d: %sはディレクトリです",
+        Syslog(TRUE, "%s#%d: %sはディレクトリです",
                __FILE__, __LINE__, lpszFileName);
         return FALSE;
     }
@@ -553,7 +572,7 @@ SendPrintFromFileCopy(
 
     // ファイルを複写する
     if (!CopyFile(lpszFileName, PrtInfo.szFileName, FALSE)) {
-        Syslog("%s#%d: %s %s", __FILE__, __LINE__,
+        Syslog(TRUE, "%s#%d: %s %s", __FILE__, __LINE__,
                GetLastErrorMessage("GetFileAttributes()",
                                    GetLastError()),
                PrtInfo.szFileName);
@@ -567,9 +586,9 @@ SendPrintFromFileCopy(
  * UNIXのSyslogの簡易版。常にdebug.local7しか出力しません。
  * *-------------------------------------------------------------------*/
 VOID WINAPI
-Syslog(
-    LPCSTR lpstr,                               // 書式printfと同じ
-    ...                                         // 引数
+    Syslog(BOOL bStdOut,                        // T:stdoutにも出力
+           LPCSTR lpstr,                        // 書式printfと同じ
+           ...                                  // 引数
     )
 {
     WSADATA wsaData;
@@ -596,7 +615,9 @@ Syslog(
     vsprintf(szLine + strlen(szLine), lpstr, args);
     va_end(args);
 
-    //printf("%s\n", szLine);
+    if (bStdOut) {
+        printf("%s\n", szLine);
+    }
 
     if (WSAStartup(MAKEWORD(1, 1), &wsaData) != 0) {
 		return;
@@ -680,4 +701,42 @@ GetPaperSizeComment(short dmPaperSize)
         }
     }
     return (LPCTSTR)"不明";
+}
+/*--------------------------------------------------------------------
+ * PostScript ファイルから、Titleを得る。
+ * *-------------------------------------------------------------------*/
+#define PS_TITLE_STR "%%Title:"
+
+LPCTSTR WINAPI
+    GetPSTitle(LPCTSTR lpszFile,                // PSファイル名
+               LPTSTR lpszTitle,                // タイトル格納エリア
+               int cbMax                        // 格納最大文字数
+               )
+{
+    FILE *fp;
+    TCHAR szBuf[1024], *p;
+
+    memset(lpszTitle, 0, cbMax);
+
+    if (NULL == (fp = fopen(lpszFile, "rt"))) {
+        Syslog(TRUE, "%s#%d: PSファイル[%s]をオープンできません(%s)",
+               __FILE__, __LINE__, lpszFile, strerror(0));
+        return NULL;        
+    }
+
+    while (fgets(szBuf, 1024, fp)) {
+        if (p = strstr(szBuf, PS_TITLE_STR)) {
+            break;
+        }
+    }
+    fclose(fp);
+    if (p) {
+        strncpy(lpszTitle, p + strlen(PS_TITLE_STR), cbMax);
+    }
+    else {
+        strncpy(lpszTitle, "タイトル不明", cbMax);
+    }
+    TrimString(lpszTitle);
+    Syslog(FALSE, "DBG:GetPSTitle[%s]", lpszTitle);
+    return (LPCTSTR)lpszTitle;
 }
