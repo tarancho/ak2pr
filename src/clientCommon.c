@@ -1,10 +1,13 @@
 /* -*- mode: c++; coding: sjis-dos; -*-
- * Time-stamp: <2004-01-11 20:22:21 tfuruka1>
+ * Time-stamp: <2004-01-11 20:28:20 tfuruka1>
  *
  * 「ak2psのようなもの」のクライアントの共通処理部
  *
- * $Id: clientCommon.c,v 1.12 2004/01/11 11:24:43 tfuruka1 Exp $
+ * $Id: clientCommon.c,v 1.13 2004/01/11 11:28:51 tfuruka1 Exp $
  * $Log: clientCommon.c,v $
+ * Revision 1.13  2004/01/11 11:28:51  tfuruka1
+ * 古いコメントが残っていたのを修正しました。コメントの修正のみです。
+ *
  * Revision 1.12  2004/01/11 11:24:43  tfuruka1
  * オプションスイッチとして / を認めた（Emacsがつけてくる場合があるので）。
  * そして、/Dオプションを無視するようにした。
@@ -146,7 +149,8 @@ int ak2prClientCommon(int __argc, char **_argv)
         switch (*(*(__argv + i) + 1)) {
         case 'D':
             // Emacsが付与するオプションだがデバイスオプションは無視す
-            // る
+            // る。EmacsからPostScriptのファイルを印刷するときに
+            // [/D:PRN] というオプションが追加されてくる
             Syslog(FALSE, "%s は無視します", *(__argv + i));
             continue;
         case 'S':                               // サーバ起動オプションは無視
@@ -261,13 +265,7 @@ int ak2prClientCommon(int __argc, char **_argv)
 
     for (; i < __argc; i++) {
         strncpy(szTitle, GetLongBaseName(*(__argv + i)), 255);
-
-        // PostScriptファイルの場合は、タイトルをファイルから得る※
-        // EmacsからPostScriptのファイルを印刷するときに[/D:PRN]という
-        // オプションが追加されてくるが、現在の処理だとこのオプション
-        // をファイルと誤認識してしまいます。当然、そのようなファイル
-        // は存在しないので、無視して、結果的にうまく処理できています。
-        // 取りあえず、当分はこのままの処理にしておきます。
+        // PostScriptファイルの場合は、タイトルをファイルから得る
         if ((PT_PS_ACROBAT == nFtype) || (PT_PS_GHOST == nFtype)) {
             (LPCTSTR)pszTitle
                 = GetPSTitle((LPCTSTR)*(__argv + i), szTitle, 128);
