@@ -1,10 +1,15 @@
 /* -*- mode: c; coding: sjis-dos; -*-
- * Time-stamp: <2001-02-06 02:49:02 tfuruka1>
+ * Time-stamp: <2001-08-19 01:42:00 tfuruka1>
  *
  * 「ak2psのようなもの」のクライアントの共通処理部
  *
- * $Id: clientCommon.c,v 1.2 2001/02/05 17:49:24 tfuruka1 Exp $
+ * $Id: clientCommon.c,v 1.3 2001/08/18 16:44:17 tfuruka1 Exp $
  * $Log: clientCommon.c,v $
+ * Revision 1.3  2001/08/18 16:44:17  tfuruka1
+ * ●SendPrintFromFileが廃止され、SendPrintFromFileCopyに統合された為、
+ *   SendPrintFromFileCopy関数を使用するように修正(複数ファイル指定された
+ *   時)。
+ *
  * Revision 1.2  2001/02/05 17:49:24  tfuruka1
  * 改行コードの修正
  *
@@ -88,8 +93,9 @@ int ak2prClientCommon(int __argc, char **_argv)
     }
 
     for (; i < __argc; i++) {
-        SendPrintFromFile(NULL, *(__argv + i), nUp, nTab, fFont, bMail);
+        strncpy(szTitle, GetLongBaseName(*(__argv + i)), 255);
+        SendPrintFromFileCopy(NULL, szTitle, *(__argv + i), nUp, nTab,
+                              fFont, bMail);
     }
     return 0;
 }
-
