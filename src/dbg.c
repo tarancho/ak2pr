@@ -1,7 +1,10 @@
 /* -*- mode: c++; coding: sjis-dos; -*-
- * Time-stamp: <2001-02-06 02:47:17 tfuruka1>
- * $Id: dbg.c,v 1.1 2001/02/05 17:47:18 tfuruka1 Exp $
+ * Time-stamp: <2001-08-19 13:51:33 tfuruka1>
+ * $Id: dbg.c,v 1.2 2001/08/19 04:55:59 tfuruka1 Exp $
  * $Log: dbg.c,v $
+ * Revision 1.2  2001/08/19 04:55:59  tfuruka1
+ * ログファイルの格納パスをフルパスで持つようにした。
+ *
  * Revision 1.1  2001/02/05 17:47:18  tfuruka1
  * Initial revision
  *
@@ -19,6 +22,7 @@
 #include <math.h>
 
 LPCSTR WINAPI GetLastErrorMessage(LPCSTR lpsz, DWORD dwErr);
+LPCTSTR WINAPI GetMyDir(VOID);
 // -----------------------------------------------------------------------
 static BOOL bDumpIsNoDisplay = TRUE;            // ダンプはファイルだけ
 // -----------------------------------------------------------------------
@@ -347,33 +351,33 @@ DbgPrint(
     ...                                         // 引数
     )
 {
+    static DWORD OldTickCount = 0;              // 前回出力の TickCount
     FILE *fp = NULL;                            // ログファイルポインタ
     va_list args;                               // 引数展開用
     char *szLine, *p1, *p2;                     // 文字列操作用
     SYSTEMTIME t;                               // 暦時間
-    static DWORD OldTickCount = 0;              // 前回出力の TickCount
     DWORD NewTickCount, TickInterval;           // 前回出力からの時間
     SIZE Size;                                  // サイズ取得用
     HDC hDC;                                    // デバイスコンテキスト
     int i, j, nMaxStrWd;                        // 汎用
     BOOL bNoDisplay = FALSE;                    // 画面出力無し
+    TCHAR szBuf[1024];                          // 汎用
 
     if (!szLogName[0]) {
         // ログファイル名を取得する
-        if (!GetWindowText(hWnd, szLogName + 1, MAX_PATH - 5)) {
+        if (!GetWindowText(hWnd, szBuf, MAX_PATH - 5)) {
             int nErr = GetLastError();
             TCHAR szHwnd[256];
             sprintf(szHwnd, "[hWnd=%d]ウインドウテキストの取得に"
                     "失敗しました", hWnd);
             MessageBox(hWnd, GetLastErrorMessage("GetWindowText()", nErr),
                        szHwnd, MB_ICONSTOP);
+            strcpy(szBuf, "hogehoge");
         }
-        else {
-            strcat(szLogName + 1, ".log");
-        }
-        strcpy(szLogNameSave + 1, szLogName + 1);
-        szLogNameSave[0] = '0';
-        szLogName[0] = '1';
+
+        sprintf(szLogName, "%s/%d%s.log", GetMyDir(), 1, szBuf);
+        sprintf(szLogNameSave, "%s/%d%s.log", GetMyDir(), 0, szBuf);
+
     }
     if (!hWndList) {
         HMENU hMenu = GetMenu(hWnd), hSubMenu;
