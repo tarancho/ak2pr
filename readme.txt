@@ -1,6 +1,6 @@
 -*- mode: text; coding: sjis-dos -*-
-Time-stamp: <2004-08-21 13:43:43 tfuruka1>
-$Id: readme.txt,v 1.8 2004/08/21 05:35:46 tfuruka1 Exp $
+Time-stamp: <2004-08-30 17:21:16 tfuruka1>
+$Id: readme.txt,v 1.9 2004/08/30 08:21:39 tfuruka1 Exp $
 $Name:  $
 
 
@@ -687,7 +687,7 @@ ak2prW.exe のようなクライアント(と呼んで良いかは別として)ツールが簡単
 ●更新履歴
 ==========
 
-  ★ Ver. 2.4 yyyy/MM/dd
+  ★ Ver. 2.4 2004/08/30
 
      ・ メール印刷したときに, ヘッダの 2行目以降が文字化けする問題を修
         正しました。
