@@ -2,8 +2,15 @@
  *
  * 「ak2psのようなもの」のウインドウプロシジャ
  *
- * $Id: wndproc.c,v 1.8 2001/12/14 17:03:59 tfuruka1 Exp $
+ * $Id: wndproc.c,v 1.9 2001/12/23 10:20:47 tfuruka1 Exp $
  * $Log: wndproc.c,v $
+ * Revision 1.9  2001/12/23 10:20:47  tfuruka1
+ * ●ツールバーを新規追加
+ * ●ドラッグ＆ドロップを追加（作業ディレクトリ内のファイルは印刷対象外と
+ *   するようにしています）
+ * ●デバッグウインドウの表示・非表示のメニューへの反映を、デバッグウイン
+ *   ドウのウインドウプロシジャWM_SHOWWINDOWで行うように修正した。
+ *
  * Revision 1.8  2001/12/14 17:03:59  tfuruka1
  * プレビュー対応
  *
@@ -42,7 +49,7 @@
 // (replace-regexp "/\\*\\(.+\\)\\*/" "//\\1")
 // (replace-regexp "[ \t]+$" "")
 
-#define TIME_STAMP "Time-stamp: <2001-12-15 00:25:20 tfuruka1>"
+#define TIME_STAMP "Time-stamp: <2001-12-23 18:20:47 tfuruka1>"
 
 #include "ak2prs.h"
 
@@ -57,12 +64,14 @@
 #define HANDLE_WM_TASKMENU(hwnd, wParam, lParam, fn) \
     ((LRESULT)(fn)((hwnd), (wParam), lParam))
 
-enum{IDC_TASK = 100, IDC_LIST, IDC_STS};
+enum{IDC_TASK = 100, IDC_LIST, IDC_STS, IDC_TOOL};
 
 static NOTIFYICONDATA s_ndi;                    // タスクトレイ
 static HWND hWndOwn;                            // オーナウインドウハンドル
+static HWND hWndMain = NULL;                    // メインウインドウ
 static HWND hWndList = NULL;                    // リストボックス
 static HWND hWndSts = NULL;                     // ステータスバー
+static HWND hWndTool = NULL;                    // ツールバー
 static UINT idTmr = 0;                          // タイマ識別子
 
 /*--------------------------------------------------------------------
@@ -95,8 +104,23 @@ DoCreate(
         {LVCF_FMT | LVCF_WIDTH | LVCF_TEXT | LVCF_SUBITEM,
          LVCFMT_LEFT, 180,"タイトル", 6},
         {0, 0, 100, NULL, 0}};
+    TBBUTTON tbb[] = {
+        {0, IDM_SETUP, TBSTATE_ENABLED, TBSTYLE_BUTTON, 0, 0},
+        {1, IDM_TESTPRT, TBSTATE_ENABLED, TBSTYLE_BUTTON, 0, 0},
+        {0, 0, TBSTATE_ENABLED, TBSTYLE_SEP, 0, 0},
+        {2, IDM_STOP, TBSTATE_ENABLED | TBSTATE_CHECKED | TBSTATE_ELLIPSES,
+         TBSTYLE_CHECK, 0, 0},
+        {3, IDM_DELETE, TBSTATE_ENABLED, TBSTYLE_BUTTON, 0, 0},
+        {0, 0, TBSTATE_ENABLED, TBSTYLE_SEP, 0, 0},
+        {4, IDM_MAIL, TBSTATE_ENABLED, TBSTYLE_BUTTON, 0, 0},
+        {5, IDM_HTTP, TBSTATE_ENABLED, TBSTYLE_BUTTON, 0, 0},
+        {6, IDM_SHOW, TBSTATE_ENABLED, TBSTYLE_BUTTON, 0, 0},
+        {0, 0, TBSTATE_ENABLED, TBSTYLE_SEP, 0, 0},
+        {7, IDM_EXIT, TBSTATE_ENABLED, TBSTYLE_BUTTON, 0, 0}
+    };
 
     hWndOwn = pcs->hwndParent;                  // オーナウインドウハンドル
+    hWndMain = hWnd;                            // 自分のウインドウ
     DbgPrint(pcs->hwndParent, 'I', "AK2PR Server(%s) Start.", TIME_STAMP);
 
     // タスクトレイにアイコンを表示する
@@ -142,6 +166,18 @@ DoCreate(
         return FALSE;
     }
 
+    // ツールバーの作成
+    if (!(hWndTool = CreateToolbarEx(hWnd, WS_CHILD | WS_VISIBLE, IDC_TOOL,
+                                     sizeof(tbb) / sizeof(TBBUTTON),
+                                     hInst, IDR_TOOLBAR, tbb,
+                                     sizeof(tbb) / sizeof(TBBUTTON),
+                                     0, 0, 40, 40, sizeof(TBBUTTON)))) {
+        int nErr = GetLastError();
+        MessageBox(hWnd, GetLastErrorMessage("CreateToolbarEx", nErr),
+                   __FILE__ "/DoCreate() Status", MB_ERROR);
+        return FALSE;
+    }
+
     // メールボックスの初期化
     g_MailBox.bRun = TRUE;                      // スレッド実行中
     g_MailBox.bStop = TRUE;                     // 印刷停止
@@ -167,6 +203,8 @@ DoCreate(
     CheckMenuItem(hMenu, IDM_STOP, MF_BYCOMMAND |
                   g_MailBox.bStop ? MF_CHECKED : MF_UNCHECKED);
 
+    // ドラッグアンドドロップを許可
+    DragAcceptFiles(hWnd, TRUE);
     return TRUE;
 }
 /*--------------------------------------------------------------------
@@ -179,7 +217,7 @@ DoSize(HWND hWnd,                               // ハンドル
        int cy                                   // 高さ
     )
 {
-    if (SIZE_MINIMIZED == state) {              // アイコン化された場
+    if (SIZE_MINIMIZED == state) {              // アイコン化された場合
         if (IsShellTray()) {                    // シェルトレイが有る場合は
             ShowWindow(hWnd, SW_HIDE);          // ウインドウを消去する
         }
@@ -191,11 +229,22 @@ DoSize(HWND hWnd,                               // ハンドル
         SendMessage(hWndSts, WM_SIZE, state, MAKELONG(cx, cy));
     }
 
+    /* ツールバーのリサイズ */
+    if (hWndTool) {
+        SendMessage(hWndTool, WM_SIZE, state, MAKELONG(cx, cy));
+    }
+
     if (hWndList) {
         RECT rc;
+        RECT rct;
 
         GetClientRect(hWndSts, &rc);
-        MoveWindow(hWndList, 0, 0, cx, cy - rc.bottom, TRUE);
+        GetClientRect(hWndTool, &rct);
+        // ツールバーのウインドウサイズは何故か、ClientRectで得られた
+        // 高さより、2ドット高いので、注意
+        DbgPrint(NULL, 'D', "ToolBarSize: %dx%d", rct.right, rct.bottom);
+        MoveWindow(hWndList, 0, rct.bottom + 2,
+                   cx, cy - rc.bottom - rct.bottom - 2, TRUE);
     }
 }
 /*--------------------------------------------------------------------
@@ -310,11 +359,6 @@ DoCommand(
         break;
     case IDM_SHOW:
         ShowWindow(hWndOwn, IsWindowVisible(hWndOwn) ? SW_HIDE : SW_SHOW);
-        // メニューのチェックボタンの更新
-        hMenu = GetMenu(hWnd);
-        hMenu = GetSubMenu(hMenu, 0);
-        CheckMenuItem(hMenu, IDM_SHOW, MF_BYCOMMAND |
-                      IsWindowVisible(hWndOwn) ? MF_CHECKED : MF_UNCHECKED);
         break;
     case IDM_SETUP:
         SetupPrtStyle(hWnd);
@@ -325,6 +369,9 @@ DoCommand(
         PrtInfo.nNumOfUp = 0;
         PrtInfo.nTab = 0;
         PrtInfo.fFontSize = 0;
+        PrtInfo.dmPaperSize = 0;
+        PrtInfo.nOrientation = 0;
+        PrtInfo.nType = PT_TEXT;
         // DLLのVarsion不一致を防ぐ為, タイムスタンプを埋める
         strcpy(PrtInfo.szTimeStamp, TIMESTAMP);
         strcpy(PrtInfo.szTimeStamp1, TIMESTAMP);
@@ -457,7 +504,104 @@ DoSuspend(
     SuspendThread((HANDLE)wParam);
     return 0;
 }
-    
+/*-------------------------------------------------------------------- 
+ * ディレクトリ内の全てのファイルを印刷対象ファイルとしてリクエストす
+ * る。WM_DROPFILEの処理からのみ呼び出される
+ * *-------------------------------------------------------------------*/
+static VOID CALLBACK
+SendPrintDirectory(LPTSTR lpszFile)
+{
+    TCHAR szFind[MAX_PATH * 2];
+    TCHAR szFile[MAX_PATH * 2];
+    WIN32_FIND_DATA FindFileData;
+    HANDLE hFile;
+
+    sprintf(szFind, "%s/*.*", lpszFile);
+    hFile = FindFirstFile(szFind, &FindFileData);
+    while (INVALID_HANDLE_VALUE != hFile) {
+        sprintf(szFile, "%s/%s", lpszFile, FindFileData.cFileName);
+        // ディレクトリの場合
+        if (FindFileData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) {
+            // 自分自身又は、自分の親ディレクトリ以外はファイル検索を
+            // 行う
+            if (0 != strcmp(FindFileData.cFileName, ".")
+                && 0 != strcmp(FindFileData.cFileName, "..")) {
+
+                if (0 != lstrcmpi(szFile, GetTempDirectoryName())) {
+                    SendPrintDirectory(szFile);
+                }
+                else {
+                    DbgPrint(NULL, 'W', "%sは作業ディレクトリです", szFile);
+                }
+            }
+        }
+        else {
+            // ディレクトリ以外の場合は、印刷要求を行う。但し、作業ディ
+            // レクトリ内のファイルは印字しない。無限ループしちゃうの
+            // で。
+            if (0 != _strnicmp(szFile, GetTempDirectoryName(),
+                               strlen(GetTempDirectoryName()))) {
+                SendPrintFromFileCopy(NULL, NULL, szFile, 0, 0, 0,
+                                      PT_TEXT, 0, 0);
+            }
+            else {
+                DbgPrint(NULL, 'W', "%sは作業ディレクトリ内のファイルです",
+                         szFile);
+            }
+        }
+
+        // 次のファイルを検索する
+        if (!FindNextFile(hFile, &FindFileData)) {
+            break;
+        }
+    }
+    FindClose(hFile);
+}
+
+/*--------------------------------------------------------------------
+ * WM_DROPFILEの処理を行う
+ * *-------------------------------------------------------------------*/
+static VOID CALLBACK
+DoDropFiles(
+    HWND hWnd,
+    HDROP hDrop
+    )
+{
+    TCHAR szFile[MAX_PATH];
+    UINT numOfFile;
+    UINT i;
+    DWORD dwFa;
+ 
+    numOfFile = DragQueryFile(hDrop, 0xFFFFFFFF, szFile, MAX_PATH);
+    for (i = 0; i < numOfFile; i++) {
+        DragQueryFile(hDrop, i, szFile, MAX_PATH);
+        dwFa = GetFileAttributes(szFile);
+        if (0xFFFFFFFF == dwFa) {
+            DbgPrint(NULL, 'E', "%s",
+                     GetLastErrorMessage("DropFiles()", GetLastError()));
+            continue;
+        }
+
+        // ディレクトリの場合は、その下のファイルを検索する
+        if (FILE_ATTRIBUTE_DIRECTORY & dwFa) {
+            SendPrintDirectory(szFile);
+        }
+        else {
+            // 作業ファイル内のファイル以外の場合は、印刷要求を行う
+            if (0 != _strnicmp(szFile, GetTempDirectoryName(),
+                               strlen(GetTempDirectoryName()))) {
+                SendPrintFromFileCopy(NULL, NULL, szFile, 0, 0, 0,
+                                      PT_TEXT, 0, 0);
+            }
+            else {
+                DbgPrint(NULL, 'W', "%sは作業ディレクトリ内のファイルです",
+                         szFile);
+            }
+        }
+    }
+    DragFinish(hDrop);
+}
+
 /*--------------------------------------------------------------------
  * メインウインドウのウインドウプロシジャ
  * *-------------------------------------------------------------------*/
@@ -480,6 +624,7 @@ MainWndProc(
         HANDLE_MSG(hWnd, WM_SIZE, DoSize);
         HANDLE_MSG(hWnd, WM_TIMER, DoTimer);
         HANDLE_MSG(hWnd, WM_SUSPEND, DoSuspend);
+        HANDLE_MSG(hWnd, WM_DROPFILES, DoDropFiles);
     default:
         // 上記の何れのメッセージ以外の場合はデフォルトのプロシジャ
         return DefWindowProc(hWnd, uMsg, wParam, lParam);
@@ -498,6 +643,15 @@ MainWndProcDetail(
     )
 {
     switch (uMsg) {
+    case WM_SHOWWINDOW:
+        if (hWndMain) {
+            HMENU hMenu;
+            // メニューのチェックボタンの更新
+            hMenu = GetMenu(hWndMain);
+            hMenu = GetSubMenu(hMenu, 0);
+            CheckMenuItem(hMenu, IDM_SHOW, MF_BYCOMMAND |
+                          wParam ? MF_CHECKED : MF_UNCHECKED);
+        }
     case WM_CREATE:
         return 0;
     case WM_CLOSE:
