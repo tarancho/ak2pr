@@ -2,8 +2,12 @@
  *
  * 「ak2psのようなもの」のサーバ側のヘッダファイル
  *
- * $Id: ak2prs.h,v 1.15 2003/03/14 16:03:08 tfuruka1 Exp $
+ * $Id: ak2prs.h,v 1.16 2003/03/15 14:45:58 tfuruka1 Exp $
  * $Log: ak2prs.h,v $
+ * Revision 1.16  2003/03/15 14:45:58  tfuruka1
+ * ● プレビュー時の印刷設定に対応するための修正に伴う定数の追加とプロト
+ *    タイプの修正を行った。
+ *
  * Revision 1.15  2003/03/14 16:03:08  tfuruka1
  * ● PostScript関連の情報をMAILBOXからPRT_INFOへ移動した。将来、ak2prの
  *    コマンドオプションとして、指定可能にする為の修正である。
@@ -88,7 +92,7 @@
 #ifndef _AK2PRS_H_
 #define _AK2PRS_H_
 
-#define TIMESTAMP "Time-stamp: <2003-03-14 22:26:50 tfuruka1>"
+#define TIMESTAMP "Time-stamp: <2003-03-15 22:59:34 tfuruka1>"
 #define VERSION   "Version 2.2+Beta2"
 
 #include <windows.h>
@@ -201,7 +205,10 @@ typedef struct _PREVIEW_INFO {
     int status;                                 // 状態
     RECT rc;                                    // ウインドウの位置
 } PREVIEW_INFO, *PPREVIEW_INFO;
-enum {PVI_PRINT = 0, PVI_CANCEL};
+enum {PVI_PRINT = 0,                            // 印刷
+      PVI_SETUP,                                // 印刷設定後再プレビュー
+      PVI_CANCEL                                // 破棄
+};
 
 // スレッド間メールボックス
 typedef struct {
@@ -248,7 +255,7 @@ MainWndProcDetail(
     );
 
 VOID PrintThread(LPDWORD lpIDThread);
-VOID SetupPrtStyle(HWND hWnd);
+VOID SetupPrtStyle(HWND hWnd, PPRT_INFO lppi);
 
 BOOL
 EnQueue(
