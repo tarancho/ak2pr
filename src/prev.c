@@ -1,10 +1,13 @@
 /* -*- mode: c++; coding: sjis-dos; -*-
- * Time-stamp: <2001-12-22 00:43:37 tfuruka1>
+ * Time-stamp: <2003-03-15 23:13:55 tfuruka1>
  *
  * 「ak2psのようなもの」の印刷プレビュー
  *
- * $Id: prev.c,v 1.3 2001/12/23 10:07:54 tfuruka1 Exp $
+ * $Id: prev.c,v 1.4 2003/03/15 14:41:51 tfuruka1 Exp $
  * $Log: prev.c,v $
+ * Revision 1.4  2003/03/15 14:41:51  tfuruka1
+ * ● 印刷設定を行えるようにした。
+ *
  * Revision 1.3  2001/12/23 10:07:54  tfuruka1
  * プレビュー用のビットマップをモノクロに変更。プリンタの解像度と画面の解
  * 像度の比率でプレビューを行っていたが、どうしても誤差が生じる為、プレ
@@ -156,9 +159,14 @@ DialogProc(
         return FALSE;
     case WM_COMMAND:
         switch (LOWORD(wParam)) {
+        case IDM_SETUP:
+            SetupPrtStyle(hWnd, &g_MailBox.PrtInfo);
+            // ここにBreakが無いのは意図しています
         case IDOK:
             EndDialog(hWnd, TRUE);
-            pPrevInfo->status = PVI_PRINT;
+            pPrevInfo->status
+                = (IDOK == LOWORD(wParam)) ? PVI_PRINT : PVI_SETUP;
+
             GetWindowRect(hWnd, &pPrevInfo->rc);
             SetPreViewPos(&pPrevInfo->rc);
             return TRUE;
