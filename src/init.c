@@ -1,10 +1,13 @@
 /* -*- mode: c++; coding: sjis-dos; -*-
- * Time-stamp: <2004-01-12 17:09:33 tfuruka1>
+ * Time-stamp: <2004-01-19 13:50:39 tfuruka1>
  *
  * 「ak2psのようなもの」のサーバの初期化処理
  *
- * $Id: init.c,v 1.9 2004/01/12 09:56:58 tfuruka1 Exp $
+ * $Id: init.c,v 1.10 2004/01/19 05:34:26 tfuruka1 Exp $
  * $Log: init.c,v $
+ * Revision 1.10  2004/01/19 05:34:26  tfuruka1
+ * フォントに関連する情報をプロファイルから取得, 格納できるようにしました。
+ *
  * Revision 1.9  2004/01/12 09:56:58  tfuruka1
  * 長辺綴じと短辺綴じに対応しました。プロファイルに短辺綴じの情報を保持す
  * るようにしました。
@@ -55,6 +58,12 @@
 #define KEY_BDEBUG   "bDebug"
 #define KEY_BNOCOPYRIGHT "bNoCopyrightPrint"
 #define KEY_BSHORT_BINDING "bShortBinding"
+
+#define SEC_FONT     "FONT"
+#define KEY_THF      "same-width"
+#define KEY_PPF      "Proportional"
+#define KEY_OF       "Other.same-width"
+#define KEY_OPPF     "Other.Proportional"
 
 #define SEC_DEVICE   "DEVICE SETUP"
 #define KEY_DEVNAME  "DeviceName"
@@ -239,6 +248,33 @@ GetDefaultPrtInfo(void)
     GET_PROFILE(PROFILE_SEC, KEY_BSHORT_BINDING);
     g_PrtInfo.bShortBinding = IsBadStr(szBuf) ? FALSE : atoi(szBuf);
 
+    // フォント情報を得る
+    GET_PROFILE(SEC_FONT, KEY_THF);
+    strncpy(g_PrtInfo.lfTHF.lfFaceName, IsBadStr(szBuf) ? FN_MSPM : szBuf,
+            LF_FACESIZE);
+
+    GET_PROFILE(SEC_FONT, KEY_PPF);
+    strncpy(g_PrtInfo.lfPPF.lfFaceName, IsBadStr(szBuf) ? FN_MSPG : szBuf,
+            LF_FACESIZE);
+
+    GET_PROFILE(SEC_FONT, KEY_OF);
+    strncpy(g_PrtInfo.lfOF.lfFaceName, IsBadStr(szBuf) ? FN_COU : szBuf,
+            LF_FACESIZE);
+
+    GET_PROFILE(SEC_FONT, KEY_OPPF);
+    strncpy(g_PrtInfo.lfOPPF.lfFaceName, IsBadStr(szBuf) ? FN_ARIAL : szBuf,
+            LF_FACESIZE);
+
+    // PostScript関連情報を得る
+    GET_PROFILE(SEC_PS, KEY_ACRIN);
+    strncpy(g_PrtInfo.szAcrobat, szBuf, MAX_PATH);
+
+    GET_PROFILE(SEC_PS, KEY_GS);
+    strncpy(g_PrtInfo.szGsPath, szBuf, MAX_PATH);
+
+    GET_PROFILE(SEC_PS, KEY_GSOP);
+    strncpy(g_PrtInfo.szGsOpt, szBuf, 512);
+
     // プリンタのデバイス情報を得る
     if (!GetPrivateProfileData(SEC_DEVICE, KEY_DEVNAME,
                                &g_MailBox.hDevNames, szProfile)) {
@@ -252,16 +288,6 @@ GetDefaultPrtInfo(void)
         g_MailBox.hDevNames = NULL;
         g_MailBox.hDevMode = NULL;
     }
-
-    // PostScript関連情報を得る
-    GET_PROFILE(SEC_PS, KEY_ACRIN);
-    strncpy(g_PrtInfo.szAcrobat, szBuf, MAX_PATH);
-
-    GET_PROFILE(SEC_PS, KEY_GS);
-    strncpy(g_PrtInfo.szGsPath, szBuf, MAX_PATH);
-
-    GET_PROFILE(SEC_PS, KEY_GSOP);
-    strncpy(g_PrtInfo.szGsOpt, szBuf, 512);
 }
 
 /*--------------------------------------------------------------------
@@ -272,6 +298,8 @@ SetDefaultPrtInfo(void)
 {
     TCHAR szProfile[MAX_PATH];
     TCHAR szBuf[1024];
+    LPVOID lpData;
+    DWORD cbData;
 
     wsprintf(szProfile, "%s/%s", GetMyDir(), PROFILE_NAME);
 
@@ -311,10 +339,19 @@ SetDefaultPrtInfo(void)
     sprintf(szBuf, "%d", g_PrtInfo.bShortBinding);
     WRT_PROFILE(PROFILE_SEC, KEY_BSHORT_BINDING, szBuf);
 
+    // フォント情報の書き込み
+    WRT_PROFILE(SEC_FONT, KEY_THF, g_PrtInfo.lfTHF.lfFaceName);
+    WRT_PROFILE(SEC_FONT, KEY_PPF, g_PrtInfo.lfPPF.lfFaceName);
+    WRT_PROFILE(SEC_FONT, KEY_OF, g_PrtInfo.lfOF.lfFaceName);
+    WRT_PROFILE(SEC_FONT, KEY_OPPF, g_PrtInfo.lfOPPF.lfFaceName);
+
+    // PostScript情報関連の書き込み
+    WRT_PROFILE(SEC_PS, KEY_ACRIN, g_PrtInfo.szAcrobat);
+    WRT_PROFILE(SEC_PS, KEY_GS, g_PrtInfo.szGsPath);
+    WRT_PROFILE(SEC_PS, KEY_GSOP, g_PrtInfo.szGsOpt);
+
     // デバイス情報の書き込み
     if (g_MailBox.hDevNames && g_MailBox.hDevMode) {
-        LPVOID lpData;
-        DWORD cbData;
 
         lpData = GlobalLock(g_MailBox.hDevNames);
         cbData = GlobalSize(g_MailBox.hDevNames);
@@ -328,11 +365,6 @@ SetDefaultPrtInfo(void)
                                 lpData, cbData, szProfile);
         GlobalUnlock(g_MailBox.hDevNames);
     }
-
-    // PostScript情報関連の書き込み
-    WRT_PROFILE(SEC_PS, KEY_ACRIN, g_PrtInfo.szAcrobat);
-    WRT_PROFILE(SEC_PS, KEY_GS, g_PrtInfo.szGsPath);
-    WRT_PROFILE(SEC_PS, KEY_GSOP, g_PrtInfo.szGsOpt);
 }
 
 /*--------------------------------------------------------------------
