@@ -1,10 +1,14 @@
 /* -*- mode: c++; coding: sjis-dos; -*-
- * Time-stamp: <2003-03-14 22:19:28 tfuruka1>
+ * Time-stamp: <2003-03-19 23:50:07 tfuruka1>
  *
  * 「ak2psのようなもの」のクライアントの共通処理部
  *
- * $Id: clientCommon.c,v 1.10 2003/03/14 14:58:25 tfuruka1 Exp $
+ * $Id: clientCommon.c,v 1.11 2003/03/29 12:38:56 tfuruka1 Exp $
  * $Log: clientCommon.c,v $
+ * Revision 1.11  2003/03/29 12:38:56  tfuruka1
+ * ● SendPrintFromStdin関数の仕様追加による修正（標準入力の読み込みと、
+ *    クリップボードの読み込みに対応した）
+ *
  * Revision 1.10  2003/03/14 14:58:25  tfuruka1
  * ● PostScriptファイルの作業ファイルの名称を元ファイルのTitleフィールド
  *    から取得するようにしました。また、Distillerで処理するファイルの拡張
@@ -226,7 +230,7 @@ int ak2prClientCommon(int __argc, char **_argv)
     }
 
     if (i >= __argc) {                          // ファイル名指定なしの場合
-        SendPrintFromStdin(NULL, pszTitle, nUp, nTab, fFont, nFtype,
+        SendPrintFromStdin(FALSE, NULL, pszTitle, nUp, nTab, fFont, nFtype,
                            nOrientation, dmPaperSize, bNum);
         return 0;
     }
