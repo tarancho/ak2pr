@@ -1,10 +1,13 @@
 /* -*- mode: C++; coding: sjis-dos; -*-
- * Time-stamp: <2004-08-16 19:40:25 tfuruka1>
+ * Time-stamp: <2004-08-21 13:22:01 tfuruka1>
  *
  * 「ak2psのようなもの」のメール印字処理
  *
- * $Id: prtMail.c,v 1.5 2004/08/16 14:24:01 tfuruka1 Exp $
+ * $Id: prtMail.c,v 1.6 2004/08/21 05:35:46 tfuruka1 Exp $
  * $Log: prtMail.c,v $
+ * Revision 1.6  2004/08/21 05:35:46  tfuruka1
+ * メール印刷で、ヘッダ部の二行目以降のフォントが正しくない問題を修正。
+ *
  * Revision 1.5  2004/08/16 14:24:01  tfuruka1
  * ヘッダとボディの区切りをハイフォン8つでも認識するようにしました。
  *
@@ -85,8 +88,8 @@ VOID PrintMail(void)
     LONG lfWeight;                              // フォントのウエイト
     BOOL lfItalic;                              // T: Italic
     BOOL lfUnderline;                           // T: Underline
-    TCHAR lfFaceName[LF_FACESIZE];              // フォントフェイス名
     COLORREF crLast = RGB(0, 0, 0);             // 最後に使用した色
+    PLOGFONT pLogFont;
 
     DbgPrint(NULL, 'I', "メール印字処理開始");
 
@@ -95,7 +98,7 @@ VOID PrintMail(void)
     strcpy(g_MailBox.szMessageID, "Message-Id: わかりまへん");
     strcpy(g_MailBox.szReference, " ");
     strcpy(g_MailBox.szFrom, "From: 匿名希望");
-    strcpy(g_MailBox.szDate, "Date: 昭和40年10月28日");
+    strcpy(g_MailBox.szDate, "Date: 不明");
 
     szLastHeader[0] = '\0';
 
@@ -116,7 +119,7 @@ VOID PrintMail(void)
         lfHeight = GetPrtBasePoint();
         lfWeight = 400;
         lfItalic = lfUnderline = FALSE;
-        strcpy(lfFaceName, FN_MSM);
+        pLogFont = &g_MailBox.PrtInfo.lfOPPF;
 
         // 空行の場合は MHS 終了。但し, 電信八号の場合はハイフォン 8つ
         // でヘッダ部終了
@@ -205,6 +208,7 @@ VOID PrintMail(void)
                                      strlen(Header[i].szHeader))) {
                         if (' ' == szBuf[0]) {  // 継続ヘッダ
                             crTxt = Header[i].crDetail;
+                            pLogFont = &g_MailBox.PrtInfo.lfPPF;
                         }
                         else {
                             crTxt = Header[i].crHead;
@@ -232,8 +236,7 @@ VOID PrintMail(void)
             }
 
             if (!SetFontAndPrint(szBuf, lfHeight, lfWeight, lfItalic,
-                                 lfUnderline, FALSE,
-                                 &g_MailBox.PrtInfo.lfOPPF)) {
+                                 lfUnderline, FALSE, pLogFont)) {
                 goto ErrorExit;
             }
 
