@@ -2,8 +2,13 @@
  *
  * 「ak2psのようなもの」のサーバ側のヘッダファイル
  *
- * $Id: ak2prs.h,v 1.9 2001/12/08 15:23:48 tfuruka1 Exp $
+ * $Id: ak2prs.h,v 1.10 2001/12/18 04:03:17 tfuruka1 Exp $
  * $Log: ak2prs.h,v $
+ * Revision 1.10  2001/12/18 04:03:17  tfuruka1
+ * ─────【Version 1.7にしました】─────
+ * 取りあえず、プレビューできるようにしました。元々、プレビューをサポート
+ * するつもりがなかったので、かなりソースが汚くなってしまいました。
+ *
  * Revision 1.9  2001/12/08 15:23:48  tfuruka1
  * ─────【Version 1.6にしました】─────
  * メイン画面のLISTBOXをListViewへ変更しました。
@@ -56,8 +61,8 @@
 #ifndef _AK2PRS_H_
 #define _AK2PRS_H_
 
-#define TIMESTAMP "Time-stamp: <2001-12-09 00:22:16 tfuruka1>"
-#define VERSION   "Version 1.6"
+#define TIMESTAMP "Time-stamp: <2001-12-18 13:03:17 tfuruka1>"
+#define VERSION   "Version 1.7"
 
 #include <windows.h>
 #include <windowsx.h>
@@ -122,10 +127,12 @@
 // ユーザメッセージ
 enum {WM_TASKMENU = WM_USER + 1, WM_REALCLOSE, WM_SUSPEND};
 
+
 // 印刷情報です。この構造体に値を設定してWM_COPYDATAでSV_CLASS,
 // SV_CAPTIONのウインドウを所有しているプロセスにSendMessageすると印刷
 // を行います。
 typedef struct _PrtInfo{
+    BOOL valid;                                 // T:この構造体が有効
     CHAR szFileName[MAX_PATH];                  // ファイル名
     CHAR szTitle[256];                          // タイトル文字列
     int nNumOfUp;                               // 段組数
@@ -140,17 +147,30 @@ typedef struct _PrtInfo{
     BOOL bKeisen;                               // T: 罫線連結
     BOOL bNoRcvHeader;                          // Receivedヘッダを印字しない
     BOOL bColor;                                // T: Color印刷
+    BOOL bPreView;                              // T: プレビュー
     double fFontSize;                           // フォントサイズ --- Point
 } PRT_INFO, *PPRT_INFO;
 
 // nType に設定する値は以下の通り(クライアント側でも参照したいので、
 // ak2pr.hに移動), デフォルトはPT_TEXT
 
+// プレビュー用のデバイスコンテキスト情報等
+typedef struct _PREVIEW_INFO {
+    HDC hDC;                                    // デバイスコンテキスト
+    HBITMAP hBitmap;                            // ビットマップ
+    int wd, ht;                                 // サイズ
+    int xoff, yoff;                             // 印刷不可エリア
+    int dpiW, dpiH;                             // 解像度
+    int status;                                 // 状態
+    RECT rc;                                    // ウインドウの位置
+} PREVIEW_INFO, *PPREVIEW_INFO;
+enum {PVI_PRINT = 0, PVI_CANCEL};
 
 // スレッド間メールボックス
 typedef struct {
     HWND hWnd;                                  // ハンドル
-    HDC hDC;                                    // デバイスハンドル
+    HDC hDC;                                    // デバイスハンドル(兼用)
+    HDC hDCPrinter;                             // プリンタのDC
     HGLOBAL hDevMode;                           // プリンタデバイスモード
     HGLOBAL hDevNames;                          // プリンタデバイスネーム
     HANDLE hThread;                             // スレッドハンドル
@@ -158,6 +178,7 @@ typedef struct {
     BOOL bRun;                                  // T:スレッド実行状態
     BOOL bStop;                                 // T:印刷停止状態
     PRT_INFO PrtInfo;                           // 印刷情報
+    PREVIEW_INFO PrevInfo;                      // プレビュー情報
     // ----- 以下はメール印刷の情報
     TCHAR szFrom[128];                          // 差出人
     TCHAR szDate[128];                          // 受信日時
@@ -279,5 +300,18 @@ BOOL EndDocument(void);
 BOOL PutsPrinter(LPTSTR szBuf);
 void PrintMail(void);
 void PrintText(void);
-BOOL PrintPreview(HWND hWnd, HDC hDC);
+BOOL PrintPreview(HWND hWnd, PPREVIEW_INFO);
+void SetPreViewPos(LPRECT lprc);
+void GetPreViewPos(LPRECT lprc);
+/*--------------------------------------------------------------------
+ * hDCPrinterで指定されてたデバイスコンテキストから、プレビュー用のデ
+ * バイスコンテキストを作成する。プレビュー用のデバイスコンテキストは
+ * 使用し終わった後に破棄する必要があります。また、デバイスコンテキス
+ * トが所有しているビットマップも破棄する必要があります。
+ * *-------------------------------------------------------------------*/
+HDC WINAPI
+MakePreviewInfo(HWND hWnd,                      // ウインドウハンドル
+              HDC hDCPrinter,                   // プリンタDC
+              PPREVIEW_INFO                     // プレビュー情報
+    );
 #endif
