@@ -1,16 +1,15 @@
 /* -*- mode: c++; coding: sjis-dos; -*-
- * Time-stamp: <2001-12-15 00:20:20 tfuruka1>
+ * Time-stamp: <2001-12-18 13:07:15 tfuruka1>
  *
  * 「ak2psのようなもの」の印刷プレビュー
  *
- * $Id: prev.c,v 1.1 2001/12/14 17:09:38 tfuruka1 Exp $
+ * $Id: prev.c,v 1.2 2001/12/18 04:07:51 tfuruka1 Exp $
  * $Log: prev.c,v $
+ * Revision 1.2  2001/12/18 04:07:51  tfuruka1
+ * プレビューウインドウの位置とサイズを記憶しておくように修正
+ *
  * Revision 1.1  2001/12/14 17:09:38  tfuruka1
  * Initial revision
- *
- * Revision 1.1  2001/02/05 17:46:22  tfuruka1
- * Initial revision
- *
  */
 // (replace-regexp "/\\*\\(.+\\)\\*/" "//\\1")
 // (replace-regexp "[ \t]+$" "")
@@ -87,8 +86,11 @@ DialogProc(
 {
     switch (uMsg) {
     case WM_INITDIALOG:
-        SetWindowPos(hWnd, HWND_TOPMOST, 0, 0, 0, 0,
-                     SWP_NOMOVE | SWP_NOSIZE);
+        SetWindowPos(hWnd, HWND_TOPMOST,
+                     pPrevInfo->rc.left, pPrevInfo->rc.top,
+                     pPrevInfo->rc.right - pPrevInfo->rc.left,
+                     pPrevInfo->rc.bottom - pPrevInfo->rc.top,
+                     0);
         InvalidateRect(hWnd, NULL, FALSE);
         return TRUE;
     case WM_SYSCOMMAND:
@@ -105,6 +107,8 @@ DialogProc(
         case IDOK:
             EndDialog(hWnd, TRUE);
             pPrevInfo->status = PVI_PRINT;
+            GetWindowRect(hWnd, &pPrevInfo->rc);
+            SetPreViewPos(&pPrevInfo->rc);
             return TRUE;
         case IDCANCEL:
             EndDialog(hWnd, FALSE);
