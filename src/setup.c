@@ -1,10 +1,14 @@
 /* -*- mode: c++; coding: sjis-dos; -*-
- * Time-stamp: <2001-12-18 20:34:54 tfuruka1>
+ * Time-stamp: <2001-12-23 16:50:56 tfuruka1>
  *
  * 「ak2psのようなもの」の印字設定
  *
- * $Id: setup.c,v 1.6 2001/12/18 12:59:04 tfuruka1 Exp $
+ * $Id: setup.c,v 1.7 2001/12/23 10:13:56 tfuruka1 Exp $
  * $Log: setup.c,v $
+ * Revision 1.7  2001/12/23 10:13:56  tfuruka1
+ * ●設定ダイアログが、二つ以上表示される（できる）問題を修正した。
+ * ●Copyright表示を印字しないモードをサポートした。
+ *
  * Revision 1.6  2001/12/18 12:59:04  tfuruka1
  * デバッグ印刷のオプションを追加。
  *
@@ -31,6 +35,7 @@
 
 #include "ak2prs.h"
 
+#define SETUP_CAPTION "印刷スタイルの設定"
 #define GS_DEF_OPT "-dNOPAUSE -dBATCH -sDEVICE=mswinpr2"
 
 PRT_INFO g_PrtInfo;                             // デフォルト印刷情報
@@ -98,6 +103,10 @@ DoInitDialogCom(
 
     // デバッグ印刷の実行有無
     CheckDlgButton(hWnd, IDC_C_DEBUG, g_PrtInfo.bDebug ? TRUE : FALSE);
+
+    // Copyright情報の印刷有無
+    CheckDlgButton(hWnd, IDC_CHK_NOCOPYRIGHT,
+                   g_PrtInfo.bNoCopyright ? TRUE : FALSE);
 
     return TRUE;
 }
@@ -208,11 +217,12 @@ DoCloseCom(HWND hWnd)
 
     PrtInfoTmp.bPreView = IsDlgButtonChecked(hWnd, IDC_CHK_PREVIEW);
     PrtInfoTmp.bDebug = IsDlgButtonChecked(hWnd, IDC_C_DEBUG);
+    PrtInfoTmp.bNoCopyright = IsDlgButtonChecked(hWnd, IDC_CHK_NOCOPYRIGHT);
 
     DbgPrint(NULL, 'I', "共通設定終了\nTABSTOP:%d\nFONTSIZE:%f\n"
-             "NUP:%d\nPREVIE:%d",
+             "NUP:%d\nPREVIE:%d\nCOPYRIGHT:%d",
              PrtInfoTmp.nTab, PrtInfoTmp.fFontSize, PrtInfoTmp.nNumOfUp,
-             PrtInfoTmp.bPreView);
+             PrtInfoTmp.bPreView, PrtInfoTmp.bNoCopyright);
 }
 
 static BOOL
@@ -450,6 +460,17 @@ SetupPrtStyle(HWND hWnd)
     PROPSHEETPAGE psp[5];
     PROPSHEETHEADER psh;
     int i;
+    static BOOL running = FALSE;
+
+    // 現在セットアップウインドウを表示中の場合は何もしない。厳密には
+    // クリティカルセクションが必要ですが、よっぽどの事が無い限りは大
+    // 丈夫でしょう。仮にダイアログが二つ表示されたところで、大した害
+    // はないので、フラグでごまかします。
+    if (running) {
+        return;
+    }
+
+    running = TRUE;
 
     for (i = 0; i < 4; i++) {
         psp[i].dwSize = sizeof(PROPSHEETPAGE);
@@ -484,11 +505,13 @@ SetupPrtStyle(HWND hWnd)
         PSH_NOAPPLYNOW;
     psh.hwndParent = hWnd;
     psh.hInstance = psp[0].hInstance;
-    psh.pszCaption = (LPSTR)"印刷スタイルの設定";
+    psh.pszCaption = (LPSTR)SETUP_CAPTION;
     psh.hIcon = LoadIcon(NULL, IDI_ASTERISK);
     psh.ppsp = (LPCPROPSHEETPAGE)&psp;
     psh.nPages = 4;
     i = PropertySheet(&psh);
+
+    running = FALSE;
 
     if (1 != i) {
         return;
