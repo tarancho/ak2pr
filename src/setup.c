@@ -1,10 +1,13 @@
 /* -*- mode: c++; coding: sjis-dos; -*-
- * Time-stamp: <2001-02-06 01:58:51 tfuruka1>
+ * Time-stamp: <2001-02-06 02:02:52 tfuruka1>
  *
  * 「ak2psのようなもの」の印字設定
  *
- * $Id: setup.c,v 1.1 2001/02/05 16:58:52 tfuruka1 Exp $
+ * $Id: setup.c,v 1.2 2001/02/05 17:03:33 tfuruka1 Exp $
  * $Log: setup.c,v $
+ * Revision 1.2  2001/02/05 17:03:33  tfuruka1
+ * プリンタの設定を、メニューからプロパティシートの「共通」へ移動した。
+ *
  * Revision 1.1  2001/02/05 16:58:52  tfuruka1
  * Initial revision
  *
@@ -106,7 +109,7 @@ DoCommandCom(
         sprintf(szBuf, "%f", PrtInfoTmp.fFontSize);
         SetDlgItemText(hWnd, IDC_FONTSIZE, szBuf);
         break;
-    case IDC_PAGE_SETUP:
+    case IDC_PRINTER:
         SetupPrinter(hWnd, &g_MailBox.hDevNames, &g_MailBox.hDevMode);
         break;
     }
