@@ -1,8 +1,11 @@
 ; -*- mode: text; coding: sjis-dos; -*-
-; Time-stamp: <2001-12-08 01:04:47 tfuruka1>
+; Time-stamp: <2003-03-09 18:55:33 tfuruka1>
 ;
-; $Id: dllmain.def,v 1.1 2001/12/07 18:25:40 tfuruka1 Exp $
+; $Id: dllmain.def,v 1.2 2003/03/29 13:53:35 tfuruka1 Exp $
 ; $Log: dllmain.def,v $
+; Revision 1.2  2003/03/29 13:53:35  tfuruka1
+; ÅúGetPSTitleÇÃí«â¡
+;
 ; Revision 1.1  2001/12/07 18:25:40  tfuruka1
 ; Initial revision
 ;
@@ -24,3 +27,6 @@ EXPORTS
     GetLongBaseName
     GetPaperSizeUsageMessage
     GetPaperSizeDevMode
+    GetPaperSizeComment
+    GetTempDirectoryName
+    GetPSTitle
