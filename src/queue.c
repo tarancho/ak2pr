@@ -1,10 +1,17 @@
 /* -*- mode: c++; coding: sjis-dos; -*-
- * Time-stamp: <2001-02-06 02:42:35 tfuruka1>
+ * Time-stamp: <2001-08-19 01:01:12 tfuruka1>
  *
  * 「ak2psのようなもの」のQueue処理
  *
- * $Id: queue.c,v 1.1 2001/02/05 17:42:36 tfuruka1 Exp $
+ * $Id: queue.c,v 1.2 2001/08/18 16:15:10 tfuruka1 Exp $
  * $Log: queue.c,v $
+ * Revision 1.2  2001/08/18 16:15:10  tfuruka1
+ * ●PRT_INFO構造体からbDeleteメンバを削除したので（常に一旦作業ファイル
+ *   にコピーするようにしたので、このメンバは必要なくなった）、参照しない
+ *   ように修正。
+ * ●印刷Queueを削除した時に作業ファイルが削除されていなかったバグを修正
+ *   する為に、DeleteQueue関数を新規追加した。
+ *
  * Revision 1.1  2001/02/05 17:42:36  tfuruka1
  * Initial revision
  *
@@ -83,7 +90,6 @@ EnQueue(
              "段組数        : %d\n"
              "タブ幅        : %d\n"
              "印刷タイプ    : %s\n"
-             "印刷後の処理  : %s\n"
              "フォントサイズ: %f",
              pPrtInfo->szFileName,
              pPrtInfo->szTitle,
@@ -92,7 +98,6 @@ EnQueue(
              PT_TEXT == pPrtInfo->nType ? "テキスト" :
              (PT_MAIL == pPrtInfo->nType ? "デコード済みメール" : 
               "未デコードメール"),
-             pPrtInfo->bDelete ? "削除" : "何もしない",
              pPrtInfo->fFontSize);
 
     return TRUE;
@@ -136,7 +141,6 @@ DeQueue(
              "段組数        : %d\n"
              "タブ幅        : %d\n"
              "印刷タイプ    : %s\n"
-             "印刷後の処理  : %s\n"
              "フォントサイズ: %f",
              pPrtInfo->szFileName,
              pPrtInfo->szTitle,
@@ -145,8 +149,45 @@ DeQueue(
              PT_TEXT == pPrtInfo->nType ? "テキスト" :
              (PT_MAIL == pPrtInfo->nType ? "デコード済みメール" : 
               "未デコードメール"),
-             pPrtInfo->bDelete ? "削除" : "何もしない",
              pPrtInfo->fFontSize);
 
     return TRUE;
+}
+
+int
+DeleteQueue(
+    HWND hWnd,                                  // ハンドル
+    BOOL bForce                                 // T:全て削除
+    )
+{
+    PPRT_INFO pPrtInfoTmp;
+    int i;
+    int cnt;
+
+    cnt = SendMessage(hWnd, LB_GETCOUNT, 0, 0);
+    if (0 > cnt) {
+        return 0;
+    }
+    for (i = 0, cnt--; cnt >= 0; cnt--) {
+        if (bForce || SendMessage(hWnd, LB_GETSEL, cnt, 0)) {
+            pPrtInfoTmp = (PPRT_INFO)SendMessage(hWnd, LB_GETITEMDATA, cnt, 0);
+            SendMessage(hWnd, LB_DELETESTRING, cnt, 0);
+            if (LB_ERR == (int)pPrtInfoTmp || !pPrtInfoTmp) {
+                MessageBox(hWnd, "印刷データの削除に失敗しました",
+                           "LB_GETITEMDATA",
+                           MB_SETFOREGROUND | MB_ICONSTOP);
+                continue;
+            }
+            unlink(pPrtInfoTmp->szFileName);
+            DbgPrint(NULL, 'I', "以下のデータを削除しました\n"
+                     "印刷ファイル名: %s\n"
+                     "印刷タイトル  : %s\n",
+                     pPrtInfoTmp->szFileName,
+                     pPrtInfoTmp->szTitle);
+            free(pPrtInfoTmp);                  // メモリ開放
+            i++;
+        }
+    }
+    AdjustListWidth(hWnd);
+    return i;                                   // 削除数を返却する
 }
