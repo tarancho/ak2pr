@@ -1,10 +1,15 @@
 /* -*- mode: c++; coding: sjis-dos; -*-
- * Time-stamp: <2001-10-01 22:08:03 tfuruka1>
+ * Time-stamp: <2001-10-12 22:54:21 tfuruka1>
  *
  * 「ak2psのようなもの」のクライアントの共通処理部
  *
- * $Id: clientCommon.c,v 1.6 2001/10/01 13:19:42 tfuruka1 Exp $
+ * $Id: clientCommon.c,v 1.7 2001/10/12 14:07:34 tfuruka1 Exp $
  * $Log: clientCommon.c,v $
+ * Revision 1.7  2001/10/12 14:07:34  tfuruka1
+ * 最初に無条件にサーバを起動するようにした。引数無しでサーバを起動させる
+ * 事を想定している。また、不明なオプションを指定した場合に、Usageメッセー
+ * ジを出力するようにした。
+ *
  * Revision 1.6  2001/10/01 13:19:42  tfuruka1
  * -oオプションを追加。用紙の向きを指定出来るようにした。
  *
@@ -35,6 +40,31 @@
 #include <stdio.h>
 #include "ak2pr.h"
 
+static void Usage(LPTSTR arg)
+{
+    printf("Usage: %s [-o{p|l}] [-m{PLAIN|MAIL|PS_ACROBAT|PS_GHOST}]\n"
+           "\t\t[-fフォントサイズ] [-tタブ幅] [-u段組数] [-Tタイトル]\n"
+           "\t\t[-Jタイトル] [-P] [ファイル名...]\n\n"
+           "\t-o 用紙の向きを指定します。デフォルトはサーバの設定。\n"
+           "\t\tp PORTRAIT\n"
+           "\t\tl LANDSCAPE\n"
+           "\t-m ファイルの種類を指定します。デフォルトはサーバの設定。\n"
+           "\t\tPLAIN      プレーンテキストファイル\n"
+           "\t\tMAIL       インターネットメール(SJIS)\n"
+           "\t\tPS_ACROBAT PostScriptファイル(Acrobat Distillerで変換)\n"
+           "\t\tPS_GHOST   PostScriptファイル(GhostScriptで印刷)\n"
+           "\t-f フォントサイズを指定します。デフォルトはサーバの設定。\n"
+           "\t-t タブ幅を指定します。デフォルトはサーバの設定。\n"
+           "\t-u 段組数を指定します。デフォルトはサーバの設定。\n"
+           "\t-T タイトルを指定します(-Jと同じ)。デフォルトはファイル名。\n"
+           "\t-J タイトルを指定します(-Tと同じ)。デフォルトはファイル名。\n"
+           "\t-P 何もしません。\n"
+           "\tファイル名 印刷するファイル名を指定します。\n"
+           "\t\t指定しなかった場合は、標準入力から読み込みます。\n"
+           "\t\t複数ファイル指定できます。\n",
+           GetLongBaseName(arg));
+}
+
 int ak2prClientCommon(int __argc, char **_argv)
 {
     double fFont = 0.0;
@@ -43,6 +73,7 @@ int ak2prClientCommon(int __argc, char **_argv)
     int nFtype = PT_TEXT;
     int nOrientation = 0;                       // 用紙の向きはデフォルト
 
+    ExecutePrtServer();                         // サーバを起動する
     {                                           // For Debug
         TCHAR szBuf[4096];
         strcpy(szBuf, "DBG: ");
@@ -133,6 +164,7 @@ int ak2prClientCommon(int __argc, char **_argv)
             continue;
         default:
             Syslog("-ERROR: Invalid Argument (%s)", *(__argv + i));
+            Usage(*__argv);
             return 1;
         }
     }
