@@ -1,9 +1,12 @@
 /* -*- mode: c++; coding: sjis-dos; -*-
- * $Id: wndproc.c,v 1.20 2004/12/23 08:12:08 tfuruka1 Exp $
+ * $Id: wndproc.c,v 1.21 2004/12/23 13:15:12 tfuruka1 Exp $
  *
  * 「ak2psのようなもの」のウインドウプロシジャ
  *
  * $Log: wndproc.c,v $
+ * Revision 1.21  2004/12/23 13:15:12  tfuruka1
+ * Version情報ダイアログを表示するようにしました。
+ *
  * Revision 1.20  2004/12/23 08:12:08  tfuruka1
  * シングルライン印刷(食ミ出した部分を印刷しない)に対応しました。とりあえ
  * ず、サーバ側の設定のみです。
@@ -91,7 +94,7 @@
 // (replace-regexp "/\\*\\(.+\\)\\*/" "//\\1")
 // (replace-regexp "[ \t]+$" "")
 
-#define TIME_STAMP "Time-stamp: <2004-12-23 16:12:48 tfuruka1>"
+#define TIME_STAMP "Time-stamp: <2004-12-23 21:46:45 tfuruka1>"
 
 #include "ak2prs.h"
 
@@ -422,6 +425,9 @@ DoCommand(
     HMENU hMenu;
 
     switch (id) {
+    case IDM_VERSION:
+        ShowVersion(hWnd);
+        break;
     case IDM_HTTP: case IDM_MAIL:
         if (32 >= (nErr = (int)ShellExecute(hWnd, NULL,
                                        (IDM_HTTP == id) ? SZ_URL : SZ_MAIL,
@@ -492,7 +498,8 @@ DoCommand(
         break;
     case IDM_PASTE:
         // クリップボードの内容を印刷する
-        SendPrintFromStdin(TRUE, NULL, NULL, 0, 8, 0, PT_TEXT, 0, 0, -1, -1);
+        SendPrintFromStdin(TRUE, NULL, NULL, 0, 8, 0, PT_TEXT, 0, 0,
+                           -1, -1, -1);
         break;
     }
 }
@@ -652,7 +659,7 @@ SendPrintDirectory(LPTSTR lpszFile)
             if (0 != _strnicmp(szFile, GetTempDirectoryName(),
                                strlen(GetTempDirectoryName()))) {
                 SendPrintFromFileCopy(NULL, NULL, szFile, 0, 0, 0,
-                                      PT_TEXT, 0, 0, -1, -1);
+                                      PT_TEXT, 0, 0, -1, -1, -1);
             } else {
                 DbgPrint(NULL, 'W', "%sは作業ディレクトリ内のファイルです",
                          szFile);
@@ -699,7 +706,7 @@ DoDropFiles(
             if (0 != _strnicmp(szFile, GetTempDirectoryName(),
                                strlen(GetTempDirectoryName()))) {
                 SendPrintFromFileCopy(NULL, NULL, szFile, 0, 0, 0,
-                                      PT_TEXT, 0, 0, -1, -1);
+                                      PT_TEXT, 0, 0, -1, -1, -1);
             } else {
                 DbgPrint(NULL, 'W', "%sは作業ディレクトリ内のファイルです",
                          szFile);

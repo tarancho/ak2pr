@@ -7,6 +7,7 @@
 #define IDD_TEXT                        102
 #define IDR_MENU                        103
 #define IDI_FURUKAWA                    104
+#define IDD_VERSION                     104
 #define IDD_MAIL                        105
 #define IDD_PREV                        106
 #define IDD_PS                          107
@@ -17,6 +18,7 @@
 #define IDR_TOOLBAR                     109
 #define IDI_KOBETSU                     110
 #define IDR_ACC                         111
+#define IDB_FURUKAWA                    112
 #define IDC_TABSTOP                     1001
 #define IDC_FONTSIZE                    1002
 #define IDC_NUP                         1004
@@ -48,6 +50,13 @@
 #define IDC_COMBO_PPF                   1029
 #define IDC_COMBO_OF                    1030
 #define IDC_COMBO_OPPF                  1031
+#define IDC_ST_VERSION                  1033
+#define IDC_ST_MEM_FREE_RATE            1034
+#define IDC_ST_PMEM_TOTAL               1035
+#define IDC_ST_PMEM_FREE                1036
+#define IDC_ST_VMEM_TOTAL               1037
+#define IDC_ST_VMEM_FREE                1038
+//#define IDC_ST_USER_FREE                1040
 #define IDM_SETUP                       40002
 #define IDM_SHOW                        40003
 #define IDM_EXIT                        40004
@@ -57,14 +66,15 @@
 #define IDM_STOP                        40008
 #define IDM_DELETE                      40009
 #define IDM_PASTE                       40021
+#define IDM_VERSION                     40022
 
 // Next default values for new objects
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        112
-#define _APS_NEXT_COMMAND_VALUE         40022
-#define _APS_NEXT_CONTROL_VALUE         1033
+#define _APS_NEXT_RESOURCE_VALUE        113
+#define _APS_NEXT_COMMAND_VALUE         40023
+#define _APS_NEXT_CONTROL_VALUE         1041
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

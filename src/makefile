@@ -1,8 +1,11 @@
 # -*- mode: makefile; coding: sjis-unix; -*-
-# Time-stamp: <2004-08-21 20:07:51 tfuruka1>
+# Time-stamp: <2004-12-23 21:47:45 tfuruka1>
 #
-# $Id: makefile,v 1.8 2004/08/21 11:12:49 tfuruka1 Exp $
+# $Id: makefile,v 1.9 2004/12/23 13:15:13 tfuruka1 Exp $
 # $Log: makefile,v $
+# Revision 1.9  2004/12/23 13:15:13  tfuruka1
+# Version情報ダイアログを表示するようにしました。
+#
 # Revision 1.8  2004/08/21 11:12:49  tfuruka1
 # VersionをVersionファイルから取得するようにしました。
 #
@@ -32,7 +35,7 @@ ETAGS = /usr/local/Meadow/2.00/bin/etags
 DLL_OBJS = dllmain.obj dbg.obj string.obj clipboard.obj
 SV_OBJS = main.obj init.obj wndproc.obj ak2pr.res setup.obj queue.obj\
     pThread.obj printer.obj testprint.obj prtMail.obj prtText.obj string.obj\
-	prev.obj fonts.obj
+	prev.obj fonts.obj version.obj
 TARGZ = ../ak2pr_src.tar.gz
 
 INSTDIR = /usr/local/meadow/site-bin

@@ -143,6 +143,27 @@ BEGIN
                     SS_CENTERIMAGE
 END
 
+IDD_VERSION DIALOG DISCARDABLE  0, 0, 251, 89
+STYLE DS_MODALFRAME | WS_POPUP | WS_CAPTION
+CAPTION "ヴァージョン情報"
+FONT 9, "ＭＳ Ｐゴシック"
+BEGIN
+    DEFPUSHBUTTON   "OK",IDOK,194,68,50,14
+    CONTROL         112,IDC_STATIC,"Static",SS_BITMAP,7,7,27,32
+    CTEXT           "Static\nhoge",IDC_ST_VERSION,38,7,206,22
+    CONTROL         "",IDC_STATIC,"Static",SS_BLACKFRAME,7,41,237,1
+    LTEXT           "メモリ使用率",IDC_STATIC,165,45,43,8
+    LTEXT           "物理メモリの総容量",IDC_STATIC,7,45,63,8
+    LTEXT           "空物理メモリ",IDC_STATIC,7,55,63,8
+    LTEXT           "仮想メモリ総容量",IDC_STATIC,7,65,63,8
+    LTEXT           "空仮想メモリ",IDC_STATIC,7,75,63,8
+    RTEXT           "0000000000",IDC_ST_MEM_FREE_RATE,202,45,43,8
+    RTEXT           "0000000000",IDC_ST_PMEM_TOTAL,74,45,43,8
+    RTEXT           "0000000000",IDC_ST_PMEM_FREE,74,55,43,8
+    RTEXT           "0000000000",IDC_ST_VMEM_TOTAL,74,65,43,8
+    RTEXT           "0000000000",IDC_ST_VMEM_FREE,74,75,43,8
+END
+
 
 /////////////////////////////////////////////////////////////////////////////
 //
@@ -212,6 +233,10 @@ BEGIN
         MENUITEM SEPARATOR
         MENUITEM "終了",                        IDM_EXIT
     END
+    POPUP "ヘルプ(&H)"
+    BEGIN
+        MENUITEM "Version情報...",              IDM_VERSION
+    END
 END
 
 
@@ -229,6 +254,14 @@ BEGIN
         RIGHTMARGIN, 175
         TOPMARGIN, 7
         BOTTOMMARGIN, 100
+    END
+
+    IDD_VERSION, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 244
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 82
     END
 END
 #endif    // APSTUDIO_INVOKED
@@ -262,6 +295,7 @@ END
 //
 
 IDR_TOOLBAR             BITMAP  DISCARDABLE     "toolbar.bmp"
+IDB_FURUKAWA            BITMAP  DISCARDABLE     "furukawa.bmp"
 
 /////////////////////////////////////////////////////////////////////////////
 //

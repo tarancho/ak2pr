@@ -1,5 +1,5 @@
 # -*- mode: makefile; coding: sjis; -*-
 # makefile のインクルードです
-# $Id: version,v 1.2 2004/08/30 08:24:13 tfuruka1 Exp $
-TIMESTAMP=Time-stamp: "2004-08-30 17:24:00 tfuruka1"
-MAKE_VERSION=2.4
+# $Id: version,v 1.3 2004/12/23 13:15:12 tfuruka1 Exp $
+TIMESTAMP=Time-stamp: "2004-12-23 19:00:56 tfuruka1"
+MAKE_VERSION=2.5 BETA-1
