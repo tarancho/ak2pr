@@ -1,10 +1,13 @@
 /* -*- mode: C++; coding: sjis-dos; -*-
- * Time-stamp: <2001-12-08 01:05:34 tfuruka1>
+ * Time-stamp: <2001-12-08 21:45:35 tfuruka1>
  *
  * ak2ps のようなものの共通 DLL
  *
- * $Id: dllmain.c,v 1.6 2001/12/07 18:25:11 tfuruka1 Exp $
+ * $Id: dllmain.c,v 1.7 2001/12/08 15:19:06 tfuruka1 Exp $
  * $Log: dllmain.c,v $
+ * Revision 1.7  2001/12/08 15:19:06  tfuruka1
+ * 用紙サイズの指定対応の対応漏れの対応。
+ *
  * Revision 1.6  2001/12/07 18:25:11  tfuruka1
  * 用紙サイズの指定を出来るようにした。
  *
@@ -576,4 +579,22 @@ GetPaperSizeDevMode(LPTSTR cmdOpt)
         }
     }
     return 0;
+}
+/*--------------------------------------------------------------------
+ * DEVMODEで使用する用紙サイズの定数から用紙サイズの説明を得る。
+ * *-------------------------------------------------------------------*/
+LPCTSTR WINAPI
+GetPaperSizeComment(short dmPaperSize)
+{
+    int i;
+
+    if (0 == dmPaperSize) {
+        return (LPCTSTR)"デフォルト";
+    }
+    for (i = 0; devModePs[i].cmdOpt; i++) {
+        if (dmPaperSize == devModePs[i].dmPaperSize) {
+            return (LPCTSTR)devModePs[i].sComment;
+        }
+    }
+    return (LPCTSTR)"不明";
 }
