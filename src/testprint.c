@@ -1,10 +1,13 @@
 /* -*- mode: c++; coding: sjis-dos; -*-
- * Time-stamp: <2001-02-06 02:42:10 tfuruka1>
+ * Time-stamp: <2001-12-14 00:13:44 tfuruka1>
  *
  * ak2psのようなもののテスト印字関連
  *
- * $Id: testprint.c,v 1.1 2001/02/05 17:42:12 tfuruka1 Exp $
+ * $Id: testprint.c,v 1.2 2001/12/18 04:01:00 tfuruka1 Exp $
  * $Log: testprint.c,v $
+ * Revision 1.2  2001/12/18 04:01:00  tfuruka1
+ * プレビューを表示できるように修正
+ *
  * Revision 1.1  2001/02/05 17:42:12  tfuruka1
  * Initial revision
  *
@@ -256,6 +259,11 @@ DoTestPrint(void)
 
     StartPage(g_MailBox.hDC);                   // ページ開始
 
+    rc.top = rc.right = 0;
+    rc.left = nPaperWidth;
+    rc.bottom = nPaperHeight;
+    FillRect(g_MailBox.hDC, &rc, GetStockObject(WHITE_BRUSH));
+
     DrawTombow();                               // トンボの印刷
 
     SetTextColor(g_MailBox.hDC, RGB(0, 0, 0));
@@ -396,6 +404,11 @@ DoTestPrint(void)
     DeleteObject(hFont);
     DbgPrint(NULL, 'I', "テスト印刷終了");
 
-    EndPage(g_MailBox.hDC);                     // ページ出力
-    EndDoc(g_MailBox.hDC);                      // ドキュメント完了
+    if (g_MailBox.hDC == g_MailBox.PrevInfo.hDC) {
+        PrintPreview(g_MailBox.hWnd, &g_MailBox.PrevInfo);
+    }
+    else {
+        EndPage(g_MailBox.hDC);                 // ページ出力
+        EndDoc(g_MailBox.hDC);                  // ドキュメント完了
+    }
 }
