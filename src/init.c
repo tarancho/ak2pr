@@ -1,10 +1,13 @@
 /* -*- mode: c++; coding: sjis-dos; -*-
- * Time-stamp: <2001-08-19 17:14:12 tfuruka1>
+ * Time-stamp: <2001-12-15 01:17:39 tfuruka1>
  *
  * 「ak2psのようなもの」のサーバの初期化処理
  *
- * $Id: init.c,v 1.3 2001/08/19 08:55:39 tfuruka1 Exp $
+ * $Id: init.c,v 1.4 2001/12/14 17:00:24 tfuruka1 Exp $
  * $Log: init.c,v $
+ * Revision 1.4  2001/12/14 17:00:24  tfuruka1
+ * プレビュー対応
+ *
  * Revision 1.3  2001/08/19 08:55:39  tfuruka1
  * PostScriptファイルを印刷するときにGhostScriptを呼び出せるようにした。
  *
@@ -31,6 +34,7 @@
 #define KEY_BKEISEN  "bKeisen"
 #define KEY_BNUM     "bNum"
 #define KEY_BASELINE "nBaseLine"
+#define KEY_BPREVIEW "bPreview"
 
 #define SEC_DEVICE   "DEVICE SETUP"
 #define KEY_DEVNAME  "DeviceName"
@@ -182,6 +186,9 @@ GetDefaultPrtInfo(void)
     GET_PROFILE(PROFILE_SEC, KEY_FONT);
     g_PrtInfo.fFontSize = IsBadStr(szBuf) ? 10.0 : atof(szBuf);
 
+    GET_PROFILE(PROFILE_SEC, KEY_BPREVIEW);
+    g_PrtInfo.bPreView = IsBadStr(szBuf) ? FALSE : atoi(szBuf);
+
     GET_PROFILE(PROFILE_SEC, KEY_BNORCVH);
     g_PrtInfo.bNoRcvHeader = IsBadStr(szBuf) ? FALSE : atoi(szBuf);
 
@@ -241,6 +248,9 @@ SetDefaultPrtInfo(void)
 
     sprintf(szBuf, "%f", g_PrtInfo.fFontSize);
     WRT_PROFILE(PROFILE_SEC, KEY_FONT, szBuf);
+
+    sprintf(szBuf, "%d", g_PrtInfo.bPreView);
+    WRT_PROFILE(PROFILE_SEC, KEY_BPREVIEW, szBuf);
 
     sprintf(szBuf, "%d", g_PrtInfo.bNoRcvHeader);
     WRT_PROFILE(PROFILE_SEC, KEY_BNORCVH, szBuf);

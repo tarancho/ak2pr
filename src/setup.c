@@ -1,10 +1,13 @@
 /* -*- mode: c++; coding: sjis-dos; -*-
- * Time-stamp: <2001-08-19 17:21:53 tfuruka1>
+ * Time-stamp: <2001-12-15 01:18:21 tfuruka1>
  *
  * 「ak2psのようなもの」の印字設定
  *
- * $Id: setup.c,v 1.4 2001/08/19 08:54:55 tfuruka1 Exp $
+ * $Id: setup.c,v 1.5 2001/12/14 17:09:17 tfuruka1 Exp $
  * $Log: setup.c,v $
+ * Revision 1.5  2001/12/14 17:09:17  tfuruka1
+ * プレビュー対応
+ *
  * Revision 1.4  2001/08/19 08:54:55  tfuruka1
  * PostScriptファイルを印刷するときにGhostScriptを呼び出せるようにした。
  *
@@ -87,6 +90,8 @@ DoInitDialogCom(
     sprintf(szBuf, "%d", g_PrtInfo.nNumOfUp);
     SetDlgItemText(hWnd, IDC_NUP, szBuf);
 
+    // プレビューの実行有無
+    CheckDlgButton(hWnd, IDC_CHK_PREVIEW, g_PrtInfo.bPreView ? TRUE : FALSE);
     return TRUE;
 }
 
@@ -139,6 +144,9 @@ DoCommandCom(
             PrtInfoTmp.nNumOfUp = i;
         }
         break;
+    case IDC_CHK_PREVIEW:
+        PrtInfoTmp.bPreView = IsDlgButtonChecked(hWnd, IDC_CHK_PREVIEW);
+        break;
     case IDC_DEFAULT:
         PrtInfoTmp.nTab = 8;
         PrtInfoTmp.nNumOfUp = 2;
@@ -152,6 +160,10 @@ DoCommandCom(
 
         sprintf(szBuf, "%f", PrtInfoTmp.fFontSize);
         SetDlgItemText(hWnd, IDC_FONTSIZE, szBuf);
+
+        PrtInfoTmp.bPreView = FALSE;
+        CheckDlgButton(hWnd, IDC_CHK_PREVIEW, PrtInfoTmp.bPreView);
+
         break;
     case IDC_PRINTER:
         SetupPrinter(hWnd, &g_MailBox.hDevNames, &g_MailBox.hDevMode);
@@ -187,8 +199,12 @@ DoCloseCom(HWND hWnd)
     }
     PrtInfoTmp.nNumOfUp = i;
 
-    DbgPrint(NULL, 'I', "共通設定終了\nTABSTOP:%d\nFONTSIZE:%f\nNUP:%d",
-             PrtInfoTmp.nTab, PrtInfoTmp.fFontSize, PrtInfoTmp.nNumOfUp);
+    PrtInfoTmp.bPreView = IsDlgButtonChecked(hWnd, IDC_CHK_PREVIEW);
+
+    DbgPrint(NULL, 'I', "共通設定終了\nTABSTOP:%d\nFONTSIZE:%f\n"
+             "NUP:%d\nPREVIE:%d",
+             PrtInfoTmp.nTab, PrtInfoTmp.fFontSize, PrtInfoTmp.nNumOfUp,
+             PrtInfoTmp.bPreView);
 }
 
 static BOOL
@@ -431,22 +447,25 @@ SetupPrtStyle(HWND hWnd)
         psp[i].dwSize = sizeof(PROPSHEETPAGE);
         psp[i].dwFlags = PSP_USETITLE | PSH_USEHICON;
         psp[i].hInstance = (HINSTANCE)GetWindowLong(hWnd, GWL_HINSTANCE);
-        psp[i].hIcon = LoadIcon(NULL, IDI_APPLICATION);
         psp[i].lParam = i;
     }
-
+    
+    psp[0].hIcon = LoadIcon(NULL, IDI_APPLICATION);
     psp[0].pszTemplate = MAKEINTRESOURCE(IDD_SETUP);
     psp[0].pfnDlgProc = (DLGPROC)DialogProcCom;
     psp[0].pszTitle = "共通設定";
 
+    psp[1].hIcon = LoadIcon(psp[1].hInstance, MAKEINTRESOURCE(IDI_MAIL));
     psp[1].pszTemplate = MAKEINTRESOURCE(IDD_MAIL);
     psp[1].pfnDlgProc = (DLGPROC)DialogProcMail;
     psp[1].pszTitle = "e-mail印刷";
 
+    psp[2].hIcon = LoadIcon(psp[2].hInstance, MAKEINTRESOURCE(IDI_TEXT));
     psp[2].pszTemplate = MAKEINTRESOURCE(IDD_TEXT);
     psp[2].pfnDlgProc = (DLGPROC)DialogProcText;
     psp[2].pszTitle = "テキスト印刷";
 
+    psp[3].hIcon = LoadIcon(psp[3].hInstance, MAKEINTRESOURCE(IDI_PS));
     psp[3].pszTemplate = MAKEINTRESOURCE(IDD_PS);
     psp[3].pfnDlgProc = (DLGPROC)DialogProcPs;
     psp[3].pszTitle = "PostScript";

@@ -2,8 +2,11 @@
  *
  * 「ak2psのようなもの」のウインドウプロシジャ
  *
- * $Id: wndproc.c,v 1.7 2001/12/10 14:06:59 tfuruka1 Exp $
+ * $Id: wndproc.c,v 1.8 2001/12/14 17:03:59 tfuruka1 Exp $
  * $Log: wndproc.c,v $
+ * Revision 1.8  2001/12/14 17:03:59  tfuruka1
+ * プレビュー対応
+ *
  * Revision 1.7  2001/12/10 14:06:59  tfuruka1
  * 削除データが選択されていない状態で、印刷Queueの削除を実行した時にエラー
  * が表示されるように修正（というか、元々そうなっていたのに、LISTBOXから
@@ -39,7 +42,7 @@
 // (replace-regexp "/\\*\\(.+\\)\\*/" "//\\1")
 // (replace-regexp "[ \t]+$" "")
 
-#define TIME_STAMP "Time-stamp: <2001-12-10 23:04:30 tfuruka1>"
+#define TIME_STAMP "Time-stamp: <2001-12-15 00:25:20 tfuruka1>"
 
 #include "ak2prs.h"
 
@@ -54,11 +57,12 @@
 #define HANDLE_WM_TASKMENU(hwnd, wParam, lParam, fn) \
     ((LRESULT)(fn)((hwnd), (wParam), lParam))
 
-enum{IDC_TASK = 100, IDC_LIST};
+enum{IDC_TASK = 100, IDC_LIST, IDC_STS};
 
 static NOTIFYICONDATA s_ndi;                    // タスクトレイ
 static HWND hWndOwn;                            // オーナウインドウハンドル
 static HWND hWndList = NULL;                    // リストボックス
+static HWND hWndSts = NULL;                     // ステータスバー
 static UINT idTmr = 0;                          // タイマ識別子
 
 /*--------------------------------------------------------------------
@@ -72,6 +76,7 @@ DoCreate(
 {
     HMENU hMenu;
     int i;
+    HINSTANCE hInst;
     LV_COLUMN lvcol[] = {
         {LVCF_FMT | LVCF_WIDTH | LVCF_TEXT | LVCF_SUBITEM,
          LVCFMT_LEFT, 150,"要求受付日時", 0},
@@ -100,7 +105,7 @@ DoCreate(
     s_ndi.uID = IDC_TASK; 
     s_ndi.uFlags = NIF_ICON | NIF_MESSAGE | NIF_TIP; 
     s_ndi.uCallbackMessage = WM_TASKMENU; 
-    s_ndi.hIcon = LoadIcon(GetWindowInstance(hWnd),
+    s_ndi.hIcon = LoadIcon(hInst = GetWindowInstance(hWnd),
                            MAKEINTRESOURCE(IDI_TIP));
     wsprintf(s_ndi.szTip, TEXT("%s"), SV_CAPTION);
     Shell_NotifyIcon(NIM_ADD, &s_ndi);
@@ -110,9 +115,8 @@ DoCreate(
     if (NULL == (hWndList = CreateWindowEx(
         0,  WC_LISTVIEW, "(^_^)",
         WS_CHILD | WS_VISIBLE | WS_VSCROLL | WS_HSCROLL |
-        LVS_REPORT,
-        0, 0, 10, 10,
-        hWnd, (HMENU)IDC_LIST, GetWindowInstance(hWnd), NULL))) {
+        LVS_REPORT, 0, 0, 10, 10,
+        hWnd, (HMENU)IDC_LIST, hInst, NULL))) {
         int nErr = GetLastError();
         MessageBox(hWnd, GetLastErrorMessage("CreateWindowEx", nErr),
                    __FILE__ "/DoCreate() ListViwe32", MB_ERROR);
@@ -126,6 +130,16 @@ DoCreate(
     for (i = 0; lvcol[i].pszText; i++) {
         lvcol[i].iSubItem = i;
         ListView_InsertColumn(hWndList, i, &lvcol[i]);
+    }
+
+    if (!(hWndSts = CreateWindowEx(0, STATUSCLASSNAME, NULL,
+                                   WS_CHILD | SBARS_SIZEGRIP | CCS_BOTTOM
+                                   | WS_VISIBLE, 0, 0, 0, 0, 
+                                   hWnd, (HMENU)IDC_STS, hInst, NULL))) {
+        int nErr = GetLastError();
+        MessageBox(hWnd, GetLastErrorMessage("CreateWindowEx", nErr),
+                   __FILE__ "/DoCreate() Status", MB_ERROR);
+        return FALSE;
     }
 
     // メールボックスの初期化
@@ -171,8 +185,17 @@ DoSize(HWND hWnd,                               // ハンドル
         }
         return;
     }
+
+    /* ステータスバーのリサイズ */
+    if (hWndSts) {
+        SendMessage(hWndSts, WM_SIZE, state, MAKELONG(cx, cy));
+    }
+
     if (hWndList) {
-        SetWindowPos(hWndList, NULL, 0, 0, cx, cy, SWP_NOMOVE | SWP_NOZORDER);
+        RECT rc;
+
+        GetClientRect(hWndSts, &rc);
+        MoveWindow(hWndList, 0, 0, cx, cy - rc.bottom, TRUE);
     }
 }
 /*--------------------------------------------------------------------
@@ -240,10 +263,16 @@ DoCopyData(
     if (0.0 == pPrtInfo->fFontSize) {
         pPrtInfo->fFontSize = g_PrtInfo.fFontSize;
     }
+    if (!pPrtInfo->bPreView) {
+        pPrtInfo->bPreView = g_PrtInfo.bPreView;
+    }
 
     // パラメータで設定出来ない値を設定する
     pPrtInfo->bColor = g_PrtInfo.bColor;
     pPrtInfo->bNoRcvHeader = g_PrtInfo.bNoRcvHeader;
+
+    // 構造体を有効にする
+    pPrtInfo->valid = TRUE;
 
     EnQueue(hWndList, pPrtInfo);                // EnQueue
 
