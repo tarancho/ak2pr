@@ -1,5 +1,5 @@
 /* -*- mode: c++; coding: sjis-dos; -*-
- * Time-stamp: <2003-03-01 02:17:08 tfuruka1>
+ * Time-stamp: <2003-03-07 17:46:42 tfuruka1>
  *
  * 「ak2psのようなもの」の印字設定
  *
@@ -10,8 +10,13 @@
  * は、実行されない。この事を知らなかったので、不可解な現象が発生して
  * いました。
  *
- * $Id: setup.c,v 1.8 2003/03/01 09:08:25 tfuruka1 Exp $
+ * $Id: setup.c,v 1.9 2003/03/14 15:29:49 tfuruka1 Exp $
  * $Log: setup.c,v $
+ * Revision 1.9  2003/03/14 15:29:49  tfuruka1
+ * ● PostScript関連のパラメータもPRT_INFOに持つように変更した。これによっ
+ *    て、ak2prのコマンドラインからGhostScriptのパス等も指定が可能になる
+ *    （将来対応予定）。
+ *
  * Revision 1.8  2003/03/01 09:08:25  tfuruka1
  * ●ページ設定のe-mailタブの内容がクリア（特定の手順で操作を行った場合）
  *   される場合があったので、修正した。→プロパティシートのダイアログは、
@@ -55,12 +60,6 @@
 
 PRT_INFO g_PrtInfo;                             // デフォルト印刷情報
 static PRT_INFO PrtInfoTmp;                     // 印刷情報作業用
-
-// 以下も印刷情報であるが、この部分は後で追加したので、少し汚いけど、
-// 外だしにしてます
-static TCHAR szAcrobat[MAX_PATH];
-static TCHAR szGsPath[MAX_PATH];
-static TCHAR szGsOpt[512];
 
 static LPTSTR WINAPI
 GetOpenFileNameWrap(
@@ -442,9 +441,9 @@ DoInitDialogPs(
 {
     DbgPrint(NULL, 'D', "InitDialog(PS)");
 
-    SetDlgItemText(hWnd, IDC_ED_ACRIN, szAcrobat);
-    SetDlgItemText(hWnd, IDC_ED_GHOST, szGsPath);
-    SetDlgItemText(hWnd, IDC_ED_GSOP, szGsOpt);
+    SetDlgItemText(hWnd, IDC_ED_ACRIN, PrtInfoTmp.szAcrobat);
+    SetDlgItemText(hWnd, IDC_ED_GHOST, PrtInfoTmp.szGsPath);
+    SetDlgItemText(hWnd, IDC_ED_GSOP, PrtInfoTmp.szGsOpt);
     return TRUE;
 }
 
@@ -468,9 +467,9 @@ DoClosePs(HWND hWnd)
 {
     DbgPrint(NULL, 'D', "Close(PS)");
 
-    GetDlgItemText(hWnd, IDC_ED_ACRIN, szAcrobat, MAX_PATH);
-    GetDlgItemText(hWnd, IDC_ED_GHOST, szGsPath, MAX_PATH);
-    GetDlgItemText(hWnd, IDC_ED_GSOP, szGsOpt, 512);
+    GetDlgItemText(hWnd, IDC_ED_ACRIN, PrtInfoTmp.szAcrobat, MAX_PATH);
+    GetDlgItemText(hWnd, IDC_ED_GHOST, PrtInfoTmp.szGsPath, MAX_PATH);
+    GetDlgItemText(hWnd, IDC_ED_GSOP, PrtInfoTmp.szGsOpt, 512);
 }
 
 static BOOL
@@ -550,9 +549,6 @@ SetupPrtStyle(HWND hWnd)
 
     // 現在の内容を複写
     memcpy(&PrtInfoTmp, &g_PrtInfo, sizeof(PRT_INFO));
-    strcpy(szAcrobat, g_MailBox.szAcrobat);
-    strcpy(szGsPath, g_MailBox.szGsPath);
-    strcpy(szGsOpt, g_MailBox.szGsOpt);
 
     i = PropertySheet(&psh);
 
@@ -564,10 +560,6 @@ SetupPrtStyle(HWND hWnd)
 
     // 設定結果を反映
     memcpy(&g_PrtInfo, &PrtInfoTmp, sizeof(PRT_INFO));
-
-    strcpy(g_MailBox.szAcrobat, szAcrobat);
-    strcpy(g_MailBox.szGsPath, szGsPath);
-    strcpy(g_MailBox.szGsOpt, szGsOpt);
 
     // 初期化ファイルへも反映
     SetDefaultPrtInfo();
