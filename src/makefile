@@ -1,8 +1,11 @@
 # -*- mode: makefile; coding: sjis-unix; -*-
-# Time-stamp: <2004-06-18 09:49:12 tfuruka1>
+# Time-stamp: <2004-08-21 08:32:13 tfuruka1>
 #
-# $Id: makefile,v 1.6 2004/06/18 00:57:56 tfuruka1 Exp $
+# $Id: makefile,v 1.7 2004/08/21 01:01:54 tfuruka1 Exp $
 # $Log: makefile,v $
+# Revision 1.7  2004/08/21 01:01:54  tfuruka1
+# CVSのタグからアーカイブファイルを作成する試み中
+#
 # Revision 1.6  2004/06/18 00:57:56  tfuruka1
 # 改行コードの修正のみです。
 #
@@ -17,6 +20,8 @@
 .SUFFIXES:	.obj .c
 .c.obj:
 	$(CC) $(CFLAGS) -c -o$@ $<
+
+REL_VER=$$Name:  $$
 
 CC = cl
 ETAGS = /usr/local/Meadow/2.00/bin/etags
@@ -44,9 +49,9 @@ install : all
 release : install clean
 	cd ..
 	cd ..
-	tar cvzf /tmp/ak2pr$(REL_VER)src.tar.gz\
+	tar cvzf /tmp/ak2pr-$(REL_VER)-src.tar.gz\
         ak2pr/readme.txt ak2pr/bin ak2pr/src
-	tar cvzf /tmp/ak2pr$(REL_VER)bin.tar.gz\
+	tar cvzf /tmp/ak2pr-$(REL_VER)-bin.tar.gz\
         ak2pr/readme.txt ak2pr/bin
 
 ak2prSV.exe : $(SV_OBJS)
@@ -54,7 +59,7 @@ ak2prSV.exe : $(SV_OBJS)
 ak2pr.dll : $(DLL_OBJS)
 	$(CC) $(CFLAGS) -o $@ $(DLL_OBJS) /link $(LDFLAGS) /dll\
     /def:dllmain.def $(COMM_LIB)
-ak2pr.res : ak2pr.rc
+ak2pr.res : ak2pr.rc resource.h
 	rc ak2pr.rc
 ak2pr.exe : ak2pr.obj clientCommon.obj
 	$(CC) $(CFLAGS) -o $@ ak2pr.obj clientCommon.obj\
