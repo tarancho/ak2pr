@@ -2,8 +2,11 @@
  *
  * 「ak2psのようなもの」のウインドウプロシジャ
  *
- * $Id: wndproc.c,v 1.12 2003/03/14 16:55:34 tfuruka1 Exp $
+ * $Id: wndproc.c,v 1.13 2003/03/15 14:47:04 tfuruka1 Exp $
  * $Log: wndproc.c,v $
+ * Revision 1.13  2003/03/15 14:47:04  tfuruka1
+ * ● 印刷設定を行う関数の仕様変更に伴う修正。
+ *
  * Revision 1.12  2003/03/14 16:55:34  tfuruka1
  * ツールバーにツールチップを付けました。
  *
@@ -63,7 +66,7 @@
 // (replace-regexp "/\\*\\(.+\\)\\*/" "//\\1")
 // (replace-regexp "[ \t]+$" "")
 
-#define TIME_STAMP "Time-stamp: <2003-03-15 01:52:10 tfuruka1>"
+#define TIME_STAMP "Time-stamp: <2003-03-15 22:41:55 tfuruka1>"
 
 #include "ak2prs.h"
 
@@ -392,7 +395,7 @@ DoCommand(
         ShowWindow(hWndOwn, IsWindowVisible(hWndOwn) ? SW_HIDE : SW_SHOW);
         break;
     case IDM_SETUP:
-        SetupPrtStyle(hWnd);
+        SetupPrtStyle(hWnd, &g_PrtInfo);
         break;
     case IDM_TESTPRT:                           // テスト印字
         PrtInfo.szFileName[0] = '\0';
