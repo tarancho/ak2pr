@@ -1,10 +1,13 @@
 /* -*- mode: c++; coding: sjis-dos; -*-
- * Time-stamp: <2001-12-14 00:13:44 tfuruka1>
+ * Time-stamp: <2001-12-21 22:10:36 tfuruka1>
  *
  * ak2psのようなもののテスト印字関連
  *
- * $Id: testprint.c,v 1.2 2001/12/18 04:01:00 tfuruka1 Exp $
+ * $Id: testprint.c,v 1.3 2001/12/23 10:21:43 tfuruka1 Exp $
  * $Log: testprint.c,v $
+ * Revision 1.3  2001/12/23 10:21:43  tfuruka1
+ * ●プレビューモードの判断方法を修正
+ *
  * Revision 1.2  2001/12/18 04:01:00  tfuruka1
  * プレビューを表示できるように修正
  *
@@ -404,7 +407,8 @@ DoTestPrint(void)
     DeleteObject(hFont);
     DbgPrint(NULL, 'I', "テスト印刷終了");
 
-    if (g_MailBox.hDC == g_MailBox.PrevInfo.hDC) {
+    // プレビューの場合は、プレビュー画面を表示する
+    if (g_MailBox.PrtInfo.bPreView) {
         PrintPreview(g_MailBox.hWnd, &g_MailBox.PrevInfo);
     }
     else {
