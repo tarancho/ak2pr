@@ -1,10 +1,13 @@
 /* -*- mode: c++; coding: sjis-dos; -*-
- * Time-stamp: <2004-06-18 09:37:56 tfuruka1>
+ * Time-stamp: <2004-08-16 23:06:09 tfuruka1>
  *
  * 「ak2psのようなもの」のプリンタ制御関連
  *
- * $Id: printer.c,v 1.9 2004/06/18 00:57:56 tfuruka1 Exp $
+ * $Id: printer.c,v 1.10 2004/08/16 14:23:25 tfuruka1 Exp $
  * $Log: printer.c,v $
+ * Revision 1.10  2004/08/16 14:23:25  tfuruka1
+ * 罫線が連結しない場合がある問題を修正しました。
+ *
  * Revision 1.9  2004/06/18 00:57:56  tfuruka1
  * 改行コードの修正のみです。
  *
@@ -59,10 +62,12 @@ static int nStartY, nEndY;                      // 垂直方向の範囲
 static BOOL bKeisen, bKanji;                    // 罫線及び漢字フラグ
 static BOOL bPreviewed = FALSE;                 // T:プレビュー済み
 // 罫線コード表
-static LPTSTR szKeisen = {"│┃││┃┃┃┃─┘┛┐┤┨┓┨┨━┛┛┓"
-                          "┥┫┓┫┫─└┗┌├┠┏┠┠─┴┸┬┼╂┰"
-                          "╂╂━┷┻┯┿╋┳╋╋━┗┗┏┝┣┏┣┣━"
-                          "┷┻┯┿╋┳╋╋━┷┻┯┿╋┳╋╋"};
+static LPTSTR szKeisen = {
+    /* -------- 0 1 2 3 4 5 6 7 8 9 A B C D E F */
+    /* 282x - */ "─│┌┐┘└├┬┤┴┼━┃┏┓" 
+    /* 283X */ "┛┗┣┳┫┻╋┠┯┨┷┿┝┰┥┸"          
+    /* 284X */ "╂"                                        
+};
 
 /* -------------------------------------------------------------------
  * を解像度nDpiの時の長さvalueをピクセル数へ変換する。valueの単位はflg
@@ -856,7 +861,7 @@ PutsPrinter(LPTSTR szBuf)
                         bKeisen = TRUE;
                     }
                     bKanji = TRUE;
-                    break;
+                    i++;
                 }
             }
         }
