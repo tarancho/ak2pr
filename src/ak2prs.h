@@ -2,8 +2,13 @@
  *
  * 「ak2psのようなもの」のサーバ側のヘッダファイル
  *
- * $Id: ak2prs.h,v 1.12 2001/12/23 10:17:23 tfuruka1 Exp $
+ * $Id: ak2prs.h,v 1.13 2003/02/25 15:34:40 tfuruka1 Exp $
  * $Log: ak2prs.h,v $
+ * Revision 1.13  2003/02/25 15:34:40  tfuruka1
+ * ●行番号出力制御処理を追加
+ * ●Version を 2.1 へ変更。以前は1.7だったが、公開を2.0で行ってしまった
+ *   ため、1.7から2.1になってしまった。
+ *
  * Revision 1.12  2001/12/23 10:17:23  tfuruka1
  * ─────【Version 2.0にしました】─────
  * 一応、公開予定Versionにした。
@@ -76,8 +81,8 @@
 #ifndef _AK2PRS_H_
 #define _AK2PRS_H_
 
-#define TIMESTAMP "Time-stamp: <2001-12-23 17:37:01 tfuruka1>"
-#define VERSION   "Version 1.7"
+#define TIMESTAMP "Time-stamp: <2003-02-26 00:33:14 tfuruka1>"
+#define VERSION   "Version 2.1"
 
 #include <windows.h>
 #include <windowsx.h>
