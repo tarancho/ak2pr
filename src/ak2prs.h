@@ -2,8 +2,20 @@
  *
  * 「ak2psのようなもの」のサーバ側のヘッダファイル
  *
- * $Id: ak2prs.h,v 1.11 2001/12/18 13:00:57 tfuruka1 Exp $
+ * $Id: ak2prs.h,v 1.12 2001/12/23 10:17:23 tfuruka1 Exp $
  * $Log: ak2prs.h,v $
+ * Revision 1.12  2001/12/23 10:17:23  tfuruka1
+ * ─────【Version 2.0にしました】─────
+ * 一応、公開予定Versionにした。
+ * ●Copyrightを印字しないモードを追加
+ * ●作業ディレクトリ取得用の関数を追加（作業ファイル作成用の関数から切り
+ *   出し）
+ * ●このファイルには、現れないが・・・以下の修正を行った
+ *     ●ドラッグ＆ドロップ機能の追加
+ *     ●プレビューと印刷結果が異なる問題の修正
+ *     ●ツールバーを追加
+ *     ●細かいバグの修正
+ *
  * Revision 1.11  2001/12/18 13:00:57  tfuruka1
  * デバッグ印刷のオプションを追加。
  *
@@ -64,7 +76,7 @@
 #ifndef _AK2PRS_H_
 #define _AK2PRS_H_
 
-#define TIMESTAMP "Time-stamp: <2001-12-18 21:29:01 tfuruka1>"
+#define TIMESTAMP "Time-stamp: <2001-12-23 17:37:01 tfuruka1>"
 #define VERSION   "Version 1.7"
 
 #include <windows.h>
@@ -79,6 +91,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <math.h>
+#include <direct.h>
 
 #include "resource.h"
 
@@ -89,6 +102,7 @@
 #define SV_DBGCLASS "ak2psのようなもの - ak2pr(Server-Detail)"
 #define SV_CLASS    "ak2psのようなもの - ak2pr(Server)"
 #define SV_CAPTION  "ak2pr Server"
+#define PV_CAPTION  "ぷれびゅうううぅぅぅ" TIMESTAMP
 
 #define SV_EXE_NAME "ak2prSV.EXE"
 
@@ -152,6 +166,7 @@ typedef struct _PrtInfo{
     BOOL bColor;                                // T: Color印刷
     BOOL bPreView;                              // T: プレビュー
     BOOL bDebug;                                // T: デバッグ印刷
+    BOOL bNoCopyright;                          // T: Copyrightを印刷しない
     double fFontSize;                           // フォントサイズ --- Point
 } PRT_INFO, *PPRT_INFO;
 
@@ -328,4 +343,10 @@ DrawRect(
     COLORREF rgb,                               // 色
     int pnStyle                                 // 線のスタイル
     );
+/*-------------------------------------------------------------------- 
+ * 作業用ディレクトリ名を得る。作業ディレクトリ名は書き換えてはいけま
+ * せん。
+ * *-------------------------------------------------------------------*/
+LPCTSTR WINAPI
+GetTempDirectoryName();
 #endif
