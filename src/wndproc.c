@@ -2,8 +2,11 @@
  *
  * 「ak2psのようなもの」のウインドウプロシジャ
  *
- * $Id: wndproc.c,v 1.5 2001/08/18 16:38:47 tfuruka1 Exp $
+ * $Id: wndproc.c,v 1.6 2001/12/08 15:21:40 tfuruka1 Exp $
  * $Log: wndproc.c,v $
+ * Revision 1.6  2001/12/08 15:21:40  tfuruka1
+ * メイン画面のLISTBOX→ListView変更。
+ *
  * Revision 1.5  2001/08/18 16:38:47  tfuruka1
  * ●終了する前にDeleteQueue関数を呼び出して、作業ファイルを削除するよう
  *   にした。
@@ -31,7 +34,7 @@
 // (replace-regexp "/\\*\\(.+\\)\\*/" "//\\1")
 // (replace-regexp "[ \t]+$" "")
 
-#define TIME_STAMP "Time-stamp: <2001-08-19 00:56:33 tfuruka1>"
+#define TIME_STAMP "Time-stamp: <2001-12-08 22:08:06 tfuruka1>"
 
 #include "ak2prs.h"
 
@@ -63,6 +66,25 @@ DoCreate(
     )
 {
     HMENU hMenu;
+    int i;
+    LV_COLUMN lvcol[] = {
+        {LVCF_FMT | LVCF_WIDTH | LVCF_TEXT | LVCF_SUBITEM,
+         LVCFMT_LEFT, 150,"要求受付日時", 0},
+        {LVCF_FMT | LVCF_WIDTH | LVCF_TEXT | LVCF_SUBITEM,
+         LVCFMT_LEFT, 20,"段組数", 1},
+        {LVCF_FMT | LVCF_WIDTH | LVCF_TEXT | LVCF_SUBITEM,
+         LVCFMT_LEFT, 70,"フォントサイズ", 2},
+        {LVCF_FMT | LVCF_WIDTH | LVCF_TEXT | LVCF_SUBITEM,
+         LVCFMT_LEFT, 20,"タブストップ", 3},
+        {LVCF_FMT | LVCF_WIDTH | LVCF_TEXT | LVCF_SUBITEM,
+         LVCFMT_LEFT, 100,"用紙方向", 4},
+        {LVCF_FMT | LVCF_WIDTH | LVCF_TEXT | LVCF_SUBITEM,
+         LVCFMT_LEFT, 100,"用紙サイズ", 5},
+        {LVCF_FMT | LVCF_WIDTH | LVCF_TEXT | LVCF_SUBITEM,
+         LVCFMT_LEFT, 100,"印刷フォーマット", 7},
+        {LVCF_FMT | LVCF_WIDTH | LVCF_TEXT | LVCF_SUBITEM,
+         LVCFMT_LEFT, 180,"タイトル", 6},
+        {0, 0, 100, NULL, 0}};
 
     hWndOwn = pcs->hwndParent;                  // オーナウインドウハンドル
     DbgPrint(pcs->hwndParent, 'I', "AK2PR Server(%s) Start.", TIME_STAMP);
@@ -78,18 +100,27 @@ DoCreate(
     wsprintf(s_ndi.szTip, TEXT("%s"), SV_CAPTION);
     Shell_NotifyIcon(NIM_ADD, &s_ndi);
 
-    // リストボックスを生々する(実はこれが印刷Queueの実態である)
+    // リストビューを生々する(実はこれが印刷Queueの実態である)
+    InitCommonControls();
     if (NULL == (hWndList = CreateWindowEx(
-        0, "LISTBOX", "(^_^)",
+        0,  WC_LISTVIEW, "(^_^)",
         WS_CHILD | WS_VISIBLE | WS_VSCROLL | WS_HSCROLL |
-        LBS_DISABLENOSCROLL | LBS_HASSTRINGS | LBS_USETABSTOPS	|
-        LBS_NOTIFY | LBS_NOINTEGRALHEIGHT | LBS_EXTENDEDSEL,
+        LVS_REPORT,
         0, 0, 10, 10,
         hWnd, (HMENU)IDC_LIST, GetWindowInstance(hWnd), NULL))) {
         int nErr = GetLastError();
         MessageBox(hWnd, GetLastErrorMessage("CreateWindowEx", nErr),
-                   __FILE__ "/DoCreate() ListBox", MB_ERROR);
+                   __FILE__ "/DoCreate() ListViwe32", MB_ERROR);
         return FALSE;
+    }
+
+    ListView_SetExtendedListViewStyle(hWndList,
+                                      LVS_EX_FULLROWSELECT | LVS_EX_GRIDLINES
+                                      | LVS_EX_HEADERDRAGDROP);
+
+    for (i = 0; lvcol[i].pszText; i++) {
+        lvcol[i].iSubItem = i;
+        ListView_InsertColumn(hWndList, i, &lvcol[i]);
     }
 
     // メールボックスの初期化
@@ -270,7 +301,7 @@ DoCommand(
         SendMessage(hWnd, WM_COPYDATA, (WPARAM)hWnd, (LPARAM)&cds);
         break;
     case IDM_DELETE:
-        cnt = SendMessage(hWndList, LB_GETSELCOUNT, 0, 0);
+        cnt = ListView_GetItemCount(hWndList);
         if (0 >= cnt) {
             MessageBox(hWnd, "削除する印刷データが選択されていません",
                        "削除できません", MB_SETFOREGROUND | MB_ICONSTOP);
