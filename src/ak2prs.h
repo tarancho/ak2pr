@@ -2,8 +2,11 @@
  *
  * 「ak2psのようなもの」のサーバ側のヘッダファイル
  *
- * $Id: ak2prs.h,v 1.7 2001/10/01 13:24:06 tfuruka1 Exp $
+ * $Id: ak2prs.h,v 1.8 2001/12/07 18:27:28 tfuruka1 Exp $
  * $Log: ak2prs.h,v $
+ * Revision 1.8  2001/12/07 18:27:28  tfuruka1
+ * 用紙サイズの指定できるようにした。
+ *
  * Revision 1.7  2001/10/01 13:24:06  tfuruka1
  * 【Version 1.5にしました】
  * 用紙の向きを指定出来るようにしました。
@@ -49,7 +52,7 @@
 #ifndef _AK2PRS_H_
 #define _AK2PRS_H_
 
-#define TIMESTAMP "Time-stamp: <2001-10-01 22:23:36 tfuruka1>"
+#define TIMESTAMP "Time-stamp: <2001-12-08 00:54:16 tfuruka1>"
 #define VERSION   "Version 1.5"
 
 #include <windows.h>
@@ -124,6 +127,7 @@ typedef struct _PrtInfo{
     int nTab;                                   // TAB幅
     int nType;                                  // 印刷タイプ
     int nOrientation;                           // 用紙の向き(0:デフォルト)
+    short dmPaperSize;                          // 用紙サイズ(0:デフォルト)
     CHAR szTimeStamp[64];
     CHAR szTimeStamp1[64];
     int nBaseLine;                              // 0: Non, 1:E, 2:J, 9:A
@@ -270,4 +274,5 @@ BOOL EndDocument(void);
 BOOL PutsPrinter(LPTSTR szBuf);
 void PrintMail(void);
 void PrintText(void);
+BOOL PrintPreview(HWND hWnd, HDC hDC);
 #endif
