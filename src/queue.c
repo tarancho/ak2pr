@@ -1,10 +1,13 @@
 /* -*- mode: c++; coding: sjis-dos; -*-
- * Time-stamp: <2001-12-09 00:19:33 tfuruka1>
+ * Time-stamp: <2001-12-15 01:44:10 tfuruka1>
  *
  * 「ak2psのようなもの」のQueue処理
  *
- * $Id: queue.c,v 1.5 2001/12/08 15:20:08 tfuruka1 Exp $
+ * $Id: queue.c,v 1.6 2001/12/14 17:03:27 tfuruka1 Exp $
  * $Log: queue.c,v $
+ * Revision 1.6  2001/12/14 17:03:27  tfuruka1
+ * プレビューの状態状態をEnQueue/DeQueueで（デバッグ）表示するようにした。
+ *
  * Revision 1.5  2001/12/08 15:20:08  tfuruka1
  * メイン画面のLISTBOX→ListViewへ変更。
  *
@@ -140,6 +143,7 @@ EnQueue(
              "タブ幅        : %d\n"
              "印刷タイプ    : %s\n"
              "フォントサイズ: %f\n"
+             "プレビュー    : %d\n"
              "アドレス      : %x",
              pPrtInfo->szFileName,
              pPrtInfo->szTitle,
@@ -147,6 +151,7 @@ EnQueue(
              pPrtInfo->nTab,
              GetNTypeName(pPrtInfo->nType),
              pPrtInfo->fFontSize,
+             pPrtInfo->bPreView,
              pPrtInfo);
 
     return TRUE;
@@ -179,14 +184,15 @@ DeQueue(
     }
     pPrtInfoTmp = (PPRT_INFO)item.lParam;
     DbgPrint(hWnd, 'D', "DeQueued: %x", pPrtInfoTmp);
+
+    // 印刷情報を複写する
+    memcpy(pPrtInfo, pPrtInfoTmp, sizeof(PRT_INFO));
+
     if (!ListView_DeleteItem(hWnd, 0)) {
         DbgPrint(hWnd, 'E', "DeQueueに失敗しました");
         free(pPrtInfoTmp);
         return FALSE;
     }   
-
-    // 印刷情報を複写する
-    memcpy(pPrtInfo, pPrtInfoTmp, sizeof(PRT_INFO));
     free(pPrtInfoTmp);                          // メモリ開放
 
     DbgPrint(hWnd, 'I', "以下の通りDeQueueしました\n"
@@ -195,13 +201,15 @@ DeQueue(
              "段組数        : %d\n"
              "タブ幅        : %d\n"
              "印刷タイプ    : %s\n"
-             "フォントサイズ: %f",
+             "フォントサイズ: %f\n"
+             "プレビュー    : %d",
              pPrtInfo->szFileName,
              pPrtInfo->szTitle,
              pPrtInfo->nNumOfUp,
              pPrtInfo->nTab,
              GetNTypeName(pPrtInfo->nType),
-             pPrtInfo->fFontSize);
+             pPrtInfo->fFontSize,
+             pPrtInfo->bPreView);
 
     return TRUE;
 }
