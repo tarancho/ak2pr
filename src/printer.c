@@ -1,10 +1,13 @@
 /* -*- mode: c++; coding: sjis-dos; -*-
- * Time-stamp: <2001-02-06 02:46:21 tfuruka1>
+ * Time-stamp: <2001-12-17 23:17:42 tfuruka1>
  *
  * 「ak2psのようなもの」のプリンタ制御関連
  *
- * $Id: printer.c,v 1.1 2001/02/05 17:46:22 tfuruka1 Exp $
+ * $Id: printer.c,v 1.2 2001/12/18 04:06:40 tfuruka1 Exp $
  * $Log: printer.c,v $
+ * Revision 1.2  2001/12/18 04:06:40  tfuruka1
+ * プレビューに対応しました。
+ *
  * Revision 1.1  2001/02/05 17:46:22  tfuruka1
  * Initial revision
  *
@@ -29,6 +32,7 @@ static int nCurrentX, nCurrentY;                // 現在の座標
 static int nStartX, nEndX;                      // 水平方向の範囲
 static int nStartY, nEndY;                      // 垂直方向の範囲
 static BOOL bKeisen, bKanji;                    // 罫線及び漢字フラグ
+static BOOL bPreviewed = FALSE;                 // T:プレビュー済み
 // 罫線コード表
 static LPTSTR szKeisen = {"│┃││┃┃┃┃─┘┛┐┤┨┓┨┨━┛┛┓"
                           "┥┫┓┫┫─└┗┌├┠┏┠┠─┴┸┬┼╂┰"
@@ -197,7 +201,7 @@ BeginDocument(void)
 
     DbgPrint(NULL, 'B', "プリンタ初期化開始");
 
-    wsprintf(szBuf, "%s (ak2pr By T.Furukawa)",
+    wsprintf(szBuf, "(^_^)%s T.Furukawa",
              !g_MailBox.PrtInfo.szFileName[0] ? "テスト印字" :
              (g_MailBox.PrtInfo.szTitle[0] ? g_MailBox.PrtInfo.szTitle :
               "e-mail?"));
@@ -205,20 +209,35 @@ BeginDocument(void)
     di.lpszDocName = szBuf;
     di.lpszOutput = (LPTSTR)NULL;
 
-    if (SP_ERROR == StartDoc(g_MailBox.hDC, &di)) {
-        int nErr = GetLastError();
-        DbgPrint(NULL, 'E', "%s",
-                 GetLastErrorMessage(__FILE__ " StartDoc()", nErr));
-        return FALSE;
+    if (g_MailBox.hDC != g_MailBox.PrevInfo.hDC) {
+        // プリンタ出力の場合
+        if (SP_ERROR == StartDoc(g_MailBox.hDC, &di)) {
+            int nErr = GetLastError();
+            DbgPrint(NULL, 'E', "%s",
+                     GetLastErrorMessage(__FILE__ " StartDoc()", nErr));
+            return FALSE;
+        }
+        nPaperWidth = GetDeviceCaps(g_MailBox.hDC, PHYSICALWIDTH);
+        nPaperHeight = GetDeviceCaps(g_MailBox.hDC, PHYSICALHEIGHT);
+        nPaperMarginW = GetDeviceCaps(g_MailBox.hDC, PHYSICALOFFSETX);
+        nPaperMarginH = GetDeviceCaps(g_MailBox.hDC, PHYSICALOFFSETY);
+
+        nDPIW = GetDeviceCaps(g_MailBox.hDC, LOGPIXELSX);
+        nDPIH = GetDeviceCaps(g_MailBox.hDC, LOGPIXELSY);
+
     }
+    else {
+        // プレビューの場合
+        nPaperWidth = g_MailBox.PrevInfo.wd;
+        nPaperHeight = g_MailBox.PrevInfo.ht;
+        nPaperMarginW = g_MailBox.PrevInfo.xoff;
+        nPaperMarginH = g_MailBox.PrevInfo.yoff;
 
-    nPaperWidth = GetDeviceCaps(g_MailBox.hDC, PHYSICALWIDTH);
-    nPaperHeight = GetDeviceCaps(g_MailBox.hDC, PHYSICALHEIGHT);
-    nPaperMarginW = GetDeviceCaps(g_MailBox.hDC, PHYSICALOFFSETX);
-    nPaperMarginH = GetDeviceCaps(g_MailBox.hDC, PHYSICALOFFSETY);
+        nDPIW = g_MailBox.PrevInfo.dpiW;
+        nDPIH = g_MailBox.PrevInfo.dpiH;
 
-    nDPIW = GetDeviceCaps(g_MailBox.hDC, LOGPIXELSX);
-    nDPIH = GetDeviceCaps(g_MailBox.hDC, LOGPIXELSY);
+        bPreviewed = FALSE;                     // プレビュー未に設定
+    }
 
     DbgPrint(NULL, 'I', "デバイス情報\n"
              "サイズ  : %d×%ddot→%f×%fcm\n"
@@ -318,13 +337,21 @@ BeginPage(void)
     // ----------------------------------------------
     // 以下は一番最初の段の印刷開始時のみ実行されます
     // ----------------------------------------------
-    nError = StartPage(g_MailBox.hDC);
-    if (nError <= 0) {
-        MessageBox(g_MailBox.hWnd,
-                   GetLastErrorMessage("StartPage()", nError),
-                   "BeginPage()", MB_ICONSTOP | MB_SETFOREGROUND);
-        return FALSE;
+    if (g_MailBox.hDC != g_MailBox.PrevInfo.hDC) {
+        // プレビューの場合はこのブロック内の処理は行わない
+        nError = StartPage(g_MailBox.hDC);
+        if (nError <= 0) {
+            DbgPrint(NULL, 'E', "%s", 
+                     GetLastErrorMessage("StartPage()", GetLastError()));
+
+            return FALSE;
+        }
     }
+
+    rc.top = rc.left = 0;
+    rc.right = nPaperWidth;
+    rc.bottom = nPaperHeight;
+    FillRect(g_MailBox.hDC, &rc, GetStockObject(WHITE_BRUSH));
 
     // 外枠の描画
     hPen = CreatePrtPen(PS_SOLID, (int)(nDPIW / 72.0 + 1), RGB(0, 0, 0));
@@ -571,6 +598,14 @@ BOOL EndPageDocument(void)
         DeleteObject(hFont);
     }
 
+    // プレビューの場合ここで、プレビュー画面を表示する
+    if (g_MailBox.hDC == g_MailBox.PrevInfo.hDC) {
+        if (!bPreviewed) {
+            PrintPreview(g_MailBox.hWnd, &g_MailBox.PrevInfo);
+        }
+        bPreviewed = TRUE;                      // プレビュー済みに設定
+        return FALSE;
+    }
     if (0 >= EndPage(g_MailBox.hDC)) {
         int nErr = GetLastError();
         MessageBox(g_MailBox.hWnd, GetLastErrorMessage("EndPage()", nErr),
@@ -591,6 +626,9 @@ EndDocument(void)
     int nErr;
 
     EndPageDocument();
+    if (g_MailBox.hDC == g_MailBox.PrevInfo.hDC) {
+        return FALSE;
+    }
 
     nErr = EndDoc(g_MailBox.hDC);
     if (nErr <= 0) {
