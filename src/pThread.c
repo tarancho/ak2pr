@@ -1,10 +1,14 @@
 /* -*- mode: C++; coding: sjis-dos; -*-
- * Time-stamp: <2001-12-17 23:29:33 tfuruka1>
+ * Time-stamp: <2003-03-12 23:17:06 tfuruka1>
  *
  * 「ak2psのようなもの」の印刷スレッド
  *
- * $Id: pThread.c,v 1.9 2001/12/18 04:05:07 tfuruka1 Exp $
+ * $Id: pThread.c,v 1.10 2003/03/14 15:25:37 tfuruka1 Exp $
  * $Log: pThread.c,v $
+ * Revision 1.10  2003/03/14 15:25:37  tfuruka1
+ * ● Distiller用のファイルを生成するときに、拡張子に.PSを付加するように
+ *    した。
+ *
  * Revision 1.9  2001/12/18 04:05:07  tfuruka1
  * プレビューキャンセル後にワークファイルが残っていた問題を修正。
  *
@@ -101,7 +105,9 @@ PrintPSGhost(VOID)
     HANDLE hProcess, hThread;
     TCHAR szCom[2048];
 
-    sprintf(szCom, "\"%s\" %s \"%s\"", g_MailBox.szGsPath, g_MailBox.szGsOpt,
+    sprintf(szCom, "\"%s\" %s \"%s\"",
+            g_MailBox.PrtInfo.szGsPath,
+            g_MailBox.PrtInfo.szGsOpt,
             g_MailBox.PrtInfo.szFileName);
     DbgPrint(0, 'I', "プロセス起動:[%s]", szCom);
 
@@ -121,7 +127,7 @@ PrintPSAcrobat(VOID)
 {
     TCHAR szAcrFile[MAX_PATH * 2];
 
-    sprintf(szAcrFile, "%s/%s", g_MailBox.szAcrobat,
+    sprintf(szAcrFile, "%s/%s.ps", g_MailBox.PrtInfo.szAcrobat,
             BaseName(g_MailBox.PrtInfo.szFileName));
 
     DbgPrint(0, 'I', "コピー中...[%s]→[%s]",
