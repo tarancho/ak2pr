@@ -1,10 +1,14 @@
 /* -*- mode: C++; coding: sjis-dos; -*-
- * Time-stamp: <2003-04-12 06:34:32 tfuruka1>
+ * Time-stamp: <2004-01-10 17:52:46 tfuruka1>
  *
  * ak2ps のようなものの共通 DLL
  *
- * $Id: dllmain.c,v 1.15 2003/04/11 21:40:44 tfuruka1 Exp $
+ * $Id: dllmain.c,v 1.16 2004/01/11 10:52:37 tfuruka1 Exp $
  * $Log: dllmain.c,v $
+ * Revision 1.16  2004/01/11 10:52:37  tfuruka1
+ * バッファ名にリダイレクト記号 （aaa<3>等）が含まれていると作業ファイル
+ * の作成に失敗していた問題を修正しました。
+ *
  * Revision 1.15  2003/04/11 21:40:44  tfuruka1
  * GetLongBaseName関数で自動変数のポインタを返却していたバグを修正（露見
  * していなかったが、メモリ破壊をおこす可能性あり）
@@ -242,9 +246,12 @@ MakeTempFile(
         }
         switch (*(lpszFileName + i)) {
         case '*':
+        case '?':
         case '/':
         case ':':
         case '\\':
+        case '<':
+        case '>':
             *(lpszFileName + i) = '#';
             break;
         case ' ':
