@@ -2,8 +2,12 @@
  *
  * 「ak2psのようなもの」のサーバ側のヘッダファイル
  *
- * $Id: ak2prs.h,v 1.6 2001/09/28 15:49:05 tfuruka1 Exp $
+ * $Id: ak2prs.h,v 1.7 2001/10/01 13:24:06 tfuruka1 Exp $
  * $Log: ak2prs.h,v $
+ * Revision 1.7  2001/10/01 13:24:06  tfuruka1
+ * 【Version 1.5にしました】
+ * 用紙の向きを指定出来るようにしました。
+ *
  * Revision 1.6  2001/09/28 15:49:05  tfuruka1
  * 【Version 1.4 にしました】ak2pr.exe, ak2prW.exeで引数をデバッグ用にダ
  * ンプしている処理でメモリ破壊をおこしていたおばかなバグを修正しました
@@ -45,8 +49,8 @@
 #ifndef _AK2PRS_H_
 #define _AK2PRS_H_
 
-#define TIMESTAMP "Time-stamp: <2001-09-29 00:47:02 tfuruka1>"
-#define VERSION   "Version 1.4"
+#define TIMESTAMP "Time-stamp: <2001-10-01 22:23:36 tfuruka1>"
+#define VERSION   "Version 1.5"
 
 #include <windows.h>
 #include <windowsx.h>
@@ -119,6 +123,7 @@ typedef struct _PrtInfo{
     int nNumOfUp;                               // 段組数
     int nTab;                                   // TAB幅
     int nType;                                  // 印刷タイプ
+    int nOrientation;                           // 用紙の向き(0:デフォルト)
     CHAR szTimeStamp[64];
     CHAR szTimeStamp1[64];
     int nBaseLine;                              // 0: Non, 1:E, 2:J, 9:A
