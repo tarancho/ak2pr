@@ -2,8 +2,16 @@
  *
  * 「ak2psのようなもの」のウインドウプロシジャ
  *
- * $Id: wndproc.c,v 1.10 2003/02/25 15:30:53 tfuruka1 Exp $
+ * $Id: wndproc.c,v 1.11 2003/03/14 15:57:51 tfuruka1 Exp $
  * $Log: wndproc.c,v $
+ * Revision 1.11  2003/03/14 15:57:51  tfuruka1
+ * ● 「印刷停止」の状態が、ツールボタンとメニューで異なる場合があったの
+ *    で、修正した。
+ * ● 起動時に常に「印刷停止」状態にしていたが、そのコマンドオプションで
+ *    指定できるようにしたので、関連する部分の修正を行った。
+ * ● PostScrip関連のオプションをak2prのコマンドラインから*将来*指定でき
+ *    るようにする為の下地を作成した。
+ *
  * Revision 1.10  2003/02/25 15:30:53  tfuruka1
  * 行番号出力の制御追加による修正
  *
@@ -52,7 +60,7 @@
 // (replace-regexp "/\\*\\(.+\\)\\*/" "//\\1")
 // (replace-regexp "[ \t]+$" "")
 
-#define TIME_STAMP "Time-stamp: <2003-02-26 00:10:50 tfuruka1>"
+#define TIME_STAMP "Time-stamp: <2003-03-14 23:08:53 tfuruka1>"
 
 #include "ak2prs.h"
 
@@ -113,7 +121,7 @@ DoCreate(
         {0, IDM_SETUP, TBSTATE_ENABLED, TBSTYLE_BUTTON, 0, 0},
         {1, IDM_TESTPRT, TBSTATE_ENABLED, TBSTYLE_BUTTON, 0, 0},
         {0, 0, TBSTATE_ENABLED, TBSTYLE_SEP, 0, 0},
-        {2, IDM_STOP, TBSTATE_ENABLED | TBSTATE_CHECKED | TBSTATE_ELLIPSES,
+        {2, IDM_STOP, TBSTATE_ENABLED /*| TBSTATE_CHECKED | TBSTATE_ELLIPSES*/,
          TBSTYLE_CHECK, 0, 0},
         {3, IDM_DELETE, TBSTATE_ENABLED, TBSTYLE_BUTTON, 0, 0},
         {0, 0, TBSTATE_ENABLED, TBSTYLE_SEP, 0, 0},
@@ -185,7 +193,8 @@ DoCreate(
 
     // メールボックスの初期化
     g_MailBox.bRun = TRUE;                      // スレッド実行中
-    g_MailBox.bStop = TRUE;                     // 印刷停止
+    //g_MailBox.bStop = TRUE;                     // 印刷停止
+    // ↑コマンドオプションで設定するように変更
     g_MailBox.hWnd = hWnd;
 
     // 印刷スレッドの生成
@@ -207,6 +216,10 @@ DoCreate(
     hMenu = GetSubMenu(hMenu, 0);
     CheckMenuItem(hMenu, IDM_STOP, MF_BYCOMMAND |
                   g_MailBox.bStop ? MF_CHECKED : MF_UNCHECKED);
+
+    // ツールバーのチェックボタンの状態設定
+    SendMessage(hWndTool, TB_CHECKBUTTON, IDM_STOP,
+                MAKELONG(g_MailBox.bStop, 0));
 
     // ドラッグアンドドロップを許可
     DragAcceptFiles(hWnd, TRUE);
@@ -324,6 +337,12 @@ DoCopyData(
         pPrtInfo->bNum = g_PrtInfo.bNum;
     }
 
+    // PostScript関連は現状、コマンドラインから入力できないので、全て
+    // デフォルトの値を使用する。
+    strcpy(pPrtInfo->szAcrobat, g_PrtInfo.szAcrobat);
+    strcpy(pPrtInfo->szGsPath, g_PrtInfo.szGsPath);
+    strcpy(pPrtInfo->szGsOpt, g_PrtInfo.szGsOpt);
+
     // パラメータで設定出来ない値を設定する
     pPrtInfo->bColor = g_PrtInfo.bColor;
     pPrtInfo->bNoRcvHeader = g_PrtInfo.bNoRcvHeader;
@@ -414,6 +433,13 @@ DoCommand(
         hMenu = GetSubMenu(hMenu, 0);
         CheckMenuItem(hMenu, IDM_STOP, MF_BYCOMMAND |
                       g_MailBox.bStop ? MF_CHECKED : MF_UNCHECKED);
+
+        // ツールバーのチェックボタンの状態設定。メニューから変更され
+        // た場合にツールバーの状態も変更する。ツールバーで変更された
+        // 場合は意味が無いが、悪さは与えない筈なので特にチェックは行
+        // わない
+        SendMessage(hWndTool, TB_CHECKBUTTON, IDM_STOP,
+                    MAKELONG(g_MailBox.bStop, 0));
         break;
     }
 }
