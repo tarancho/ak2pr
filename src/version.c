@@ -1,10 +1,13 @@
 /* -*- mode: c; coding: sjis; -*-
- * $Id: version.c,v 1.1 2004/12/23 13:11:56 tfuruka1 Exp $
+ * $Id: version.c,v 1.2 2005/01/15 12:03:55 tfuruka1 Exp $
  * $Name:  $
  *
  * 「ak2psのようなもの」のヴァージョン情報
  *
  * $Log: version.c,v $
+ * Revision 1.2  2005/01/15 12:03:55  tfuruka1
+ * 仮想記憶の情報が正しくなさげなので、出力しないようにしました。
+ *
  * Revision 1.1  2004/12/23 13:11:56  tfuruka1
  * 新規追加
  *
@@ -33,12 +36,13 @@ SetMemoryInfo(HWND hWnd)
 
     wsprintf(szBuf, "%u", ms.dwAvailPhys);
     SetDlgItemText(hWnd, IDC_ST_PMEM_FREE, szBuf);
-
+    /*
     wsprintf(szBuf, "%u", ms.dwTotalVirtual);
     SetDlgItemText(hWnd, IDC_ST_VMEM_TOTAL, szBuf);
 
     wsprintf(szBuf, "%u", ms.dwAvailVirtual);
     SetDlgItemText(hWnd, IDC_ST_VMEM_FREE, szBuf);
+    */
 }
 
 static BOOL
