@@ -1,10 +1,13 @@
 /* -*- mode: c++; coding: sjis-dos;-*-
- * Time-stamp: <2001-02-06 02:44:22 tfuruka1>
+ * Time-stamp: <2001-08-18 23:38:57 tfuruka1>
  *
  * 「ak2psのようなもの」の共通ヘッダファイル(クライアント用)
  *
- * $Id: ak2pr.h,v 1.1 2001/02/05 17:44:24 tfuruka1 Exp $
+ * $Id: ak2pr.h,v 1.2 2001/08/18 16:48:20 tfuruka1 Exp $
  * $Log: ak2pr.h,v $
+ * Revision 1.2  2001/08/18 16:48:20  tfuruka1
+ * ●SendPrintFromFile関数の廃止に伴いプロトタイプ宣言を削除。
+ *
  * Revision 1.1  2001/02/05 17:44:24  tfuruka1
  * Initial revision
  *
@@ -81,18 +84,6 @@ BOOL WINAPI
 SendPrintFromStdin(
     HWND hWnd,                                  // ハンドル
     LPCTSTR lpszTitle,                          // タイトル未指定時は"stdin"
-    int nNumOfUp,                               // 段組数
-    int nTab,                                   // タブ幅
-    double fFontSize,                           // フォントサイズ
-    BOOL bMail                                  // T: 印刷データはメール[mail]
-    );
-/*--------------------------------------------------------------------
- * ファイルの存在チェックを行いプリントサーバへ印刷情報を送信する。
- * *-------------------------------------------------------------------*/
-BOOL WINAPI
-SendPrintFromFile(
-    HWND hWnd,                                  // ハンドル
-    LPCTSTR lpszFileName,                       // ファイル名
     int nNumOfUp,                               // 段組数
     int nTab,                                   // タブ幅
     double fFontSize,                           // フォントサイズ
