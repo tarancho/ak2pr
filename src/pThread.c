@@ -1,10 +1,14 @@
 /* -*- mode: C++; coding: sjis-dos; -*-
- * Time-stamp: <2003-03-12 23:17:06 tfuruka1>
+ * Time-stamp: <2003-03-15 23:13:52 tfuruka1>
  *
  * 「ak2psのようなもの」の印刷スレッド
  *
- * $Id: pThread.c,v 1.10 2003/03/14 15:25:37 tfuruka1 Exp $
+ * $Id: pThread.c,v 1.11 2003/03/15 14:41:02 tfuruka1 Exp $
  * $Log: pThread.c,v $
+ * Revision 1.11  2003/03/15 14:41:02  tfuruka1
+ * ● プレビューで印刷設定を行った場合に、再度プレビュー画面へ遷移するよ
+ * 　 うにした。
+ *
  * Revision 1.10  2003/03/14 15:25:37  tfuruka1
  * ● Distiller用のファイルを生成するときに、拡張子に.PSを付加するように
  *    した。
@@ -352,10 +356,16 @@ PrintThread(LPDWORD lpIDThread)
     PostProcess:
         DeleteDC(hDC);
         if (g_MailBox.PrtInfo.bPreView) {
-            g_MailBox.PrtInfo.bPreView = FALSE;
+            // プレビューで印刷設定が選択された場合は印刷設定を行い、
+            // 印刷を継続する
+            if (PVI_SETUP != g_MailBox.PrevInfo.status) {
+                // キャンセルされた場合又は印刷を行う場合
+                g_MailBox.PrtInfo.bPreView = FALSE;
+            }
             DeleteDC(g_MailBox.PrevInfo.hDC);
             DeleteObject(g_MailBox.PrevInfo.hBitmap);
             bSuspend = FALSE;
+
         }
         DbgPrint(NULL, 'I', "印刷スレッド後処理完了");
     }
