@@ -1,9 +1,12 @@
 # (replace-string "\r" "")
 # -*- mode: makefile; coding: sjis-unix; -*-
-# Time-stamp: <2004-01-11 20:10:24 tfuruka1>
+# Time-stamp: <2004-06-18 00:30:30 tfuruka1>
 #
-# $Id: makefile,v 1.4 2004/01/11 11:11:32 tfuruka1 Exp $
+# $Id: makefile,v 1.5 2004/06/17 15:32:21 tfuruka1 Exp $
 # $Log: makefile,v $
+# Revision 1.5  2004/06/17 15:32:21  tfuruka1
+# fonts.c を追加した事による修正
+#
 # Revision 1.4  2004/01/11 11:11:32  tfuruka1
 # Etagsのコマンドパスの変更(MeadowのVersionアップによる変更)
 #
@@ -14,12 +17,12 @@
 	$(CC) $(CFLAGS) -c -o$@ $<
 
 CC = cl
-ETAGS = /usr/local/Meadow/2.00b1/bin/etags
+ETAGS = /usr/local/Meadow/2.00/bin/etags
 
 DLL_OBJS = dllmain.obj dbg.obj string.obj clipboard.obj
 SV_OBJS = main.obj init.obj wndproc.obj ak2pr.res setup.obj queue.obj\
     pThread.obj printer.obj testprint.obj prtMail.obj prtText.obj string.obj\
-	prev.obj
+	prev.obj fonts.obj
 TARGZ = ../ak2pr_src.tar.gz
 
 INSTDIR = /usr/local/meadow/site-bin
