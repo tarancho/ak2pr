@@ -2,8 +2,12 @@
  *
  * 「ak2psのようなもの」のサーバ側のヘッダファイル
  *
- * $Id: ak2prs.h,v 1.8 2001/12/07 18:27:28 tfuruka1 Exp $
+ * $Id: ak2prs.h,v 1.9 2001/12/08 15:23:48 tfuruka1 Exp $
  * $Log: ak2prs.h,v $
+ * Revision 1.9  2001/12/08 15:23:48  tfuruka1
+ * ─────【Version 1.6にしました】─────
+ * メイン画面のLISTBOXをListViewへ変更しました。
+ *
  * Revision 1.8  2001/12/07 18:27:28  tfuruka1
  * 用紙サイズの指定できるようにした。
  *
@@ -52,11 +56,12 @@
 #ifndef _AK2PRS_H_
 #define _AK2PRS_H_
 
-#define TIMESTAMP "Time-stamp: <2001-12-08 00:54:16 tfuruka1>"
-#define VERSION   "Version 1.5"
+#define TIMESTAMP "Time-stamp: <2001-12-09 00:22:16 tfuruka1>"
+#define VERSION   "Version 1.6"
 
 #include <windows.h>
 #include <windowsx.h>
+#include <commctrl.h>
 #include <stdio.h>
 #include <string.h>
 #include <io.h>
