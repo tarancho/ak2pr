@@ -1,10 +1,17 @@
 /* -*- mode: c++; coding: sjis-dos; -*-
- * Time-stamp: <2003-02-25 23:50:11 tfuruka1>
+ * Time-stamp: <2003-03-14 22:19:28 tfuruka1>
  *
  * 「ak2psのようなもの」のクライアントの共通処理部
  *
- * $Id: clientCommon.c,v 1.9 2003/02/25 15:27:27 tfuruka1 Exp $
+ * $Id: clientCommon.c,v 1.10 2003/03/14 14:58:25 tfuruka1 Exp $
  * $Log: clientCommon.c,v $
+ * Revision 1.10  2003/03/14 14:58:25  tfuruka1
+ * ● PostScriptファイルの作業ファイルの名称を元ファイルのTitleフィールド
+ *    から取得するようにしました。また、Distillerで処理するファイルの拡張
+ *    子を.PSにしました。
+ * ● サーバの起動オプション -S を追加しました。サーバを印刷停止状態で起
+ *    動する事が可能になりました。
+ *
  * Revision 1.9  2003/02/25 15:27:27  tfuruka1
  * 行番号印刷のオプションを追加した。
  *
@@ -50,7 +57,7 @@ static void Usage(LPTSTR arg)
 {
     printf("Usage: %s [-o{p|l}] [-m{PLAIN|MAIL|PS_ACROBAT|PS_GHOST}]\n"
            "\t\t[-fフォントサイズ] [-tタブ幅] [-u段組数] [-Tタイトル]\n"
-           "\t\t[-Jタイトル] [-s用紙サイズ] [-n[-]] [-P]\n"
+           "\t\t[-Jタイトル] [-s用紙サイズ] [-n[-]] [-P] [-S]\n"
            "\t\t[ファイル名...]\n\n"
            "\t-o 用紙の向きを指定します。デフォルトはサーバの設定。\n"
            "\t\tp PORTRAIT\n"
@@ -67,8 +74,10 @@ static void Usage(LPTSTR arg)
            "\t-J タイトルを指定します(-Tと同じ)。デフォルトはファイル名。\n"
            "\t-s 用紙サイズを指定します。デフォルトはサーバの設定。\n"
            "\t-n[-] 行番号を出力します。指定しない場合はサーバの設定。\n"
-           "\t\t -n-を指定した場合は行番号を出力しない。\n"
+           "\t      -n-を指定した場合は行番号を出力しない。\n"
            "\t-P 指定しても何もしません。\n"
+           "\t-S サーバを起動する時に印刷停止状態で起動します。\n"
+           "\t   サーバが既に起動している場合は意味を持ちません。\n"
            "\tファイル名 印刷するファイル名を指定します。\n"
            "\t\t指定しなかった場合は、標準入力から読み込みます。\n"
            "\t\t複数ファイル指定できます。\n--\n",
@@ -79,6 +88,8 @@ static void Usage(LPTSTR arg)
 
 int ak2prClientCommon(int __argc, char **_argv)
 {
+    TCHAR szBuf[4096];
+    TCHAR szSVOption[128];                      // サーバの起動オプション
     double fFont = 0.0;
     int nTab = 0, nUp = 0, i;
     BYTE szTitle[256], *pszTitle = NULL;
@@ -87,27 +98,33 @@ int ak2prClientCommon(int __argc, char **_argv)
     short dmPaperSize = 0;                      // 用紙サイズはデフォルト
     int bNum = -1;                              // 行番号出力のデフォルト
     // ↑booleanではないので注意：最初はbooleanにしていたのだが・・・
-    
-    ExecutePrtServer();                         // サーバを起動する
-    {                                           // For Debug
-        TCHAR szBuf[4096];
-        strcpy(szBuf, "DBG: ");
-        for (i = 1; i < __argc; i++) {
-            if (4095 < (strlen(szBuf) + strlen(*(__argv + i)) + 1)) {
+
+    szSVOption[0] = '\0';
+    strcpy(szBuf, "DBG: ");
+    for (i = 1; i < __argc; i++) {
+        if (4095 < (strlen(szBuf) + strlen(*(__argv + i)) + 1)) {
+            break;
+        }
+
+        // サーバ起動オプションの場合
+        if (0 == strcmp(*(__argv + i), "-S")) {
+            strcat(szSVOption, " -S");
+        }
+
+        sprintf(szBuf + strlen(szBuf), "argv[%d]=%s", i, *(__argv + i));
+        if (*(__argv + i + 1)) {
+            if (4095 > (strlen(szBuf) + 2)) {
+                strcat(szBuf, ", ");
+            }
+            else {
                 break;
             }
-            sprintf(szBuf + strlen(szBuf), "argv[%d]=%s", i, *(__argv + i));
-            if (*(__argv + i + 1)) {
-                if (4095 > (strlen(szBuf) + 2)) {
-                    strcat(szBuf, ", ");
-                }
-                else {
-                    break;
-                }
-            }
         }
-        Syslog("%s", szBuf);
     }
+    Syslog(FALSE, "--<<< COMMAND START >>>--");
+    Syslog(FALSE, "%s", szBuf);
+
+    ExecutePrtServer((LPCTSTR)szSVOption);      // サーバを起動する
 
     for (i = 1; i < __argc; i++) {
         /* (page headers are not supported) を無視する emacs の
@@ -119,6 +136,8 @@ int ak2prClientCommon(int __argc, char **_argv)
             break;
         }
         switch (*(*(__argv + i) + 1)) {
+        case 'S':                               // サーバ起動オプションは無視
+            continue;
         case 'n':
             switch (*(*(__argv + i) + 2)) {
             case '\0':
@@ -200,7 +219,7 @@ int ak2prClientCommon(int __argc, char **_argv)
         case 'P':                               // このパラメータは無視
             continue;
         default:
-            Syslog("-ERROR: Invalid Argument (%s)", *(__argv + i));
+            Syslog(TRUE, "-ERROR: Invalid Argument (%s)", *(__argv + i));
             Usage(*__argv);
             return 1;
         }
@@ -212,6 +231,15 @@ int ak2prClientCommon(int __argc, char **_argv)
         return 0;
     }
     else if (i == (__argc - 1)) {               // ファイルが一つだけ指定された
+        // PostScriptファイルの場合は、タイトルをファイルから得る
+        if ((PT_PS_ACROBAT == nFtype) || (PT_PS_GHOST == nFtype)) {
+            (LPCTSTR)pszTitle
+                = GetPSTitle((LPCTSTR)*(__argv + i), szTitle, 128);
+            if (NULL == pszTitle) {
+                Usage(*__argv);
+                return 1;
+            }
+        }
         SendPrintFromFileCopy(NULL, pszTitle, *(__argv + i), nUp, nTab,
                               fFont, nFtype, nOrientation, dmPaperSize, bNum);
         return 0;
@@ -219,6 +247,20 @@ int ak2prClientCommon(int __argc, char **_argv)
 
     for (; i < __argc; i++) {
         strncpy(szTitle, GetLongBaseName(*(__argv + i)), 255);
+
+        // PostScriptファイルの場合は、タイトルをファイルから得る※
+        // EmacsからPostScriptのファイルを印刷するときに[/D:PRN]という
+        // オプションが追加されてくるが、現在の処理だとこのオプション
+        // をファイルと誤認識してしまいます。当然、そのようなファイル
+        // は存在しないので、無視して、結果的にうまく処理できています。
+        // 取りあえず、当分はこのままの処理にしておきます。
+        if ((PT_PS_ACROBAT == nFtype) || (PT_PS_GHOST == nFtype)) {
+            (LPCTSTR)pszTitle
+                = GetPSTitle((LPCTSTR)*(__argv + i), szTitle, 128);
+            if (NULL == pszTitle) {
+                continue;
+            }
+        }
         SendPrintFromFileCopy(NULL, szTitle, *(__argv + i), nUp, nTab,
                               fFont, nFtype, nOrientation, dmPaperSize, bNum);
     }
