@@ -1,10 +1,13 @@
 /* -*- mode: C++; coding: sjis-dos; -*-
- * Time-stamp: <2001-08-19 08:48:16 tfuruka1>
+ * Time-stamp: <2001-10-01 21:43:48 tfuruka1>
  *
  * ak2ps のようなものの共通 DLL
  *
- * $Id: dllmain.c,v 1.4 2001/08/19 04:35:57 tfuruka1 Exp $
+ * $Id: dllmain.c,v 1.5 2001/10/01 13:20:47 tfuruka1 Exp $
  * $Log: dllmain.c,v $
+ * Revision 1.5  2001/10/01 13:20:47  tfuruka1
+ * 用紙の向きを指定出来るように修正。
+ *
  * Revision 1.4  2001/08/19 04:35:57  tfuruka1
  * PostScriptファイルの暫定対応（ただ単にDistillerの監視フォルダに放り込
  * むだけ）。
@@ -299,7 +302,8 @@ SendPrintFromStdin(
     int nNumOfUp,                               // 段組数
     int nTab,                                   // タブ幅
     double fFontSize,                           // フォントサイズ
-    int nType                                   // 印刷データタイプ
+    int nType,                                  // 印刷データタイプ
+    int nOrientation                            // 用紙の向き
     )
 {
     PRT_INFO PrtInfo;                           // プリントファイル情報
@@ -320,6 +324,7 @@ SendPrintFromStdin(
     PrtInfo.nTab = nTab;
     PrtInfo.nType = nType;
     PrtInfo.fFontSize = fFontSize;
+    PrtInfo.nOrientation = nOrientation;
 
     // 作業ファイルを作成する
     if (NULL == (fp = MakeTempFile("wt", PrtInfo.szFileName))) {
@@ -354,7 +359,8 @@ SendPrintFromFileCopy(
     int nNumOfUp,                               // 段組数
     int nTab,                                   // タブ幅
     double fFontSize,                           // フォントサイズ
-    int nType                                   // 印刷データタイプ
+    int nType,                                  // 印刷データタイプ
+    int nOrientation                            // 用紙の向き
     )
 {
     PRT_INFO PrtInfo;                           // プリントファイル情報
@@ -390,6 +396,7 @@ SendPrintFromFileCopy(
     PrtInfo.nTab = nTab;
     PrtInfo.nType = nType;
     PrtInfo.fFontSize = fFontSize;
+    PrtInfo.nOrientation = nOrientation;
 
     // 作業ファイルを作成する
     if (NULL == (fp = MakeTempFile("wt", PrtInfo.szFileName))) {

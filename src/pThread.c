@@ -1,10 +1,13 @@
 /* -*- mode: C++; coding: sjis-dos; -*-
- * Time-stamp: <2001-08-19 17:53:51 tfuruka1>
+ * Time-stamp: <2001-10-01 22:07:18 tfuruka1>
  *
  * 「ak2psのようなもの」の印刷スレッド
  *
- * $Id: pThread.c,v 1.4 2001/08/19 08:54:28 tfuruka1 Exp $
+ * $Id: pThread.c,v 1.5 2001/10/01 13:20:05 tfuruka1 Exp $
  * $Log: pThread.c,v $
+ * Revision 1.5  2001/10/01 13:20:05  tfuruka1
+ * 用紙の向きを指定出来るように修正。
+ *
  * Revision 1.4  2001/08/19 08:54:28  tfuruka1
  * PostScriptファイルを印刷するときにGhostScriptを呼び出せるようにした。
  *
@@ -128,6 +131,7 @@ PrintThread(LPDWORD lpIDThread)
     HANDLE hFile;                               // FindFile用のハンドル
     LPDEVNAMES lpDevNames;
     LPDEVMODE lpDevMode;
+    DEVMODE DevMode;                            // プリンタデバイス
     HDC hDC;                                    // プリンタデバイスコンテキスト
 
     DbgPrint(NULL, 'I', "印刷Thread起動完了");
@@ -162,6 +166,15 @@ PrintThread(LPDWORD lpIDThread)
         lpDevNames = (LPDEVNAMES)GlobalLock(g_MailBox.hDevNames);
         lpDevMode = (LPDEVMODE)GlobalLock(g_MailBox.hDevMode);
 
+        // 用紙の向きを書き換えるので、オリジナルをコピーして、用紙の
+        // 向きを設定する
+        memcpy(&DevMode, lpDevMode, sizeof(DEVMODE));
+
+        // 用紙の向きが指定されている場合は設定し直す
+        if (g_MailBox.PrtInfo.nOrientation) {
+            DevMode.dmOrientation = g_MailBox.PrtInfo.nOrientation;
+        }
+
         DbgPrint(NULL, 'I', "デバイス情報:%s, %s, %s",
                  (PCHAR)lpDevNames + lpDevNames->wDriverOffset,
                  (PCHAR)lpDevNames + lpDevNames->wDeviceOffset,
@@ -169,7 +182,7 @@ PrintThread(LPDWORD lpIDThread)
 
         hDC = CreateDC((PCHAR)lpDevNames + lpDevNames->wDriverOffset,
                        (PCHAR)lpDevNames + lpDevNames->wDeviceOffset,
-                       NULL, lpDevMode);
+                       NULL, &DevMode);
         g_MailBox.hDC = hDC;
 
         GlobalUnlock(g_MailBox.hDevNames);

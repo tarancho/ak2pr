@@ -1,10 +1,13 @@
 /* -*- mode: c++; coding: sjis-dos; -*-
- * Time-stamp: <2001-08-19 09:25:18 tfuruka1>
+ * Time-stamp: <2001-10-01 21:58:39 tfuruka1>
  *
  * 「ak2psのようなもの」のQueue処理
  *
- * $Id: queue.c,v 1.3 2001/08/19 04:39:07 tfuruka1 Exp $
+ * $Id: queue.c,v 1.4 2001/10/01 13:20:27 tfuruka1 Exp $
  * $Log: queue.c,v $
+ * Revision 1.4  2001/10/01 13:20:27  tfuruka1
+ * 用紙の向きを指定出来るように修正。
+ *
  * Revision 1.3  2001/08/19 04:39:07  tfuruka1
  * PostScriptファイルの暫定対応（ただ単にDistillerの監視フォルダに放り込
  * むだけ）。
@@ -24,6 +27,18 @@
 // (replace-regexp "[ \t]+$" "")
 
 #include "ak2prs.h"
+
+static LPCTSTR
+GetOrientationStr(int nOrientation)
+{
+    static LPCTSTR lpStr[] = {
+        "DEFAULT  ",
+        "PORTRAIT ",
+        "LANDSCAPE"
+    };
+
+    return lpStr[nOrientation % 3];
+}
 
 static LPCTSTR
 GetNTypeName(int nType)
@@ -92,12 +107,13 @@ EnQueue(
     }
 
     GetLocalTime(&st);                          // 現在時刻の取得
-    sprintf(szBuf, "%04d-%02d-%02d %02d:%02d:%02d.%03d %s\t%s\t%d段組"
-            "\t%fPoint\tTabStop=%d",
+    sprintf(szBuf, "%04d-%02d-%02d %02d:%02d:%02d.%03d %d段組"
+            " %fPoint TabStop=%d %s %s\t%s",
             st.wYear, st.wMonth, st.wDay,
             st.wHour, st.wMinute, st.wSecond, st.wMilliseconds,
-            pPrtInfo->szTitle, GetNTypeName(pPrtInfo->nType),
-            pPrtInfo->nNumOfUp, pPrtInfo->fFontSize, pPrtInfo->nTab);
+            pPrtInfo->nNumOfUp, pPrtInfo->fFontSize, pPrtInfo->nTab,
+            GetOrientationStr(pPrtInfo->nOrientation),
+            GetNTypeName(pPrtInfo->nType), pPrtInfo->szTitle);
     if (0 > (nRet = SendMessage(hWnd, LB_ADDSTRING, 0, (LPARAM)szBuf))) {
         DbgPrint(hWnd, 'E', "LB_ADDSTRING ERROR (%d)", nRet);
         return FALSE;
