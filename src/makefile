@@ -1,8 +1,12 @@
+# (replace-string "\r" "")
 # -*- mode: makefile; coding: sjis-unix; -*-
-# Time-stamp: <2001-02-06 03:00:25 tfuruka1>
+# Time-stamp: <2001-02-06 03:02:55 tfuruka1>
 #
-# $Id: makefile,v 1.2 2001/02/05 18:01:17 tfuruka1 Exp $
+# $Id: makefile,v 1.3 2001/02/05 18:03:00 tfuruka1 Exp $
 # $Log: makefile,v $
+# Revision 1.3  2001/02/05 18:03:00  tfuruka1
+# foo
+#
 # Revision 1.2  2001/02/05 18:01:17  tfuruka1
 # foo
 #
@@ -25,7 +29,7 @@
 # Revision 1.1  1999/12/16 04:56:15  tfuruka1
 # Initial revision
 #
-# (replace-string "\r" "")
+
 .SUFFIXES:	.obj .c
 .c.obj:
 	$(CC) $(CFLAGS) -c -o$@ $<
