@@ -1,5 +1,5 @@
 /* -*- mode: c++; coding: sjis-dos; -*-
- * Time-stamp: <2003-03-29 21:47:33 tfuruka1>
+ * Time-stamp: <2004-01-12 16:33:23 tfuruka1>
  *
  * 「ak2psのようなもの」の印字設定
  *
@@ -10,8 +10,12 @@
  * ていない場合は、実行されない。この事を知らなかったので、不可解な現
  * 象が発生していました（INIT_DIALOGが常に発生していると思っていた）。
  *
- * $Id: setup.c,v 1.11 2003/03/29 12:49:31 tfuruka1 Exp $
+ * $Id: setup.c,v 1.12 2004/01/12 10:00:05 tfuruka1 Exp $
  * $Log: setup.c,v $
+ * Revision 1.12  2004/01/12 10:00:05  tfuruka1
+ * 長辺綴じと短辺綴じに対応した事により、チェックボックスが増えた事による
+ * 対応。
+ *
  * Revision 1.11  2003/03/29 12:49:31  tfuruka1
  * ● セットアップダイアログに「個別設定」のタブを追加しました。言葉で書
  *    くとこれだけですけど、結構修正してます。
@@ -139,6 +143,10 @@ DoInitDialogCom(
     CheckDlgButton(hWnd, IDC_CHK_NOCOPYRIGHT,
                    PrtInfoTmp.bNoCopyright ? TRUE : FALSE);
 
+    // 短辺綴じの有無
+    CheckDlgButton(hWnd, IDC_CHK_SHORT_BINDING,
+                   PrtInfoTmp.bShortBinding ? TRUE : FALSE);
+
     return TRUE;
 }
 
@@ -193,6 +201,10 @@ DoCommandCom(
         break;
     case IDC_CHK_PREVIEW:
         PrtInfoTmp.bPreView = IsDlgButtonChecked(hWnd, IDC_CHK_PREVIEW);
+        break;
+    case IDC_CHK_SHORT_BINDING:
+        PrtInfoTmp.bShortBinding = IsDlgButtonChecked(hWnd,
+                                                      IDC_CHK_SHORT_BINDING);
         break;
     case IDC_DEFAULT:
         PrtInfoTmp.nTab = 8;
@@ -251,11 +263,13 @@ DoCloseCom(HWND hWnd)
     PrtInfoTmp.bPreView = IsDlgButtonChecked(hWnd, IDC_CHK_PREVIEW);
     PrtInfoTmp.bDebug = IsDlgButtonChecked(hWnd, IDC_C_DEBUG);
     PrtInfoTmp.bNoCopyright = IsDlgButtonChecked(hWnd, IDC_CHK_NOCOPYRIGHT);
+    PrtInfoTmp.bShortBinding = IsDlgButtonChecked(hWnd, IDC_CHK_SHORT_BINDING);
 
     DbgPrint(NULL, 'I', "共通設定終了\nTABSTOP:%d\nFONTSIZE:%f\n"
-             "NUP:%d\nPREVIE:%d\nCOPYRIGHT:%d",
+             "NUP:%d\nPREVIE:%d\nCOPYRIGHT:%d\nSHORTBIND:%d",
              PrtInfoTmp.nTab, PrtInfoTmp.fFontSize, PrtInfoTmp.nNumOfUp,
-             PrtInfoTmp.bPreView, PrtInfoTmp.bNoCopyright);
+             PrtInfoTmp.bPreView, PrtInfoTmp.bNoCopyright,
+             PrtInfoTmp.bShortBinding);
 }
 
 static BOOL
