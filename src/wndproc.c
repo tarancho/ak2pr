@@ -2,8 +2,15 @@
  *
  * 「ak2psのようなもの」のウインドウプロシジャ
  *
- * $Id: wndproc.c,v 1.4 2001/02/05 17:13:37 tfuruka1 Exp $
+ * $Id: wndproc.c,v 1.5 2001/08/18 16:38:47 tfuruka1 Exp $
  * $Log: wndproc.c,v $
+ * Revision 1.5  2001/08/18 16:38:47  tfuruka1
+ * ●終了する前にDeleteQueue関数を呼び出して、作業ファイルを削除するよう
+ *   にした。
+ * ●IDM_DELETEを受信した時に印刷Queueを削除する処理をコーディングしてい
+ *   たが、複数の場所でこの処理が必要になったので、queue.cにDeleteQueue関
+ *   数として抜き出し、DeleteQueue関数を呼び出すようにした。
+ *
  * Revision 1.4  2001/02/05 17:13:37  tfuruka1
  * ホームページのURLをtfuruka1からVA001687へ変更した。
  *
@@ -24,7 +31,7 @@
 // (replace-regexp "/\\*\\(.+\\)\\*/" "//\\1")
 // (replace-regexp "[ \t]+$" "")
 
-#define TIME_STAMP "Time-stamp: <2001-02-06 02:13:02 tfuruka1>"
+#define TIME_STAMP "Time-stamp: <2001-08-19 00:56:33 tfuruka1>"
 
 #include "ak2prs.h"
 
@@ -140,6 +147,7 @@ DoRealClose(HWND hWnd)
 {
     if (IDYES == MessageBox(hWnd, "終了しても宜しいですか", SV_CAPTION,
                             MB_SETFOREGROUND | MB_ICONQUESTION | MB_YESNO)) {
+        DeleteQueue(hWndList, TRUE);
         SendMessage(hWndOwn, WM_REALCLOSE, 0, 0);
         return TRUE;
     }
@@ -221,7 +229,6 @@ DoCommand(
     TCHAR szMsg[1024];
     COPYDATASTRUCT cds;                         // 送信データ
     PRT_INFO PrtInfo;
-    LPVOID pv;
     HMENU hMenu;
 
     switch (id) {
@@ -263,24 +270,14 @@ DoCommand(
         SendMessage(hWnd, WM_COPYDATA, (WPARAM)hWnd, (LPARAM)&cds);
         break;
     case IDM_DELETE:
-        cnt = SendMessage(hWndList, LB_GETCOUNT, 0, 0);
-        if (0 > cnt) {
+        cnt = SendMessage(hWndList, LB_GETSELCOUNT, 0, 0);
+        if (0 >= cnt) {
+            MessageBox(hWnd, "削除する印刷データが選択されていません",
+                       "削除できません", MB_SETFOREGROUND | MB_ICONSTOP);
             break;
         }
-        for (i = 0, cnt--; cnt >= 0; cnt--) {
-            if (SendMessage(hWndList, LB_GETSEL, cnt, 0)) {
-                pv = (LPVOID)SendMessage(hWndList, LB_GETITEMDATA, cnt, 0);
-                SendMessage(hWndList, LB_DELETESTRING, cnt, 0);
-                if (LB_ERR == (int)pv || !pv) {
-                    MessageBox(hWnd, "印刷データの削除に失敗しました",
-                               "LB_GETITEMDATA",
-                               MB_SETFOREGROUND | MB_ICONSTOP);
-                    continue;
-                }
-                free(pv);
-                i++;
-            }
-        }
+        i = DeleteQueue(hWndList, FALSE);
+
         if (i) {
             TCHAR szBuf[256];
             sprintf(szBuf, "%d個の印刷データを削除しました", i);
