@@ -1,10 +1,13 @@
 /* -*- mode: c++; coding: sjis-dos; -*-
- * Time-stamp: <2004-06-18 09:42:11 tfuruka1>
+ * Time-stamp: <2005-01-15 20:55:40 tfuruka1>
  *
  * ak2psのようなもののテスト印字関連
  *
- * $Id: testprint.c,v 1.5 2004/06/18 00:57:56 tfuruka1 Exp $
+ * $Id: testprint.c,v 1.6 2005/01/15 11:58:09 tfuruka1 Exp $
  * $Log: testprint.c,v $
+ * Revision 1.6  2005/01/15 11:58:09  tfuruka1
+ * 印刷タイトルのak2prが重複して表示されていた部分を修正しました。
+ *
  * Revision 1.5  2004/06/18 00:57:56  tfuruka1
  * 改行コードの修正のみです。
  *
@@ -288,7 +291,7 @@ DoTestPrint(void)
     rc.bottom = rc.top + ConvX2Dt(20, nDPIH, CX_PT);
     rc.right = nPaperWidth - nDPIW - nPaperMarginW;
 
-    wsprintf(szBuf, "ak2pr %s テスト印字", VERSION);
+    wsprintf(szBuf, "%s テスト印字", VERSION);
     DrawText(g_MailBox.hDC, szBuf, -1, &rc,
              DT_NOPREFIX | DT_CENTER | DT_WORDBREAK);
 
