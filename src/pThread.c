@@ -1,10 +1,13 @@
 /* -*- mode: C++; coding: sjis-dos; -*-
- * Time-stamp: <2001-12-15 02:07:48 tfuruka1>
+ * Time-stamp: <2001-12-17 23:29:33 tfuruka1>
  *
  * 「ak2psのようなもの」の印刷スレッド
  *
- * $Id: pThread.c,v 1.8 2001/12/14 17:08:43 tfuruka1 Exp $
+ * $Id: pThread.c,v 1.9 2001/12/18 04:05:07 tfuruka1 Exp $
  * $Log: pThread.c,v $
+ * Revision 1.9  2001/12/18 04:05:07  tfuruka1
+ * プレビューキャンセル後にワークファイルが残っていた問題を修正。
+ *
  * Revision 1.8  2001/12/14 17:08:43  tfuruka1
  * プレビュー対応。もともとプレビューなんて考慮していなかったので、とても
  * 汚い処理になってしまった。
@@ -322,7 +325,11 @@ PrintThread(LPDWORD lpIDThread)
             if (PVI_CANCEL == g_MailBox.PrevInfo.status) {
                 g_MailBox.PrtInfo.valid = FALSE;
             }
-            goto PostProcess;
+            else {
+                // プレビューがキャンセルされていない場合は、次の回の
+                // 処理で、印刷を行うので、ファイルは削除しない
+                goto PostProcess;
+            }
         }
 
         // 作業用ファイルを削除する
