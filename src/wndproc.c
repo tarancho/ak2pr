@@ -2,8 +2,11 @@
  *
  * 「ak2psのようなもの」のウインドウプロシジャ
  *
- * $Id: wndproc.c,v 1.11 2003/03/14 15:57:51 tfuruka1 Exp $
+ * $Id: wndproc.c,v 1.12 2003/03/14 16:55:34 tfuruka1 Exp $
  * $Log: wndproc.c,v $
+ * Revision 1.12  2003/03/14 16:55:34  tfuruka1
+ * ツールバーにツールチップを付けました。
+ *
  * Revision 1.11  2003/03/14 15:57:51  tfuruka1
  * ● 「印刷停止」の状態が、ツールボタンとメニューで異なる場合があったの
  *    で、修正した。
@@ -60,7 +63,7 @@
 // (replace-regexp "/\\*\\(.+\\)\\*/" "//\\1")
 // (replace-regexp "[ \t]+$" "")
 
-#define TIME_STAMP "Time-stamp: <2003-03-14 23:08:53 tfuruka1>"
+#define TIME_STAMP "Time-stamp: <2003-03-15 01:52:10 tfuruka1>"
 
 #include "ak2prs.h"
 
@@ -180,7 +183,8 @@ DoCreate(
     }
 
     // ツールバーの作成
-    if (!(hWndTool = CreateToolbarEx(hWnd, WS_CHILD | WS_VISIBLE, IDC_TOOL,
+    if (!(hWndTool = CreateToolbarEx(hWnd, WS_CHILD | WS_VISIBLE
+                                     | TBSTYLE_TOOLTIPS, IDC_TOOL,
                                      sizeof(tbb) / sizeof(TBBUTTON),
                                      hInst, IDR_TOOLBAR, tbb,
                                      sizeof(tbb) / sizeof(TBBUTTON),
@@ -445,6 +449,31 @@ DoCommand(
 }
 
 /*--------------------------------------------------------------------
+ * WM_NOTIFY メッセージ処理部
+ * *-------------------------------------------------------------------*/
+static LRESULT CALLBACK
+    DoNotify(HWND hWnd,                         // ハンドル
+             int idCtrl,                        // コントロール
+             LPNMHDR pnmh                       // Notify情報
+             )
+{
+    LPTOOLTIPTEXT lptip;
+
+    switch (pnmh->code) {
+    case TTN_NEEDTEXT:
+        lptip = (LPTOOLTIPTEXT)pnmh;
+        lptip->hinst = GetWindowInstance(hWnd);
+        // ストリングリソースと、コントロールを同じ番号にしているので、
+        // 以下のようにしている。今後、異なる番号にした時は注意が必要！
+        lptip->lpszText = MAKEINTRESOURCE(lptip->hdr.idFrom);
+        return 1;
+    default:
+        break;
+    }
+    return 0;
+}
+
+/*--------------------------------------------------------------------
  * WM_TASKMENU メッセージ処理部
  * *-------------------------------------------------------------------*/
 static LRESULT CALLBACK
@@ -659,6 +688,7 @@ MainWndProc(
         HANDLE_MSG(hWnd, WM_TIMER, DoTimer);
         HANDLE_MSG(hWnd, WM_SUSPEND, DoSuspend);
         HANDLE_MSG(hWnd, WM_DROPFILES, DoDropFiles);
+        HANDLE_MSG(hWnd, WM_NOTIFY, DoNotify);
     default:
         // 上記の何れのメッセージ以外の場合はデフォルトのプロシジャ
         return DefWindowProc(hWnd, uMsg, wParam, lParam);
