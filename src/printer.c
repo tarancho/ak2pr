@@ -1,10 +1,13 @@
 /* -*- mode: c++; coding: sjis-dos; -*-
- * Time-stamp: <2003-02-27 22:48:45 tfuruka1>
+ * Time-stamp: <2003-03-16 09:15:35 tfuruka1>
  *
  * 「ak2psのようなもの」のプリンタ制御関連
  *
- * $Id: printer.c,v 1.5 2003/03/01 09:04:09 tfuruka1 Exp $
+ * $Id: printer.c,v 1.6 2003/03/16 00:20:53 tfuruka1 Exp $
  * $Log: printer.c,v $
+ * Revision 1.6  2003/03/16 00:20:53  tfuruka1
+ * ● プレビュー後の印刷設定で反映されない項目があったので、修正した。
+ *
  * Revision 1.5  2003/03/01 09:04:09  tfuruka1
  * ●本文以外の定形印刷部分の印刷文字色がボディ部の影響を受ける場合があっ
  * たのを修正。
@@ -535,7 +538,7 @@ BeginPage(void)
     DeleteObject(hFont);
 
     // Copyright表示
-    if (!g_PrtInfo.bNoCopyright) {
+    if (!g_MailBox.PrtInfo.bNoCopyright) {
         hFont = CreatePrtFont(FN_ARIAL, ConvX2Dt(3, nDPIH, CX_PT),
                               400, FALSE, FALSE, FALSE, FALSE);
         hOldFont = SelectObject(g_MailBox.hDC, hFont);
@@ -549,7 +552,7 @@ BeginPage(void)
 
  Exit:
     // デバッグモードの場合は、印刷エリアを塗り潰す
-    if (g_PrtInfo.bDebug) {
+    if (g_MailBox.PrtInfo.bDebug) {
         RECT rc;
         rc.left = nStartX;
         rc.right = nEndX;
@@ -735,7 +738,7 @@ PutcPrinter(
     }
 
     // デバッグモードの場合は、文字の回りを矩形で囲む
-    if (g_PrtInfo.bDebug) {
+    if (g_MailBox.PrtInfo.bDebug) {
         RECT rc;
         rc.left = nCurrentX;
         rc.right = nCurrentX + Size.cx;
@@ -798,7 +801,7 @@ PutsPrinter(LPTSTR szBuf)
     if ((nCurrentX + Size.cx) < nEndX) {
         // 纏めて出力可能
         // デバッグモードの場合は、文字の回りを矩形で囲む
-        if (g_PrtInfo.bDebug) {
+        if (g_MailBox.PrtInfo.bDebug) {
             RECT rc;
             rc.left = nCurrentX;
             rc.right = nCurrentX + Size.cx;
