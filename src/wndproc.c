@@ -2,8 +2,12 @@
  *
  * 「ak2psのようなもの」のウインドウプロシジャ
  *
- * $Id: wndproc.c,v 1.2 2001/02/05 16:55:33 tfuruka1 Exp $
+ * $Id: wndproc.c,v 1.3 2001/02/05 17:11:31 tfuruka1 Exp $
  * $Log: wndproc.c,v $
+ * Revision 1.3  2001/02/05 17:11:31  tfuruka1
+ * プリンタの設定ダイアログをドロップダウンメニューからプロパティシートの
+ * 共通タブへ移動した。
+ *
  * Revision 1.2  2001/02/05 16:55:33  tfuruka1
  * 詳細ウィンドウを表示した時に「印刷停止」メニューにチェックマークを付け
  * ていたバグを修正。また、「詳細ウインドウ」メニューのチェックマークが逆
@@ -17,7 +21,7 @@
 // (replace-regexp "/\\*\\(.+\\)\\*/" "//\\1")
 // (replace-regexp "[ \t]+$" "")
 
-#define TIME_STAMP "Time-stamp: <2001-02-06 01:55:14 tfuruka1>"
+#define TIME_STAMP "Time-stamp: <2001-02-06 02:09:34 tfuruka1>"
 
 #include "ak2prs.h"
 
@@ -239,9 +243,6 @@ DoCommand(
         break;
     case IDM_SETUP:
         SetupPrtStyle(hWnd);
-        break;
-    case IDM_PRINTER:
-        SetupPrinter(hWnd, &g_MailBox.hDevNames, &g_MailBox.hDevMode);
         break;
     case IDM_TESTPRT:                           // テスト印字
         PrtInfo.szFileName[0] = '\0';
