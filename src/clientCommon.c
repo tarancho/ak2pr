@@ -1,10 +1,14 @@
 /* -*- mode: c++; coding: sjis-dos; -*-
- * Time-stamp: <2003-03-19 23:50:07 tfuruka1>
+ * Time-stamp: <2004-01-11 20:22:21 tfuruka1>
  *
  * 「ak2psのようなもの」のクライアントの共通処理部
  *
- * $Id: clientCommon.c,v 1.11 2003/03/29 12:38:56 tfuruka1 Exp $
+ * $Id: clientCommon.c,v 1.12 2004/01/11 11:24:43 tfuruka1 Exp $
  * $Log: clientCommon.c,v $
+ * Revision 1.12  2004/01/11 11:24:43  tfuruka1
+ * オプションスイッチとして / を認めた（Emacsがつけてくる場合があるので）。
+ * そして、/Dオプションを無視するようにした。
+ *
  * Revision 1.11  2003/03/29 12:38:56  tfuruka1
  * ● SendPrintFromStdin関数の仕様追加による修正（標準入力の読み込みと、
  *    クリップボードの読み込みに対応した）
@@ -136,10 +140,15 @@ int ak2prClientCommon(int __argc, char **_argv)
         if ('(' == **(__argv + i)) {
             continue;
         }
-        if ('-' != **(__argv +i)) {
+        if (('-' != **(__argv +i)) && ('/' != **(__argv +i))) {
             break;
         }
         switch (*(*(__argv + i) + 1)) {
+        case 'D':
+            // Emacsが付与するオプションだがデバイスオプションは無視す
+            // る
+            Syslog(FALSE, "%s は無視します", *(__argv + i));
+            continue;
         case 'S':                               // サーバ起動オプションは無視
             continue;
         case 'n':
@@ -221,6 +230,7 @@ int ak2prClientCommon(int __argc, char **_argv)
             }
             continue;
         case 'P':                               // このパラメータは無視
+            Syslog(FALSE, "%s は無視します", *(__argv + i));
             continue;
         default:
             Syslog(TRUE, "-ERROR: Invalid Argument (%s)", *(__argv + i));
