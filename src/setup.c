@@ -1,5 +1,7 @@
 /* -*- mode: c++; coding: sjis-dos; -*-
- * Time-stamp: <2004-08-21 08:30:49 tfuruka1>
+ * Time-stamp: <2004-12-23 16:54:28 tfuruka1>
+ * $Id: setup.c,v 1.16 2004/12/23 08:12:50 tfuruka1 Exp $
+ * $Name:  $
  *
  * 「ak2psのようなもの」の印字設定
  *
@@ -10,8 +12,11 @@
  * ていない場合は、実行されない。この事を知らなかったので、不可解な現
  * 象が発生していました（INIT_DIALOGが常に発生していると思っていた）。
  *
- * $Id: setup.c,v 1.15 2004/08/21 01:01:01 tfuruka1 Exp $
  * $Log: setup.c,v $
+ * Revision 1.16  2004/12/23 08:12:50  tfuruka1
+ * シングルライン印刷(食ミ出した部分を印刷しない)チェックボックスと、
+ * GhostScriptの実行ファイルを参照する釦を追加した事による実装。
+ *
  * Revision 1.15  2004/08/21 01:01:01  tfuruka1
  * テキスト印刷に於いて「行間」と「罫線連結」が有効になるようにしました。
  *
@@ -85,9 +90,9 @@ static PRT_INFO PrtInfoTmp;                     // 印刷情報作業用
 static LPTSTR WINAPI
 GetOpenFileNameWrap(
     HWND hWnd,
-    LPCTSTR lpszFilter,
-    LPCTSTR lpszTitle,
-    LPTSTR lpszFileName
+    LPCTSTR lpszFilter,                         // フィルタ
+    LPCTSTR lpszTitle,                          // タイトル
+    LPTSTR lpszFileName                         // ファイル名
     )
 {
     OPENFILENAME of;
@@ -155,6 +160,10 @@ DoInitDialogCom(
     // 短辺綴じの有無
     CheckDlgButton(hWnd, IDC_CHK_SHORT_BINDING,
                    PrtInfoTmp.bShortBinding ? TRUE : FALSE);
+
+    // シングルライン印刷の有無
+    CheckDlgButton(hWnd, IDC_CHK_SINGLE_LINE,
+                   PrtInfoTmp.nSingleLine ? TRUE : FALSE);
 
     // フォント選択コンボボックスの初期化
     LsFontToCOMBO(GetDlgItem(hWnd, IDC_COMBO_THF));
@@ -228,8 +237,12 @@ DoCommandCom(
         PrtInfoTmp.bPreView = IsDlgButtonChecked(hWnd, IDC_CHK_PREVIEW);
         break;
     case IDC_CHK_SHORT_BINDING:
-        PrtInfoTmp.bShortBinding = IsDlgButtonChecked(hWnd,
-                                                      IDC_CHK_SHORT_BINDING);
+        PrtInfoTmp.bShortBinding
+            = IsDlgButtonChecked(hWnd, IDC_CHK_SHORT_BINDING);
+        break;
+    case IDC_CHK_SINGLE_LINE:
+        PrtInfoTmp.nSingleLine
+            = IsDlgButtonChecked(hWnd, IDC_CHK_SINGLE_LINE);
         break;
     case IDC_CHK_NOCOPYRIGHT:
         PrtInfoTmp.bNoCopyright
@@ -254,6 +267,9 @@ DoCommandCom(
 
         PrtInfoTmp.bShortBinding = FALSE;
         CheckDlgButton(hWnd, IDC_CHK_SHORT_BINDING, PrtInfoTmp.bShortBinding);
+
+        PrtInfoTmp.nSingleLine = FALSE;
+        CheckDlgButton(hWnd, IDC_CHK_SINGLE_LINE, PrtInfoTmp.nSingleLine);
 
         PrtInfoTmp.bNoCopyright = FALSE;
         CheckDlgButton(hWnd, IDC_CHK_NOCOPYRIGHT, PrtInfoTmp.bNoCopyright);
@@ -312,6 +328,7 @@ DoCloseCom(HWND hWnd)
     PrtInfoTmp.bDebug = IsDlgButtonChecked(hWnd, IDC_C_DEBUG);
     PrtInfoTmp.bNoCopyright = IsDlgButtonChecked(hWnd, IDC_CHK_NOCOPYRIGHT);
     PrtInfoTmp.bShortBinding = IsDlgButtonChecked(hWnd, IDC_CHK_SHORT_BINDING);
+    PrtInfoTmp.nSingleLine = IsDlgButtonChecked(hWnd, IDC_CHK_SINGLE_LINE);
 
     // フォント
     GetDlgItemText(hWnd, IDC_COMBO_THF, PrtInfoTmp.lfTHF.lfFaceName,
@@ -539,7 +556,22 @@ DoCommandPs(
     UINT codeNotify                             // 通知コード
     )
 {
+    char szBuf[MAX_PATH + 1];
+
     switch (id) {                               // コントロール番号
+    case IDC_BT_GS_REF:
+        GetDlgItemText(hWnd, IDC_ED_GHOST, szBuf, MAX_PATH);
+        if (GetOpenFileNameWrap(hWnd,
+                                "GhostScript関連\0"
+                                "gswin32.exe;gswin32c.exe;gsview32.exe\0"
+                                "実行ファイル(*.exe)\0*.exe\0"
+                                "全てのファイル(*.*)\0*.*\0"
+                                "\0",
+                                "GhostScriptの実行ファイルを選択して下さい",
+                                szBuf)) {
+            SetDlgItemText(hWnd, IDC_ED_GHOST, szBuf);
+        }
+        break;
     case IDC_BT_GSOP:
         SetDlgItemText(hWnd, IDC_ED_GSOP, GS_DEF_OPT);
         break;
