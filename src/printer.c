@@ -1,10 +1,14 @@
 /* -*- mode: c++; coding: sjis-dos; -*-
- * Time-stamp: <2004-01-12 17:56:23 tfuruka1>
+ * Time-stamp: <2004-01-19 12:26:15 tfuruka1>
  *
  * 「ak2psのようなもの」のプリンタ制御関連
  *
- * $Id: printer.c,v 1.7 2004/01/12 09:55:49 tfuruka1 Exp $
+ * $Id: printer.c,v 1.8 2004/01/19 05:35:54 tfuruka1 Exp $
  * $Log: printer.c,v $
+ * Revision 1.8  2004/01/19 05:35:54  tfuruka1
+ * フォント情報を設定できるようにした為, フォントに関連する関数のインター
+ * フェイスを変更しました。
+ *
  * Revision 1.7  2004/01/12 09:55:49  tfuruka1
  * 長辺綴じと短辺綴じに対応しました。
  *
@@ -37,8 +41,8 @@
 #include "ak2pr.h"
 
 // フォントのテンプレート
-static LOGFONT lft = {-13, 0, 0, 0, 800, 0, 0, 0, SHIFTJIS_CHARSET,
-                      3, 2, 1, 49, TEXT("ＭＳ ゴシック")};
+//static LOGFONT lft = {-13, 0, 0, 0, 800, 0, 0, 0, SHIFTJIS_CHARSET,
+//                      3, 2, 1, 49, TEXT("ＭＳ ゴシック")};
 
 // プリンタの固有情報
 static int nPaperWidth, nPaperHeight;           // 用紙のサイズ
@@ -302,25 +306,25 @@ CreatePrtPen(
 
 HFONT
 CreatePrtFont(
-    LPTSTR lpszFontName,                        // フォント名
     int nHeight,                                // フォントの高さ
     int nWeight,                                // フォントの太さ
     BOOL bItalic,                               // T: イタリック
     BOOL bUnderline,                            // T: 下線
     BOOL bStrikeOut,                            // T: 打ち消し線
-    BOOL bSjis                                  // T: 日本語
+    LPLOGFONT lplft                             // LOGFONTテンプレート
     )
 {
     LOGFONT lf;
 
-    memcpy(&lf, &lft, sizeof(LOGFONT));
+    nHeight += (nHeight % 2);                   // 必ず2の倍数にする
+
+    memcpy(&lf, lplft, sizeof(LOGFONT));
     lf.lfHeight = nHeight;
+    lf.lfWidth = 0;
     lf.lfWeight = nWeight;
     lf.lfItalic = bItalic;
     lf.lfUnderline = bUnderline;
     lf.lfStrikeOut = bStrikeOut;
-    lf.lfCharSet = bSjis ? SHIFTJIS_CHARSET : ANSI_CHARSET;
-    strcpy(&lf.lfFaceName[0], lpszFontName);
 
     return CreateFontIndirect(&lf);
 }
@@ -516,8 +520,8 @@ BeginPage(void)
     DeleteObject(hBrush);
 
     // ページ番号の出力
-    hFont = CreatePrtFont(FN_ARIAL, ConvX2Dt(8, nDPIH, CX_PT),
-                          400, FALSE, FALSE, FALSE, FALSE);
+    hFont = CreatePrtFont(ConvX2Dt(8, nDPIH, CX_PT), 400,
+                          FALSE, FALSE, FALSE, &g_MailBox.PrtInfo.lfOPPF);
     hOldFont = SelectObject(g_MailBox.hDC, hFont);
 
     if (((nPaperWidth > nPaperHeight)
@@ -561,8 +565,8 @@ BeginPage(void)
 
     // Copyright表示
     if (!g_MailBox.PrtInfo.bNoCopyright) {
-        hFont = CreatePrtFont(FN_ARIAL, ConvX2Dt(3, nDPIH, CX_PT),
-                              400, FALSE, FALSE, FALSE, FALSE);
+        hFont = CreatePrtFont(ConvX2Dt(3, nDPIH, CX_PT), 400,
+                              FALSE, FALSE, FALSE, &g_MailBox.PrtInfo.lfOPPF);
         hOldFont = SelectObject(g_MailBox.hDC, hFont);
 
         DrawText(g_MailBox.hDC, COPYRIGHT, -1, &rc,
@@ -597,8 +601,8 @@ BOOL EndPageDocument(void)
     int nHt;
 
     // タイトルの出力
-    hFont = CreatePrtFont(FN_MSPG, ConvX2Dt(18, nDPIH, CX_PT),
-                          700, FALSE, FALSE, FALSE, TRUE);
+    hFont = CreatePrtFont(ConvX2Dt(18, nDPIH, CX_PT), 700,
+                          FALSE, FALSE, FALSE, &g_MailBox.PrtInfo.lfPPF);
     hOldFont = SelectObject(g_MailBox.hDC, hFont);
     if (((nPaperWidth > nPaperHeight)
           && !g_MailBox.PrtInfo.bShortBinding)  // 横置きの長辺綴じ場合
@@ -630,8 +634,8 @@ BOOL EndPageDocument(void)
     if (PT_MAIL == g_MailBox.PrtInfo.nType) {
         // Fromと受信日時の表示
         sprintf(szBuf, "%s\r\n%s", g_MailBox.szFrom, g_MailBox.szDate);
-        hFont = CreatePrtFont(FN_MSPG, ConvX2Dt(8, nDPIH, CX_PT),
-                              800, FALSE, FALSE, FALSE, TRUE);
+        hFont = CreatePrtFont(ConvX2Dt(8, nDPIH, CX_PT), 800,
+                              FALSE, FALSE, FALSE, &g_MailBox.PrtInfo.lfPPF);
         hOldFont = SelectObject(g_MailBox.hDC, hFont);
 
         memcpy(&rc2, &rc, sizeof(RECT));
@@ -887,20 +891,19 @@ PutsPrinter(LPTSTR szBuf)
 BOOL
 SetFontAndPrint(
     LPTSTR lpszStr,                             // 出力文字列
-    LPTSTR lfFaceName,                          // フォント名
     UINT lfHeight,                              // フォントの高さ
     UINT lfWeight,                              // フォントのウエイト
     BOOL lfItalic,                              // T:イタリック
     BOOL lfUnderline,                           // T:下線
     BOOL lfStrikeout,                           // T:打ち消し線
-    BOOL bJapan                                 // T:日本語フォント
+    LPLOGFONT lplf                              // テンプレート
     )
 {
     HFONT hFont, hOldFont;
     BOOL bResult;
 
-    hFont = CreatePrtFont(lfFaceName, lfHeight, lfWeight, lfItalic,
-                          lfUnderline, lfStrikeout, bJapan);
+    hFont = CreatePrtFont(lfHeight, lfWeight, lfItalic,
+                          lfUnderline, lfStrikeout, lplf);
     hOldFont = SelectObject(g_MailBox.hDC, hFont);
 
     bResult = PutsPrinter(lpszStr);
