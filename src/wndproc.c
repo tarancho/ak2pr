@@ -2,8 +2,13 @@
  *
  * 「ak2psのようなもの」のウインドウプロシジャ
  *
- * $Id: wndproc.c,v 1.6 2001/12/08 15:21:40 tfuruka1 Exp $
+ * $Id: wndproc.c,v 1.7 2001/12/10 14:06:59 tfuruka1 Exp $
  * $Log: wndproc.c,v $
+ * Revision 1.7  2001/12/10 14:06:59  tfuruka1
+ * 削除データが選択されていない状態で、印刷Queueの削除を実行した時にエラー
+ * が表示されるように修正（というか、元々そうなっていたのに、LISTBOXから
+ * ListViewへ変更した時の対応が漏れていた）。
+ *
  * Revision 1.6  2001/12/08 15:21:40  tfuruka1
  * メイン画面のLISTBOX→ListView変更。
  *
@@ -34,7 +39,7 @@
 // (replace-regexp "/\\*\\(.+\\)\\*/" "//\\1")
 // (replace-regexp "[ \t]+$" "")
 
-#define TIME_STAMP "Time-stamp: <2001-12-08 22:08:06 tfuruka1>"
+#define TIME_STAMP "Time-stamp: <2001-12-10 23:04:30 tfuruka1>"
 
 #include "ak2prs.h"
 
@@ -301,7 +306,7 @@ DoCommand(
         SendMessage(hWnd, WM_COPYDATA, (WPARAM)hWnd, (LPARAM)&cds);
         break;
     case IDM_DELETE:
-        cnt = ListView_GetItemCount(hWndList);
+        cnt = ListView_GetSelectedCount(hWndList);
         if (0 >= cnt) {
             MessageBox(hWnd, "削除する印刷データが選択されていません",
                        "削除できません", MB_SETFOREGROUND | MB_ICONSTOP);
