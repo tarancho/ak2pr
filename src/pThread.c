@@ -1,10 +1,15 @@
 /* -*- mode: C++; coding: sjis-dos; -*-
- * Time-stamp: <2001-02-06 02:42:53 tfuruka1>
+ * Time-stamp: <2001-08-19 01:16:53 tfuruka1>
  *
  * 「ak2psのようなもの」の印刷スレッド
  *
- * $Id: pThread.c,v 1.1 2001/02/05 17:42:54 tfuruka1 Exp $
+ * $Id: pThread.c,v 1.2 2001/08/18 16:17:38 tfuruka1 Exp $
  * $Log: pThread.c,v $
+ * Revision 1.2  2001/08/18 16:17:38  tfuruka1
+ * ●PRT_INFO構造体からbDeleteメンバを削除したので（常に一旦作業ファイル
+ *   にコピーするようにしたので、このメンバは必要なくなった）、参照しない
+ *   ように修正。
+ *
  * Revision 1.1  2001/02/05 17:42:54  tfuruka1
  * Initial revision
  *
@@ -67,7 +72,7 @@ PrintThread(LPDWORD lpIDThread)
                  (PCHAR)lpDevNames + lpDevNames->wDriverOffset,
                  (PCHAR)lpDevNames + lpDevNames->wDeviceOffset,
                  (PCHAR)lpDevNames + lpDevNames->wOutputOffset);
-                 
+
         hDC = CreateDC((PCHAR)lpDevNames + lpDevNames->wDriverOffset,
                        (PCHAR)lpDevNames + lpDevNames->wDeviceOffset,
                        NULL, lpDevMode);
@@ -128,17 +133,15 @@ PrintThread(LPDWORD lpIDThread)
         }
 
         // ファイル削除指定がある場合はファイルを削除する
-        if (g_MailBox.PrtInfo.bDelete) {
-            if (DeleteFile(g_MailBox.PrtInfo.szFileName)) {
-                DbgPrint(NULL, 'I', "ファイル[%s]を削除しました",
-                         g_MailBox.PrtInfo.szFileName);
-            }
-            else {
-                int nErr = GetLastError();
-                DbgPrint(NULL, 'E', "ファイル[%s]を削除出来ませんでした\n%s",
-                         g_MailBox.PrtInfo.szFileName,
-                         GetLastErrorMessage("DeleteFile()", nErr));
-            }
+        if (DeleteFile(g_MailBox.PrtInfo.szFileName)) {
+            DbgPrint(NULL, 'I', "ファイル[%s]を削除しました",
+                     g_MailBox.PrtInfo.szFileName);
+        }
+        else {
+            int nErr = GetLastError();
+            DbgPrint(NULL, 'E', "ファイル[%s]を削除出来ませんでした\n%s",
+                     g_MailBox.PrtInfo.szFileName,
+                     GetLastErrorMessage("DeleteFile()", nErr));
         }
         DeleteDC(hDC);
     }
