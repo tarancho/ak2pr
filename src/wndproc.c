@@ -2,22 +2,22 @@
  *
  * 「ak2psのようなもの」のウインドウプロシジャ
  *
- * $Id: wndproc.c,v 1.1 2001/02/05 16:52:53 tfuruka1 Exp $
+ * $Id: wndproc.c,v 1.2 2001/02/05 16:55:33 tfuruka1 Exp $
  * $Log: wndproc.c,v $
- * Revision 1.1  2001/02/05 16:52:53  tfuruka1
- * Initial revision
- *
- * Revision 1.2  2000/11/05 03:48:57  tfuruka1
+ * Revision 1.2  2001/02/05 16:55:33  tfuruka1
  * 詳細ウィンドウを表示した時に「印刷停止」メニューにチェックマークを付け
  * ていたバグを修正。また、「詳細ウインドウ」メニューのチェックマークが逆
  * （メニューが表示されていないときにチェックマークが付いていた）だったバ
  * グを修正。
  *
+ * Revision 1.1  2001/02/05 16:52:53  tfuruka1
+ * Initial revision
+ *
  */
 // (replace-regexp "/\\*\\(.+\\)\\*/" "//\\1")
 // (replace-regexp "[ \t]+$" "")
 
-#define TIME_STAMP "Time-stamp: <2001-02-06 01:52:52 tfuruka1>"
+#define TIME_STAMP "Time-stamp: <2001-02-06 01:55:14 tfuruka1>"
 
 #include "ak2prs.h"
 
