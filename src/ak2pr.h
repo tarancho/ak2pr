@@ -1,10 +1,14 @@
 /* -*- mode: c++; coding: sjis-dos;-*-
- * Time-stamp: <2001-12-08 01:05:10 tfuruka1>
+ * Time-stamp: <2001-12-08 20:04:31 tfuruka1>
  *
  * 「ak2psのようなもの」の共通ヘッダファイル(クライアント用)
  *
- * $Id: ak2pr.h,v 1.5 2001/12/07 18:23:31 tfuruka1 Exp $
+ * $Id: ak2pr.h,v 1.6 2001/12/08 15:26:32 tfuruka1 Exp $
  * $Log: ak2pr.h,v $
+ * Revision 1.6  2001/12/08 15:26:32  tfuruka1
+ * 「用紙サイズ指定」と「メイン画面のLISTBOXをListViewへ変更」の為、新た
+ * に用紙サイズの説明を取得する関数が必要になった。
+ *
  * Revision 1.5  2001/12/07 18:23:31  tfuruka1
  * 用紙サイズの指定を出来るようにした。
  *
@@ -173,5 +177,9 @@ GetPaperSizeUsageMessage();
  * *-------------------------------------------------------------------*/
 short WINAPI
 GetPaperSizeDevMode(LPTSTR cmdOpt);
-
+/*--------------------------------------------------------------------
+ * DEVMODEで使用する用紙サイズの定数から用紙サイズの説明を得る。
+ * *-------------------------------------------------------------------*/
+LPCTSTR WINAPI
+GetPaperSizeComment(short dmPaperSize);
 #endif //_AK2PR_H_
