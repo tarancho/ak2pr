@@ -1,10 +1,13 @@
 /* -*- mode: c++; coding: sjis-dos; -*-
- * Time-stamp: <2001-12-15 01:44:10 tfuruka1>
+ * Time-stamp: <2003-02-26 00:16:00 tfuruka1>
  *
  * 「ak2psのようなもの」のQueue処理
  *
- * $Id: queue.c,v 1.6 2001/12/14 17:03:27 tfuruka1 Exp $
+ * $Id: queue.c,v 1.7 2003/02/25 15:30:15 tfuruka1 Exp $
  * $Log: queue.c,v $
+ * Revision 1.7  2003/02/25 15:30:15  tfuruka1
+ * 行番号出力の処理追加による修正
+ *
  * Revision 1.6  2001/12/14 17:03:27  tfuruka1
  * プレビューの状態状態をEnQueue/DeQueueで（デバッグ）表示するようにした。
  *
@@ -134,6 +137,11 @@ EnQueue(
     sprintf(szBuf, "%s", pPrtInfo->szTitle);
     item.pszText = szBuf;
     item.iSubItem = 7;
+    ListView_SetItem(hWnd, &item);
+
+    sprintf(szBuf, "%s", pPrtInfo->bNum ? "あり" : "なし");
+    item.pszText = szBuf;
+    item.iSubItem = 8;
     ListView_SetItem(hWnd, &item);
 
     DbgPrint(hWnd, 'I', "以下の通りQueueingしました\n"
