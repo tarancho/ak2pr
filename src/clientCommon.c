@@ -1,10 +1,14 @@
 /* -*- mode: c++; coding: sjis-dos; -*-
- * Time-stamp: <2001-08-19 09:22:20 tfuruka1>
+ * Time-stamp: <2001-09-29 00:39:04 tfuruka1>
  *
  * 「ak2psのようなもの」のクライアントの共通処理部
  *
- * $Id: clientCommon.c,v 1.4 2001/08/19 04:39:54 tfuruka1 Exp $
+ * $Id: clientCommon.c,v 1.5 2001/09/28 15:45:54 tfuruka1 Exp $
  * $Log: clientCommon.c,v $
+ * Revision 1.5  2001/09/28 15:45:54  tfuruka1
+ * 引数をデバッグ用にダンプしている場所で、メモリ破壊を起こしていた（おば
+ * かな）バグを修正。
+ *
  * Revision 1.4  2001/08/19 04:39:54  tfuruka1
  * PostScriptファイルの暫定対応（ただ単にDistillerの監視フォルダに放り込
  * むだけ）。
@@ -39,10 +43,16 @@ int ak2prClientCommon(int __argc, char **_argv)
         TCHAR szBuf[4096];
         szBuf[0] = '\0';
         for (i = 1; i < __argc; i++) {
+            if (4095 < (strlen(szBuf) + strlen(*(__argv + i)) + 1)) {
+                break;
+            }
             sprintf(szBuf + strlen(szBuf), "argv[%d]=%s", i, *(__argv + i));
             if (*(__argv + i + 1)) {
                 if (4095 > (strlen(szBuf) + 2)) {
                     strcat(szBuf, ", ");
+                }
+                else {
+                    break;
                 }
             }
         }
