@@ -1,10 +1,14 @@
 /* -*- mode: c++; coding: sjis-dos;-*-
- * Time-stamp: <2003-03-19 23:46:03 tfuruka1>
+ * Time-stamp: <2004-01-12 17:07:56 tfuruka1>
  *
  * 「ak2psのようなもの」の共通ヘッダファイル(クライアント用)
  *
- * $Id: ak2pr.h,v 1.9 2003/03/29 12:54:15 tfuruka1 Exp $
+ * $Id: ak2pr.h,v 1.10 2004/01/12 09:59:19 tfuruka1 Exp $
  * $Log: ak2pr.h,v $
+ * Revision 1.10  2004/01/12 09:59:19  tfuruka1
+ * 長辺綴じと短辺綴じに対応した事により、関連関数に引数が一つ増えたため、
+ * 関連するプロタイプを変更しました。
+ *
  * Revision 1.9  2003/03/29 12:54:15  tfuruka1
  * ● SendPrintFromStdin関数の仕様変更によるプロトタイプの変更。
  * ● ReadClipBoardToFP関数の新規追加による、プロトタイプの追加。
@@ -110,7 +114,8 @@ SendPrintFromFileCopy(
     int nType,                                  // 印刷データタイプ
     int nOrientation,                           // 用紙の向き
     short dmPaperSize,                          // 用紙サイズ
-    int bNum                                    // 行番号
+    int bNum,                                   // 行番号
+    int nBinding                                // 綴じ方向
     );
 /*-------------------------------------------------------------------- 
  * 標準入力の内容を読み込みプリントサーバへ印刷情報を送信する。標準入
@@ -127,7 +132,8 @@ SendPrintFromStdin(
     int nType,                                  // 印刷データタイプ
     int nOrientation,                           // 用紙の向き
     short dmPaperSize,                          // 用紙サイズ
-    int bNum                                    // 行番号
+    int bNum,                                   // 行番号
+    int nBinding                                // 綴じ方向
     );
 /*--------------------------------------------------------------------
  * lpstrで指定された書式文字列を書式に従って編集し表示ウィンドウへ表示
