@@ -2,8 +2,11 @@
  *
  * 「ak2psのようなもの」のウインドウプロシジャ
  *
- * $Id: wndproc.c,v 1.3 2001/02/05 17:11:31 tfuruka1 Exp $
+ * $Id: wndproc.c,v 1.4 2001/02/05 17:13:37 tfuruka1 Exp $
  * $Log: wndproc.c,v $
+ * Revision 1.4  2001/02/05 17:13:37  tfuruka1
+ * ホームページのURLをtfuruka1からVA001687へ変更した。
+ *
  * Revision 1.3  2001/02/05 17:11:31  tfuruka1
  * プリンタの設定ダイアログをドロップダウンメニューからプロパティシートの
  * 共通タブへ移動した。
@@ -21,11 +24,11 @@
 // (replace-regexp "/\\*\\(.+\\)\\*/" "//\\1")
 // (replace-regexp "[ \t]+$" "")
 
-#define TIME_STAMP "Time-stamp: <2001-02-06 02:09:34 tfuruka1>"
+#define TIME_STAMP "Time-stamp: <2001-02-06 02:13:02 tfuruka1>"
 
 #include "ak2prs.h"
 
-#define SZ_URL "http://www.vector.co.jp/authors/tfuruka1/"
+#define SZ_URL "http://www.vector.co.jp/authors/VA001687/"
 #define SZ_MAIL "mailto:tfuruka1@nifty.com"
 #define TMR_ID 100
 #define TMR_TO 1000
