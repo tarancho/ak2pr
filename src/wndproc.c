@@ -2,8 +2,12 @@
  *
  * 「ak2psのようなもの」のウインドウプロシジャ
  *
- * $Id: wndproc.c,v 1.13 2003/03/15 14:47:04 tfuruka1 Exp $
+ * $Id: wndproc.c,v 1.14 2003/03/16 00:21:56 tfuruka1 Exp $
  * $Log: wndproc.c,v $
+ * Revision 1.14  2003/03/16 00:21:56  tfuruka1
+ * ● プレビューから印刷設定を行うと、設定が有効にならない項目があったの
+ *    で、修正した。
+ *
  * Revision 1.13  2003/03/15 14:47:04  tfuruka1
  * ● 印刷設定を行う関数の仕様変更に伴う修正。
  *
@@ -66,7 +70,7 @@
 // (replace-regexp "/\\*\\(.+\\)\\*/" "//\\1")
 // (replace-regexp "[ \t]+$" "")
 
-#define TIME_STAMP "Time-stamp: <2003-03-15 22:41:55 tfuruka1>"
+#define TIME_STAMP "Time-stamp: <2003-03-16 09:14:19 tfuruka1>"
 
 #include "ak2prs.h"
 
@@ -350,9 +354,12 @@ DoCopyData(
     strcpy(pPrtInfo->szGsPath, g_PrtInfo.szGsPath);
     strcpy(pPrtInfo->szGsOpt, g_PrtInfo.szGsOpt);
 
-    // パラメータで設定出来ない値を設定する
+    // パラメータで設定出来ない値を設定する(将来は全てパラメータで設定
+    // する予定)
     pPrtInfo->bColor = g_PrtInfo.bColor;
     pPrtInfo->bNoRcvHeader = g_PrtInfo.bNoRcvHeader;
+    pPrtInfo->bNoCopyright = g_PrtInfo.bNoCopyright;
+    pPrtInfo->bDebug = g_PrtInfo.bDebug;
 
     // 構造体を有効にする
     pPrtInfo->valid = TRUE;
