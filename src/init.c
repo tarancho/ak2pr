@@ -1,10 +1,13 @@
 /* -*- mode: c++; coding: sjis-dos; -*-
- * Time-stamp: <2001-12-18 13:10:25 tfuruka1>
+ * Time-stamp: <2001-12-18 20:32:24 tfuruka1>
  *
  * 「ak2psのようなもの」のサーバの初期化処理
  *
- * $Id: init.c,v 1.5 2001/12/18 04:10:46 tfuruka1 Exp $
+ * $Id: init.c,v 1.6 2001/12/18 12:59:22 tfuruka1 Exp $
  * $Log: init.c,v $
+ * Revision 1.6  2001/12/18 12:59:22  tfuruka1
+ * デバッグ印刷のオプションを追加。
+ *
  * Revision 1.5  2001/12/18 04:10:46  tfuruka1
  * プレビューウインドウの保存・復帰処理を追加
  *
@@ -38,6 +41,7 @@
 #define KEY_BNUM     "bNum"
 #define KEY_BASELINE "nBaseLine"
 #define KEY_BPREVIEW "bPreview"
+#define KEY_BDEBUG   "bDebug"
 
 #define SEC_DEVICE   "DEVICE SETUP"
 #define KEY_DEVNAME  "DeviceName"
@@ -198,6 +202,9 @@ GetDefaultPrtInfo(void)
     GET_PROFILE(PROFILE_SEC, KEY_BPREVIEW);
     g_PrtInfo.bPreView = IsBadStr(szBuf) ? FALSE : atoi(szBuf);
 
+    GET_PROFILE(PROFILE_SEC, KEY_BDEBUG);
+    g_PrtInfo.bDebug = IsBadStr(szBuf) ? FALSE : atoi(szBuf);
+
     GET_PROFILE(PROFILE_SEC, KEY_BNORCVH);
     g_PrtInfo.bNoRcvHeader = IsBadStr(szBuf) ? FALSE : atoi(szBuf);
 
@@ -260,6 +267,9 @@ SetDefaultPrtInfo(void)
 
     sprintf(szBuf, "%d", g_PrtInfo.bPreView);
     WRT_PROFILE(PROFILE_SEC, KEY_BPREVIEW, szBuf);
+
+    sprintf(szBuf, "%d", g_PrtInfo.bDebug);
+    WRT_PROFILE(PROFILE_SEC, KEY_BDEBUG, szBuf);
 
     sprintf(szBuf, "%d", g_PrtInfo.bNoRcvHeader);
     WRT_PROFILE(PROFILE_SEC, KEY_BNORCVH, szBuf);

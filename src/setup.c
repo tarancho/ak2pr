@@ -1,10 +1,13 @@
 /* -*- mode: c++; coding: sjis-dos; -*-
- * Time-stamp: <2001-12-15 01:18:21 tfuruka1>
+ * Time-stamp: <2001-12-18 20:34:54 tfuruka1>
  *
  * 「ak2psのようなもの」の印字設定
  *
- * $Id: setup.c,v 1.5 2001/12/14 17:09:17 tfuruka1 Exp $
+ * $Id: setup.c,v 1.6 2001/12/18 12:59:04 tfuruka1 Exp $
  * $Log: setup.c,v $
+ * Revision 1.6  2001/12/18 12:59:04  tfuruka1
+ * デバッグ印刷のオプションを追加。
+ *
  * Revision 1.5  2001/12/14 17:09:17  tfuruka1
  * プレビュー対応
  *
@@ -92,6 +95,10 @@ DoInitDialogCom(
 
     // プレビューの実行有無
     CheckDlgButton(hWnd, IDC_CHK_PREVIEW, g_PrtInfo.bPreView ? TRUE : FALSE);
+
+    // デバッグ印刷の実行有無
+    CheckDlgButton(hWnd, IDC_C_DEBUG, g_PrtInfo.bDebug ? TRUE : FALSE);
+
     return TRUE;
 }
 
@@ -200,6 +207,7 @@ DoCloseCom(HWND hWnd)
     PrtInfoTmp.nNumOfUp = i;
 
     PrtInfoTmp.bPreView = IsDlgButtonChecked(hWnd, IDC_CHK_PREVIEW);
+    PrtInfoTmp.bDebug = IsDlgButtonChecked(hWnd, IDC_C_DEBUG);
 
     DbgPrint(NULL, 'I', "共通設定終了\nTABSTOP:%d\nFONTSIZE:%f\n"
              "NUP:%d\nPREVIE:%d",

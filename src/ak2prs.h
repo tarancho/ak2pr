@@ -2,8 +2,11 @@
  *
  * 「ak2psのようなもの」のサーバ側のヘッダファイル
  *
- * $Id: ak2prs.h,v 1.10 2001/12/18 04:03:17 tfuruka1 Exp $
+ * $Id: ak2prs.h,v 1.11 2001/12/18 13:00:57 tfuruka1 Exp $
  * $Log: ak2prs.h,v $
+ * Revision 1.11  2001/12/18 13:00:57  tfuruka1
+ * デバッグ印刷のオプションを追加。
+ *
  * Revision 1.10  2001/12/18 04:03:17  tfuruka1
  * ─────【Version 1.7にしました】─────
  * 取りあえず、プレビューできるようにしました。元々、プレビューをサポート
@@ -61,7 +64,7 @@
 #ifndef _AK2PRS_H_
 #define _AK2PRS_H_
 
-#define TIMESTAMP "Time-stamp: <2001-12-18 13:03:17 tfuruka1>"
+#define TIMESTAMP "Time-stamp: <2001-12-18 21:29:01 tfuruka1>"
 #define VERSION   "Version 1.7"
 
 #include <windows.h>
@@ -148,6 +151,7 @@ typedef struct _PrtInfo{
     BOOL bNoRcvHeader;                          // Receivedヘッダを印字しない
     BOOL bColor;                                // T: Color印刷
     BOOL bPreView;                              // T: プレビュー
+    BOOL bDebug;                                // T: デバッグ印刷
     double fFontSize;                           // フォントサイズ --- Point
 } PRT_INFO, *PPRT_INFO;
 
@@ -313,5 +317,15 @@ HDC WINAPI
 MakePreviewInfo(HWND hWnd,                      // ウインドウハンドル
               HDC hDCPrinter,                   // プリンタDC
               PPREVIEW_INFO                     // プレビュー情報
+    );
+/* -------------------------------------------------------------------
+ * 矩形を描画する
+ * *-----------------------------------------------------------------*/
+void WINAPI
+DrawRect(
+    HDC hDC,                                    // デバイスコンテキスト
+    LPRECT lprc,                                // 矩形座標
+    COLORREF rgb,                               // 色
+    int pnStyle                                 // 線のスタイル
     );
 #endif
