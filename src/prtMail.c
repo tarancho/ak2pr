@@ -1,10 +1,13 @@
 /* -*- mode: C++; coding: sjis-dos; -*-
- * Time-stamp: <2004-01-19 12:46:35 tfuruka1>
+ * Time-stamp: <2004-06-18 09:38:27 tfuruka1>
  *
  * 「ak2psのようなもの」のメール印字処理
  *
- * $Id: prtMail.c,v 1.3 2004/01/19 05:37:04 tfuruka1 Exp $
+ * $Id: prtMail.c,v 1.4 2004/06/18 00:57:56 tfuruka1 Exp $
  * $Log: prtMail.c,v $
+ * Revision 1.4  2004/06/18 00:57:56  tfuruka1
+ * 改行コードの修正のみです。
+ *
  * Revision 1.3  2004/01/19 05:37:04  tfuruka1
  * フォント情報を指定出来るようになった事に関する修正を行いました。
  *

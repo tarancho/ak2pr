@@ -1,10 +1,13 @@
 /* -*- mode: c++; coding: sjis-dos; -*-
- * Time-stamp: <2004-01-18 19:44:56 tfuruka1>
+ * Time-stamp: <2004-06-18 09:38:57 tfuruka1>
  *
  * 「ak2psのようなもの」のテキスト印刷処理
  *
- * $Id: prtText.c,v 1.3 2004/01/19 05:37:29 tfuruka1 Exp $
+ * $Id: prtText.c,v 1.4 2004/06/18 00:57:56 tfuruka1 Exp $
  * $Log: prtText.c,v $
+ * Revision 1.4  2004/06/18 00:57:56  tfuruka1
+ * 改行コードの修正のみです。
+ *
  * Revision 1.3  2004/01/19 05:37:29  tfuruka1
  * フォント情報を指定出来るようになった事に関する修正を行いました。
  *

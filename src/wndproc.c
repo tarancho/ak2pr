@@ -2,8 +2,11 @@
  *
  * 「ak2psのようなもの」のウインドウプロシジャ
  *
- * $Id: wndproc.c,v 1.17 2004/01/19 05:39:32 tfuruka1 Exp $
+ * $Id: wndproc.c,v 1.18 2004/06/18 00:57:56 tfuruka1 Exp $
  * $Log: wndproc.c,v $
+ * Revision 1.18  2004/06/18 00:57:56  tfuruka1
+ * 改行コードの修正のみです。
+ *
  * Revision 1.17  2004/01/19 05:39:32  tfuruka1
  * フォント情報を指定出来るようになった事に関する修正を行いました。
  *
@@ -81,7 +84,7 @@
 // (replace-regexp "/\\*\\(.+\\)\\*/" "//\\1")
 // (replace-regexp "[ \t]+$" "")
 
-#define TIME_STAMP "Time-stamp: <2004-01-19 12:23:01 tfuruka1>"
+#define TIME_STAMP "Time-stamp: <2004-06-18 09:42:45 tfuruka1>"
 
 #include "ak2prs.h"
 

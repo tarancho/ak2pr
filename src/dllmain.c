@@ -1,10 +1,13 @@
 /* -*- mode: C++; coding: sjis-dos; -*-
- * Time-stamp: <2004-01-12 16:51:22 tfuruka1>
+ * Time-stamp: <2004-06-18 09:32:48 tfuruka1>
  *
  * ak2ps のようなものの共通 DLL
  *
- * $Id: dllmain.c,v 1.18 2004/01/12 09:58:24 tfuruka1 Exp $
+ * $Id: dllmain.c,v 1.19 2004/06/18 00:57:57 tfuruka1 Exp $
  * $Log: dllmain.c,v $
+ * Revision 1.19  2004/06/18 00:57:57  tfuruka1
+ * 改行コードの修正のみです。
+ *
  * Revision 1.18  2004/01/12 09:58:24  tfuruka1
  * 長辺綴じと短辺綴じに対応しました。
  *

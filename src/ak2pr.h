@@ -1,10 +1,13 @@
 /* -*- mode: c++; coding: sjis-dos;-*-
- * Time-stamp: <2004-01-12 17:07:56 tfuruka1>
+ * Time-stamp: <2004-06-18 09:27:42 tfuruka1>
  *
  * 「ak2psのようなもの」の共通ヘッダファイル(クライアント用)
  *
- * $Id: ak2pr.h,v 1.10 2004/01/12 09:59:19 tfuruka1 Exp $
+ * $Id: ak2pr.h,v 1.11 2004/06/18 00:57:43 tfuruka1 Exp $
  * $Log: ak2pr.h,v $
+ * Revision 1.11  2004/06/18 00:57:43  tfuruka1
+ * 改行コードの修正のみです。
+ *
  * Revision 1.10  2004/01/12 09:59:19  tfuruka1
  * 長辺綴じと短辺綴じに対応した事により、関連関数に引数が一つ増えたため、
  * 関連するプロタイプを変更しました。

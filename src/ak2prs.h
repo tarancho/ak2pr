@@ -2,8 +2,11 @@
  *
  * 「ak2psのようなもの」のサーバ側のヘッダファイル
  *
- * $Id: ak2prs.h,v 1.21 2004/01/19 05:40:05 tfuruka1 Exp $
+ * $Id: ak2prs.h,v 1.22 2004/06/18 00:57:43 tfuruka1 Exp $
  * $Log: ak2prs.h,v $
+ * Revision 1.22  2004/06/18 00:57:43  tfuruka1
+ * 改行コードの修正のみです。
+ *
  * Revision 1.21  2004/01/19 05:40:05  tfuruka1
  * フォント情報を指定出来るようになった事に関する修正を行いました。
  *
@@ -110,8 +113,8 @@
 #ifndef _AK2PRS_H_
 #define _AK2PRS_H_
 
-#define TIMESTAMP "Time-stamp: <2004-01-19 14:20:36 tfuruka1>"
-#define VERSION   "Version 2.3 beta-4"
+#define TIMESTAMP "Time-stamp: <2004-06-18 09:44:51 tfuruka1>"
+#define VERSION   "Version 2.3 ($Name:  $)"
 
 #include <windows.h>
 #include <windowsx.h>

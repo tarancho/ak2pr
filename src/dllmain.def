@@ -1,8 +1,11 @@
 ; -*- mode: text; coding: sjis-dos; -*-
-; Time-stamp: <2003-03-09 18:55:33 tfuruka1>
+; Time-stamp: <2004-06-18 09:32:53 tfuruka1>
 ;
-; $Id: dllmain.def,v 1.2 2003/03/29 13:53:35 tfuruka1 Exp $
+; $Id: dllmain.def,v 1.3 2004/06/18 00:57:57 tfuruka1 Exp $
 ; $Log: dllmain.def,v $
+; Revision 1.3  2004/06/18 00:57:57  tfuruka1
+; 改行コードの修正のみです。
+;
 ; Revision 1.2  2003/03/29 13:53:35  tfuruka1
 ; ●GetPSTitleの追加
 ;

@@ -1,10 +1,13 @@
 /* -*- mode: c++; coding: sjis-dos; -*-
- * Time-stamp: <2004-01-18 19:33:37 tfuruka1>
+ * Time-stamp: <2004-06-18 09:42:11 tfuruka1>
  *
  * ak2psのようなもののテスト印字関連
  *
- * $Id: testprint.c,v 1.4 2004/01/19 05:39:09 tfuruka1 Exp $
+ * $Id: testprint.c,v 1.5 2004/06/18 00:57:56 tfuruka1 Exp $
  * $Log: testprint.c,v $
+ * Revision 1.5  2004/06/18 00:57:56  tfuruka1
+ * 改行コードの修正のみです。
+ *
  * Revision 1.4  2004/01/19 05:39:09  tfuruka1
  * フォント情報を指定出来るようになった事に関する修正を行いました。
  *

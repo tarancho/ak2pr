@@ -1,7 +1,10 @@
 /* -*- mode: c++; coding: sjis-dos; -*-
- * Time-stamp: <2001-08-19 13:51:33 tfuruka1>
- * $Id: dbg.c,v 1.2 2001/08/19 04:55:59 tfuruka1 Exp $
+ * Time-stamp: <2004-06-18 09:32:45 tfuruka1>
+ * $Id: dbg.c,v 1.3 2004/06/18 00:57:57 tfuruka1 Exp $
  * $Log: dbg.c,v $
+ * Revision 1.3  2004/06/18 00:57:57  tfuruka1
+ * 改行コードの修正のみです。
+ *
  * Revision 1.2  2001/08/19 04:55:59  tfuruka1
  * ログファイルの格納パスをフルパスで持つようにした。
  *

@@ -1,9 +1,11 @@
-# (replace-string "\r" "")
 # -*- mode: makefile; coding: sjis-unix; -*-
-# Time-stamp: <2004-06-18 00:30:30 tfuruka1>
+# Time-stamp: <2004-06-18 09:49:12 tfuruka1>
 #
-# $Id: makefile,v 1.5 2004/06/17 15:32:21 tfuruka1 Exp $
+# $Id: makefile,v 1.6 2004/06/18 00:57:56 tfuruka1 Exp $
 # $Log: makefile,v $
+# Revision 1.6  2004/06/18 00:57:56  tfuruka1
+# 改行コードの修正のみです。
+#
 # Revision 1.5  2004/06/17 15:32:21  tfuruka1
 # fonts.c を追加した事による修正
 #
@@ -36,7 +38,16 @@ LDFLAGS = /debug
 all : ak2pr.dll ak2prSV.exe ak2pr.exe ak2prW.exe tags
 
 install : all
+	cp ak2pr.dll ak2prSV.exe ak2pr.exe ak2prW.exe ../bin/.
 	cp ak2pr.dll ak2prSV.exe ak2pr.exe ak2prW.exe $(INSTDIR)/.
+
+release : install clean
+	cd ..
+	cd ..
+	tar cvzf /tmp/ak2pr$(REL_VER)src.tar.gz\
+        ak2pr/readme.txt ak2pr/bin ak2pr/src
+	tar cvzf /tmp/ak2pr$(REL_VER)bin.tar.gz\
+        ak2pr/readme.txt ak2pr/bin
 
 ak2prSV.exe : $(SV_OBJS)
 	$(CC) $(CFLAGS) -o $@ $(SV_OBJS) /link $(LDFLAGS) ak2pr.lib $(COMM_LIB)

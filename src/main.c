@@ -1,10 +1,13 @@
 /* -*- mode: c++; coding: sjis-dos; -*-
- * Time-stamp: <2003-03-29 02:50:43 tfuruka1>
+ * Time-stamp: <2004-06-18 09:33:15 tfuruka1>
  *
  * 「ak2psのようなもの」のサーバ側メイン処理
  *
- * $Id: main.c,v 1.4 2003/03/29 12:45:28 tfuruka1 Exp $
+ * $Id: main.c,v 1.5 2004/06/18 00:57:56 tfuruka1 Exp $
  * $Log: main.c,v $
+ * Revision 1.5  2004/06/18 00:57:56  tfuruka1
+ * 改行コードの修正のみです。
+ *
  * Revision 1.4  2003/03/29 12:45:28  tfuruka1
  * ● アクセラレータを処理するように対応した。
  *

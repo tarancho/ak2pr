@@ -1,10 +1,13 @@
 /* -*- mode: c++; coding: sjis-dos; -*-
- * Time-stamp: <2001-02-06 02:45:19 tfuruka1>
+ * Time-stamp: <2004-06-18 09:41:42 tfuruka1>
  *
  * 「ak2psのようなもの」の文字列操作関連
  *
- * $Id: string.c,v 1.1 2001/02/05 17:45:20 tfuruka1 Exp $
+ * $Id: string.c,v 1.2 2004/06/18 00:57:56 tfuruka1 Exp $
  * $Log: string.c,v $
+ * Revision 1.2  2004/06/18 00:57:56  tfuruka1
+ * 改行コードの修正のみです。
+ *
  * Revision 1.1  2001/02/05 17:45:20  tfuruka1
  * Initial revision
  *

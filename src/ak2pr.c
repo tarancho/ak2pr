@@ -1,5 +1,5 @@
 /* -*- mode: C++; coding: sjis-dos; -*-
- * Time-stamp: <2000-11-05 11:22:56 tfuruka1>
+ * Time-stamp: <2004-06-18 09:30:23 tfuruka1>
  *
  * 「ak2psのようなもの」のクライアントのサンプル。このクライアントは
  * Emacsのlpr-burrerから直接呼び出されても動作出来るように，コマンド引
@@ -18,8 +18,11 @@
  *
  * lpr-add-switchesをtに設定すると，タイトル文字列も送信してくれます。
  *
- * $Id: ak2pr.c,v 1.1 2001/02/05 17:51:14 tfuruka1 Exp $
+ * $Id: ak2pr.c,v 1.2 2004/06/18 00:57:29 tfuruka1 Exp $
  * $Log: ak2pr.c,v $
+ * Revision 1.2  2004/06/18 00:57:29  tfuruka1
+ * 改行コードの修正のみです。
+ *
  * Revision 1.1  2001/02/05 17:51:14  tfuruka1
  * Initial revision
  *

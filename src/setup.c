@@ -1,5 +1,5 @@
 /* -*- mode: c++; coding: sjis-dos; -*-
- * Time-stamp: <2004-01-19 12:26:13 tfuruka1>
+ * Time-stamp: <2004-06-18 09:41:27 tfuruka1>
  *
  * 「ak2psのようなもの」の印字設定
  *
@@ -10,8 +10,11 @@
  * ていない場合は、実行されない。この事を知らなかったので、不可解な現
  * 象が発生していました（INIT_DIALOGが常に発生していると思っていた）。
  *
- * $Id: setup.c,v 1.13 2004/01/19 05:38:35 tfuruka1 Exp $
+ * $Id: setup.c,v 1.14 2004/06/18 00:57:56 tfuruka1 Exp $
  * $Log: setup.c,v $
+ * Revision 1.14  2004/06/18 00:57:56  tfuruka1
+ * 改行コードの修正のみです。
+ *
  * Revision 1.13  2004/01/19 05:38:35  tfuruka1
  * フォント情報を指定出来るようになった事に関する修正を行いました。
  *
@@ -253,7 +256,7 @@ DoCommandCom(
         CheckDlgButton(hWnd, IDC_CHK_NOCOPYRIGHT, PrtInfoTmp.bNoCopyright);
 
         // フォントの選択
-        strcpy(PrtInfoTmp.lfTHF.lfFaceName, FN_MSPM);
+        strcpy(PrtInfoTmp.lfTHF.lfFaceName, FN_MSM);
         strcpy(PrtInfoTmp.lfPPF.lfFaceName, FN_MSPG);
         strcpy(PrtInfoTmp.lfOF.lfFaceName, FN_COU);
         strcpy(PrtInfoTmp.lfOPPF.lfFaceName, FN_ARIAL);

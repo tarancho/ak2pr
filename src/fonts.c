@@ -1,11 +1,14 @@
-/* -*- mode: c++; coding: sjis; -*-
- * Time-stamp: <2004-01-19 14:32:32 tfuruka1>
+/* -*- mode: c++; coding: sjis-dos; -*-
+ * Time-stamp: <2004-06-18 09:35:13 tfuruka1>
  * Copyright (C) 2004 Tadamegu Furukawa
  *
  * フォントに関連する定義
  *
- * $Id: fonts.c,v 1.1 2004/01/19 05:32:32 tfuruka1 Exp $
+ * $Id: fonts.c,v 1.2 2004/06/18 00:57:56 tfuruka1 Exp $
  * $Log: fonts.c,v $
+ * Revision 1.2  2004/06/18 00:57:56  tfuruka1
+ * 改行コードの修正のみです。
+ *
  * Revision 1.1  2004/01/19 05:32:32  tfuruka1
  * Initial revision
  *

@@ -1,10 +1,13 @@
 /* -*- mode: c++; coding: sjis-dos; -*-
- * Time-stamp: <2004-01-17 21:44:35 tfuruka1>
+ * Time-stamp: <2004-06-18 09:32:37 tfuruka1>
  *
  * 「ak2psのようなもの」のクライアントの共通処理部
  *
- * $Id: clientCommon.c,v 1.15 2004/01/19 05:25:58 tfuruka1 Exp $
+ * $Id: clientCommon.c,v 1.16 2004/06/18 00:57:43 tfuruka1 Exp $
  * $Log: clientCommon.c,v $
+ * Revision 1.16  2004/06/18 00:57:43  tfuruka1
+ * 改行コードの修正のみです。
+ *
  * Revision 1.15  2004/01/19 05:25:58  tfuruka1
  * [/D:PRN]オプションを固定で無視するようにしました。/をオプションスイッ
  * チとして扱うようにしていたが, その方法だと, コマンドラインから使用した

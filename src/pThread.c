@@ -1,10 +1,13 @@
 /* -*- mode: C++; coding: sjis-dos; -*-
- * Time-stamp: <2004-01-19 12:22:33 tfuruka1>
+ * Time-stamp: <2004-06-18 09:39:49 tfuruka1>
  *
  * 「ak2psのようなもの」の印刷スレッド
  *
- * $Id: pThread.c,v 1.12 2004/01/19 05:37:58 tfuruka1 Exp $
+ * $Id: pThread.c,v 1.13 2004/06/18 00:57:56 tfuruka1 Exp $
  * $Log: pThread.c,v $
+ * Revision 1.13  2004/06/18 00:57:56  tfuruka1
+ * 改行コードの修正のみです。
+ *
  * Revision 1.12  2004/01/19 05:37:58  tfuruka1
  * フォント情報を指定出来るようになった事に関する修正を行いました。
  *

@@ -1,10 +1,13 @@
 /* -*- mode: c++; coding: sjis-dos; -*-
- * Time-stamp: <2003-03-29 21:41:05 tfuruka1>
+ * Time-stamp: <2004-06-18 09:32:40 tfuruka1>
  *
  * 「ak2psのようなもの」のクリップボード関係の処理
  *
- * $Id: clipboard.c,v 1.1 2004/06/17 15:01:06 tfuruka1 Exp $
+ * $Id: clipboard.c,v 1.2 2004/06/18 00:57:57 tfuruka1 Exp $
  * $Log: clipboard.c,v $
+ * Revision 1.2  2004/06/18 00:57:57  tfuruka1
+ * 改行コードの修正のみです。
+ *
  * Revision 1.1  2004/06/17 15:01:06  tfuruka1
  * Initial revision
  *

@@ -1,10 +1,13 @@
 /* -*- mode: c++; coding: sjis-dos; -*-
- * Time-stamp: <2004-01-19 12:26:15 tfuruka1>
+ * Time-stamp: <2004-06-18 09:37:56 tfuruka1>
  *
  * 「ak2psのようなもの」のプリンタ制御関連
  *
- * $Id: printer.c,v 1.8 2004/01/19 05:35:54 tfuruka1 Exp $
+ * $Id: printer.c,v 1.9 2004/06/18 00:57:56 tfuruka1 Exp $
  * $Log: printer.c,v $
+ * Revision 1.9  2004/06/18 00:57:56  tfuruka1
+ * 改行コードの修正のみです。
+ *
  * Revision 1.8  2004/01/19 05:35:54  tfuruka1
  * フォント情報を設定できるようにした為, フォントに関連する関数のインター
  * フェイスを変更しました。

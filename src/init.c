@@ -1,10 +1,13 @@
 /* -*- mode: c++; coding: sjis-dos; -*-
- * Time-stamp: <2004-01-19 13:50:39 tfuruka1>
+ * Time-stamp: <2004-06-18 09:36:58 tfuruka1>
  *
  * 「ak2psのようなもの」のサーバの初期化処理
  *
- * $Id: init.c,v 1.10 2004/01/19 05:34:26 tfuruka1 Exp $
+ * $Id: init.c,v 1.11 2004/06/18 00:57:56 tfuruka1 Exp $
  * $Log: init.c,v $
+ * Revision 1.11  2004/06/18 00:57:56  tfuruka1
+ * 改行コードの修正のみです。
+ *
  * Revision 1.10  2004/01/19 05:34:26  tfuruka1
  * フォントに関連する情報をプロファイルから取得, 格納できるようにしました。
  *
@@ -250,7 +253,7 @@ GetDefaultPrtInfo(void)
 
     // フォント情報を得る
     GET_PROFILE(SEC_FONT, KEY_THF);
-    strncpy(g_PrtInfo.lfTHF.lfFaceName, IsBadStr(szBuf) ? FN_MSPM : szBuf,
+    strncpy(g_PrtInfo.lfTHF.lfFaceName, IsBadStr(szBuf) ? FN_MSM : szBuf,
             LF_FACESIZE);
 
     GET_PROFILE(SEC_FONT, KEY_PPF);
