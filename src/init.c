@@ -1,10 +1,13 @@
 /* -*- mode: c++; coding: sjis-dos; -*-
- * Time-stamp: <2001-12-18 20:32:24 tfuruka1>
+ * Time-stamp: <2001-12-23 16:50:14 tfuruka1>
  *
  * 「ak2psのようなもの」のサーバの初期化処理
  *
- * $Id: init.c,v 1.6 2001/12/18 12:59:22 tfuruka1 Exp $
+ * $Id: init.c,v 1.7 2001/12/23 10:24:34 tfuruka1 Exp $
  * $Log: init.c,v $
+ * Revision 1.7  2001/12/23 10:24:34  tfuruka1
+ * Copyrightを印字しないモードをサポートした
+ *
  * Revision 1.6  2001/12/18 12:59:22  tfuruka1
  * デバッグ印刷のオプションを追加。
  *
@@ -42,6 +45,7 @@
 #define KEY_BASELINE "nBaseLine"
 #define KEY_BPREVIEW "bPreview"
 #define KEY_BDEBUG   "bDebug"
+#define KEY_BNOCOPYRIGHT "bNoCopyrightPrint"
 
 #define SEC_DEVICE   "DEVICE SETUP"
 #define KEY_DEVNAME  "DeviceName"
@@ -180,7 +184,7 @@ static BOOL WritePrivateProfileData(
 }
 
 /*--------------------------------------------------------------------
- *
+ * デフォルトの印刷情報を得る
  * *-------------------------------------------------------------------*/
 void
 GetDefaultPrtInfo(void)
@@ -201,6 +205,9 @@ GetDefaultPrtInfo(void)
 
     GET_PROFILE(PROFILE_SEC, KEY_BPREVIEW);
     g_PrtInfo.bPreView = IsBadStr(szBuf) ? FALSE : atoi(szBuf);
+
+    GET_PROFILE(PROFILE_SEC, KEY_BNOCOPYRIGHT);
+    g_PrtInfo.bNoCopyright = IsBadStr(szBuf) ? FALSE : atoi(szBuf);
 
     GET_PROFILE(PROFILE_SEC, KEY_BDEBUG);
     g_PrtInfo.bDebug = IsBadStr(szBuf) ? FALSE : atoi(szBuf);
@@ -267,6 +274,9 @@ SetDefaultPrtInfo(void)
 
     sprintf(szBuf, "%d", g_PrtInfo.bPreView);
     WRT_PROFILE(PROFILE_SEC, KEY_BPREVIEW, szBuf);
+
+    sprintf(szBuf, "%d", g_PrtInfo.bNoCopyright);
+    WRT_PROFILE(PROFILE_SEC, KEY_BNOCOPYRIGHT, szBuf);
 
     sprintf(szBuf, "%d", g_PrtInfo.bDebug);
     WRT_PROFILE(PROFILE_SEC, KEY_BDEBUG, szBuf);
