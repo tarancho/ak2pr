@@ -1,10 +1,13 @@
 /* -*- mode: C++; coding: sjis-dos; -*-
- * Time-stamp: <2004-01-10 17:52:46 tfuruka1>
+ * Time-stamp: <2004-01-11 20:47:01 tfuruka1>
  *
  * ak2ps のようなものの共通 DLL
  *
- * $Id: dllmain.c,v 1.16 2004/01/11 10:52:37 tfuruka1 Exp $
+ * $Id: dllmain.c,v 1.17 2004/01/11 11:48:06 tfuruka1 Exp $
  * $Log: dllmain.c,v $
+ * Revision 1.17  2004/01/11 11:48:06  tfuruka1
+ * 作業ファイルの作成ルーチンにSyslogを追加しました。
+ *
  * Revision 1.16  2004/01/11 10:52:37  tfuruka1
  * バッファ名にリダイレクト記号 （aaa<3>等）が含まれていると作業ファイル
  * の作成に失敗していた問題を修正しました。
@@ -238,6 +241,7 @@ MakeTempFile(
 
     // ファイル名に * や \ 等が含まれていると、正しいファイルを作成で
     // きないので、適切な文字に置き換える
+    Syslog(FALSE, "MakeTempFile Request filename: %s", lpszFileName);
     for (i = 0; *(lpszFileName + i); i++) {
         // 漢字の一バイト目の場合は次の文字もスキップする
         if (IsKanjiSJIS(*((LPBYTE)lpszFileName + i))) {
@@ -276,6 +280,7 @@ MakeTempFile(
     strncpy(szFileName, lpszFileName, MAX_PATH);
     sprintf(lpszFileName, "%s\\%s~%08x_%d_XXXXXX",
             lpszDir, szFileName, t, iCnt);
+    Syslog(FALSE, "MakeTempFile Response filename: %s", lpszFileName);
     if (!_mktemp(lpszFileName)) {
         Syslog(TRUE, "%s#%d: 作業ファイルが作成できません",
                __FILE__, __LINE__);
