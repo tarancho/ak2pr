@@ -1,0 +1,312 @@
+//Microsoft Developer Studio generated resource script.
+//
+#include "resource.h"
+
+#define APSTUDIO_READONLY_SYMBOLS
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 2 resource.
+//
+#include "afxres.h"
+
+/////////////////////////////////////////////////////////////////////////////
+#undef APSTUDIO_READONLY_SYMBOLS
+
+/////////////////////////////////////////////////////////////////////////////
+// 日本語 resources
+
+#if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_JPN)
+#ifdef _WIN32
+LANGUAGE LANG_JAPANESE, SUBLANG_DEFAULT
+#pragma code_page(932)
+#endif //_WIN32
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Dialog
+//
+
+IDD_SETUP DIALOG DISCARDABLE  0, 0, 195, 128
+STYLE DS_MODALFRAME | WS_CHILD
+FONT 9, "ＭＳ Ｐゴシック"
+BEGIN
+    EDITTEXT        IDC_FONTSIZE,77,0,40,14,ES_AUTOHSCROLL
+    EDITTEXT        IDC_NUP,77,14,40,14,ES_AUTOHSCROLL | ES_NUMBER
+    EDITTEXT        IDC_TABSTOP,77,28,40,14,ES_NUMBER
+    COMBOBOX        IDC_COMBO_THF,77,42,111,140,CBS_DROPDOWN | CBS_SORT | 
+                    WS_VSCROLL | WS_TABSTOP
+    COMBOBOX        IDC_COMBO_PPF,77,56,111,140,CBS_DROPDOWN | CBS_SORT | 
+                    WS_VSCROLL | WS_TABSTOP
+    COMBOBOX        IDC_COMBO_OF,77,70,111,140,CBS_DROPDOWN | CBS_SORT | 
+                    WS_VSCROLL | WS_TABSTOP
+    COMBOBOX        IDC_COMBO_OPPF,77,84,111,140,CBS_DROPDOWN | CBS_SORT | 
+                    WS_VSCROLL | WS_TABSTOP
+    CONTROL         "プレビュー確認後印刷する",IDC_CHK_PREVIEW,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,2,104,93,10
+    CONTROL         "短辺綴（通常は長辺綴）",IDC_CHK_SHORT_BINDING,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,100,103,85,10
+    CONTROL         "COPYRIGHTを印刷しない",IDC_CHK_NOCOPYRIGHT,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,2,114,90,10
+    CONTROL         "デバッグ用の印刷",IDC_C_DEBUG,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,100,114,69,10
+    PUSHBUTTON      "&Default",IDC_DEFAULT,145,0,50,14
+    PUSHBUTTON      "&Printer...",IDC_PRINTER,145,15,50,14
+    RTEXT           "タブ幅",IDC_STATIC,2,28,72,14,SS_CENTERIMAGE
+    RTEXT           "フォントサイズ(POINT)",IDC_STATIC,2,0,72,14,
+                    SS_CENTERIMAGE
+    RTEXT           "段組数",IDC_STATIC,2,14,72,14,SS_CENTERIMAGE
+    RTEXT           "フォント名（本文）",IDC_STATIC,2,42,72,14,
+                    SS_CENTERIMAGE
+    RTEXT           "フォント名（タイトル）",IDC_STATIC,2,56,72,14,
+                    SS_CENTERIMAGE
+    RTEXT           "フォント名（行番号）",IDC_STATIC,2,70,72,14,
+                    SS_CENTERIMAGE
+    RTEXT           "フォント名（その他）",IDC_STATIC,2,84,72,14,
+                    SS_CENTERIMAGE
+END
+
+IDD_MAIL DIALOG DISCARDABLE  0, 0, 195, 128
+STYLE DS_MODALFRAME | WS_CHILD
+FONT 9, "ＭＳ Ｐゴシック"
+BEGIN
+    CONTROL         "カラー印刷",IDC_C_COLOR,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,0,0,48,10
+    CONTROL         "簡易ヘッダ印字",IDC_C_NORHEAD,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,0,10,63,10
+    PUSHBUTTON      "&Default",IDC_DEFAULT,145,0,50,14
+    CONTROL         "",IDC_PICTURE,"Static",SS_BLACKFRAME,87,18,108,110
+    RTEXT           "将来の拡張用→",IDC_STATIC,8,40,62,56,SS_CENTERIMAGE
+END
+
+IDD_TEXT DIALOGEX 0, 0, 195, 128
+STYLE DS_MODALFRAME | WS_CHILD | WS_DISABLED
+FONT 9, "ＭＳ Ｐゴシック", 0, 0, 0x1
+BEGIN
+    CONTROL         "&J. 日本語に合わせる(普通)",IDC_R_JAPAN,"Button",
+                    BS_AUTORADIOBUTTON,4,8,95,10
+    CONTROL         "&E. 欧文に合わせる(やや狭い)",IDC_R_ENGLISH,"Button",
+                    BS_AUTORADIOBUTTON,4,20,101,10
+    CONTROL         "&N. 兎に角沢山詰め込む(とても狭い)",IDC_R_NOINTERLINE,
+                    "Button",BS_AUTORADIOBUTTON,4,32,120,10
+    CONTROL         "&A. 自動判別(日本語と欧文の混在)",IDC_R_AUTO,"Button",
+                    BS_AUTORADIOBUTTON,4,44,116,10
+    CONTROL         "&#. 行番号を付ける",IDC_C_NUM,"Button",BS_AUTOCHECKBOX | 
+                    WS_TABSTOP,4,73,68,10
+    CONTROL         "&K. 罫線を連結する",IDC_C_KEISEN,"Button",
+                    BS_AUTOCHECKBOX | WS_TABSTOP,4,86,69,10
+    PUSHBUTTON      "&Default",IDC_DEFAULT,145,0,50,14
+    LTEXT           "━【行間】━━━━━━━━━━━━━━━",IDC_STATIC,0,
+                    0,131,8
+    LTEXT           "━【その他】━━━━━━━━━━━━━━",IDC_STATIC,0,
+                    61,131,8
+    LTEXT           "このタブの設定は現在「行番号」を除いて反映されませんm(.__)m。将来の拡張用です。現在は常に行番号が付加されます。",
+                    IDC_STATIC,133,24,57,87,0,WS_EX_STATICEDGE
+END
+
+IDD_PREV DIALOGEX 0, 0, 318, 317
+STYLE DS_CENTER | WS_MINIMIZEBOX | WS_MAXIMIZEBOX | WS_POPUP | WS_CAPTION | 
+    WS_THICKFRAME
+EXSTYLE WS_EX_CLIENTEDGE
+CAPTION "ぶれびゅうううううう"
+FONT 9, "ＭＳ Ｐゴシック", 0, 0, 0x1
+BEGIN
+    DEFPUSHBUTTON   "&Print",IDOK,0,0,50,14
+    PUSHBUTTON      "&Setup...",IDM_SETUP,52,0,50,14
+    PUSHBUTTON      "&Cancel",IDCANCEL,109,0,50,14
+END
+
+IDD_PS DIALOG DISCARDABLE  0, 0, 195, 128
+STYLE DS_MODALFRAME | WS_CHILD
+FONT 9, "ＭＳ Ｐゴシック"
+BEGIN
+    EDITTEXT        IDC_ED_ACRIN,4,23,186,14,ES_AUTOHSCROLL
+    EDITTEXT        IDC_ED_GHOST,4,92,185,14,ES_AUTOHSCROLL
+    LTEXT           "Acrobat Distillerの監視フォルダの[In]",IDC_STATIC,4,11,
+                    129,10,SS_CENTERIMAGE
+    GROUPBOX        "Acrobat関連",IDC_STATIC,0,0,194,60
+    GROUPBOX        "GhostScript関連",IDC_STATIC,0,65,194,63
+    LTEXT           "GhostScriptの場所（フルパス）",IDC_STATIC,4,80,129,10,
+                    SS_CENTERIMAGE
+    RTEXT           "オプション：",IDC_STATIC,6,107,37,14,SS_CENTERIMAGE
+    EDITTEXT        IDC_ED_GSOP,46,107,114,14,ES_AUTOHSCROLL
+    PUSHBUTTON      "&Default",IDC_BT_GSOP,161,107,28,14
+END
+
+IDD_KOBETSU DIALOG DISCARDABLE  0, 0, 195, 128
+STYLE DS_MODALFRAME | WS_CHILD
+FONT 9, "ＭＳ Ｐゴシック"
+BEGIN
+    EDITTEXT        IDC_ED_TITLE,0,12,194,14,ES_AUTOHSCROLL
+    LTEXT           "タイトルの変更（PostScriptは無効）",-1,0,0,129,10,
+                    SS_CENTERIMAGE
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Icon
+//
+
+// Icon with lowest ID value placed first to ensure application icon
+// remains consistent on all systems.
+IDI_TIP                 ICON    DISCARDABLE     "tip.ico"
+IDI_FURUKAWA            ICON    DISCARDABLE     "furukawa.ico"
+IDI_MAIL                ICON    DISCARDABLE     "mail.ico"
+IDI_TEXT                ICON    DISCARDABLE     "text.ico"
+IDI_PS                  ICON    DISCARDABLE     "ps.ico"
+IDI_KOBETSU             ICON    DISCARDABLE     "kobetsu.ico"
+
+#ifdef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// TEXTINCLUDE
+//
+
+1 TEXTINCLUDE DISCARDABLE 
+BEGIN
+    "resource.h\0"
+END
+
+2 TEXTINCLUDE DISCARDABLE 
+BEGIN
+    "#include ""afxres.h""\r\n"
+    "\0"
+END
+
+3 TEXTINCLUDE DISCARDABLE 
+BEGIN
+    "\r\n"
+    "\0"
+END
+
+#endif    // APSTUDIO_INVOKED
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Menu
+//
+
+IDR_MENU MENU DISCARDABLE 
+BEGIN
+    POPUP "唯一のメニュー"
+    BEGIN
+        MENUITEM "ページ設定...",               IDM_SETUP
+        MENUITEM "テスト印刷",                  IDM_TESTPRT
+        MENUITEM "クリップボード印刷\tCtrl-V",  IDM_PASTE
+        MENUITEM SEPARATOR
+        MENUITEM "印刷停止",                    IDM_STOP
+        MENUITEM "印刷Queueの削除",             IDM_DELETE
+        MENUITEM SEPARATOR
+        POPUP "いろいろ"
+        BEGIN
+            MENUITEM "励ましのお便り",              IDM_MAIL
+            MENUITEM "作者のホームページ",          IDM_HTTP
+        END
+        POPUP "Debug"
+        BEGIN
+            MENUITEM "詳細画面",                    IDM_SHOW
+        END
+        MENUITEM SEPARATOR
+        MENUITEM "終了",                        IDM_EXIT
+    END
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// DESIGNINFO
+//
+
+#ifdef APSTUDIO_INVOKED
+GUIDELINES DESIGNINFO DISCARDABLE 
+BEGIN
+    IDD_PREV, DIALOG
+    BEGIN
+        LEFTMARGIN, 7
+        RIGHTMARGIN, 310
+        TOPMARGIN, 7
+        BOTTOMMARGIN, 316
+    END
+END
+#endif    // APSTUDIO_INVOKED
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Toolbar
+//
+
+IDR_TOOLBAR TOOLBAR DISCARDABLE  40, 40
+BEGIN
+    BUTTON      IDM_SETUP
+    BUTTON      IDM_TESTPRT
+    BUTTON      IDM_PASTE
+    SEPARATOR
+    BUTTON      IDM_STOP
+    BUTTON      IDM_DELETE
+    SEPARATOR
+    BUTTON      IDM_MAIL
+    BUTTON      IDM_HTTP
+    BUTTON      IDM_SHOW
+    SEPARATOR
+    BUTTON      IDM_EXIT
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Bitmap
+//
+
+IDR_TOOLBAR             BITMAP  DISCARDABLE     "toolbar.bmp"
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// Accelerator
+//
+
+IDR_ACC ACCELERATORS DISCARDABLE 
+BEGIN
+    "V",            IDM_PASTE,              VIRTKEY, CONTROL, NOINVERT
+    "Y",            IDM_PASTE,              VIRTKEY, CONTROL, NOINVERT
+END
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// String Table
+//
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    IDM_SETUP               "印刷設定..."
+    IDM_SHOW                "作者以外は使用用途不明"
+    IDM_EXIT                "さようなら"
+    IDM_MAIL                "励ましのお便り"
+    IDM_HTTP                "ホームページです"
+    IDM_TESTPRT             "テスト印刷"
+    IDM_STOP                "印刷停止（再開）"
+    IDM_DELETE              "印刷Queueの削除"
+END
+
+STRINGTABLE DISCARDABLE 
+BEGIN
+    IDM_PASTE               "クリップボードの内容を印刷"
+END
+
+#endif    // 日本語 resources
+/////////////////////////////////////////////////////////////////////////////
+
+
+
+#ifndef APSTUDIO_INVOKED
+/////////////////////////////////////////////////////////////////////////////
+//
+// Generated from the TEXTINCLUDE 3 resource.
+//
+
+
+/////////////////////////////////////////////////////////////////////////////
+#endif    // not APSTUDIO_INVOKED
+
