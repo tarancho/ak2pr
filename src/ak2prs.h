@@ -2,8 +2,12 @@
  *
  * 「ak2psのようなもの」のサーバ側のヘッダファイル
  *
- * $Id: ak2prs.h,v 1.2 2001/08/18 16:34:06 tfuruka1 Exp $
+ * $Id: ak2prs.h,v 1.3 2001/08/18 17:05:03 tfuruka1 Exp $
  * $Log: ak2prs.h,v $
+ * Revision 1.3  2001/08/18 17:05:03  tfuruka1
+ * VERSIONを上げるのを忘れてた・・・面倒なので、RCSのRevisionを使用するよ
+ * うにした。
+ *
  * Revision 1.2  2001/08/18 16:34:06  tfuruka1
  * ●PRT_INFO構造体からbDeleteメンバを削除した。
  * ●DeleteQueue関数が新規追加されたので、プロトタイプ宣言を追加した。
@@ -18,8 +22,8 @@
 #ifndef _AK2PRS_H_
 #define _AK2PRS_H_
 
-#define TIMESTAMP "Time-stamp: <2001-08-19 01:01:17 tfuruka1>"
-#define VERSION   "1.02"
+#define TIMESTAMP "Time-stamp: <2001-08-19 02:04:09 tfuruka1>"
+#define VERSION   "$Revision: 1.3 $"
 
 #include <windows.h>
 #include <windowsx.h>
@@ -45,7 +49,7 @@
 
 #define SV_EXE_NAME "ak2prSV.EXE"
 
-#define COPYRIGHT   "ak2pr Version " VERSION\
+#define COPYRIGHT   "ak2pr " VERSION\
 " Copyright 1997-2001 By T.Furukawa\n(tfuruka1@nifty.com)" TIMESTAMP
 
 // 1バイト目が漢字コードか否かチェックするマクロ
