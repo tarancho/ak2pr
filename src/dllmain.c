@@ -1,10 +1,22 @@
 /* -*- mode: C++; coding: sjis-dos; -*-
- * Time-stamp: <2001-02-06 02:36:02 tfuruka1>
+ * Time-stamp: <2001-08-19 01:19:26 tfuruka1>
  *
  * ak2ps のようなものの共通 DLL
  *
- * $Id: dllmain.c,v 1.2 2001/02/05 17:38:02 tfuruka1 Exp $
+ * $Id: dllmain.c,v 1.3 2001/08/18 16:30:30 tfuruka1 Exp $
  * $Log: dllmain.c,v $
+ * Revision 1.3  2001/08/18 16:30:30  tfuruka1
+ * ●作業ファイルの作成に_mktemp関数を使用していたが、よく考えたらこの関
+ *   数は、最大で 27 個しか一意なファイル名を作成できない事に気が付いた
+ *   （というか、エラーが出た）ので、_mktempのbaseが極力一意になるように
+ *   して、27個以上の一意なファイルを作成できるようにした。
+ * ●MessageBoxを使用している部分をSyslogを使用するように変更した(Meadow
+ *   から呼ばれた時にMessageBoxを使用すると、Windowが見えないのでダイアロ
+ *   グを閉じる事ができなくなるので)。
+ * ●SendPrintFromFile関数を廃止し、SendPrintFromFileCopy関数に統合した。
+ * ●Syslog関数で、標準出力にも出力するようにした（syslogdがなくてもデ
+ *   バッグできる）。
+ *
  * Revision 1.2  2001/02/05 17:38:02  tfuruka1
  * RCSがおかしくなったので、復旧した。過去の修正内容は以下の通り。
  * ●標準入力から読み込んだバイト数がゼロの場合は処理を行わないように修正
@@ -17,13 +29,14 @@
  *
  *
  */
+// (replace-regexp "[ \t]+$" "")
 #include "ak2prs.h"
 #include "ak2pr.h"
 
 /*--------------------------------------------------------------------
  * dwErr で指定されたエラーコードに対応するエラーメッセージを関数にシ
  * ステムメッセージテーブルリソースから検索して一時的な文字列へのポイ
- * ンタを返却する。dwErr は GetLastError から得た値を指定する事。lpsz 
+ * ンタを返却する。dwErr は GetLastError から得た値を指定する事。lpsz
  * はエラーメッセージへ追加する文字列を指定する。API 名等を指定する。
  * *-------------------------------------------------------------------*/
 LPCSTR WINAPI
@@ -36,9 +49,9 @@ GetLastErrorMessage(LPCSTR lpsz, DWORD dwErr)
     static char sz[1024];
     char szTmp[256];
     int i;
-    
+
     if (!(i = FormatMessage(FORMAT_MESSAGE_FROM_SYSTEM |
-                            FORMAT_MESSAGE_IGNORE_INSERTS, 
+                            FORMAT_MESSAGE_IGNORE_INSERTS,
                             NULL, dwErr, 0, szTmp, sizeof(szTmp), NULL))) {
         strcpy(szTmp, "---");
     }
@@ -50,7 +63,7 @@ GetLastErrorMessage(LPCSTR lpsz, DWORD dwErr)
             }
         }
     }
-    wsprintf(sz, "[WIN32] %s: Error Code = %d(%#02x): %s", 
+    wsprintf(sz, "[WIN32] %s: Error Code = %d(%#02x): %s",
              lpsz, dwErr, dwErr, szTmp);
     return (LPCTSTR)sz;
 #endif
@@ -58,7 +71,7 @@ GetLastErrorMessage(LPCSTR lpsz, DWORD dwErr)
 
 /*--------------------------------------------------------------------
  * 作業ファイルを作成する。正常に作成出来た場合はファイルポインタを返
- * 却する。作成できなかった場合は NULL を返却する。mode は fopen の 
+ * 却する。作成できなかった場合は NULL を返却する。mode は fopen の
  * mode と全く同じである。また, ファイルを使用し終った後は fclose でファ
  * イルをクローズ後, lpszFileName で返却したファイルを削除しなければな
  * らない。
@@ -71,22 +84,31 @@ MakeTempFile(
 {
     FILE *fp;
     char *p1;
+    SYSTEMTIME st;
+    static int iCnt = 0;
+
+    iCnt++;
+    iCnt %= 256;
+
+    GetLocalTime(&st);
 
     if (NULL == (p1 = getenv("TEMP"))) {
-        MessageBox(NULL, "環境変数TEMPが見つかりません",
-                   "MakeTempFile()", MB_ERROR);
+        Syslog("%s#%d: 環境変数TEMPが見つかりません", __FILE__, __LINE__);
         return NULL;
     }
-    sprintf(lpszFileName, "%s/ak2prXXXXXX", p1);
+    sprintf(lpszFileName,
+            "%s/ak2pr%02d-%02d-%02d~%02d$%02d$%02d$%03d^%02x_XXXXXX",
+            p1,
+            st.wYear % 100, st.wMonth, st.wDay,
+            st.wHour,st.wMinute, st.wSecond, st.wMilliseconds,
+            iCnt);
     if (!_mktemp(lpszFileName)) {
-        MessageBox(NULL, "作業ファイルが作成できませ",
-                   "MakeTempFile()", MB_ERROR);
+        Syslog("%s#%d: 作業ファイルが作成できません", __FILE__, __LINE__);
         return NULL;
     }
     if (NULL == (fp = fopen(lpszFileName, mode))) {
-        MessageBox(NULL,
-                   "作業ファイルをオープン作成できません MakeTempFile()",
-                   strerror(0), MB_ERROR);
+        Syslog("%s#%d: 作業ファイルをオープン作成できません(%s)",
+               __FILE__, __LINE__, strerror(0));
         return NULL;
     }
     return fp;
@@ -106,11 +128,11 @@ GetMyDir(VOID)
     // ファイルのフルパスを得る
     if (!GetModuleFileName(GetModuleHandle(NULL), szBuf, 1024)) {
         int nErr = GetLastError();
-        MessageBox(NULL, GetLastErrorMessage("GetModuleHandle", nErr), 
-                   "GetMyDir()", MB_ERROR);
+        Syslog("%s#%d: %s", __FILE__, __LINE__,
+               GetLastErrorMessage("GetModuleHandle", nErr));
         return NULL;
     }
-    
+
     p1 = strrchr(szBuf, '\\');
     p2 = strrchr(szBuf, '/');
     p1 = ((ULONG)p1 > (ULONG)p2) ? p1 : p2;
@@ -177,7 +199,7 @@ ExecutePrtServer(VOID)
     TCHAR szImageName[1024];                    // モジュール名
     LPCTSTR lpszMyDir;                          // 自分のディレクトリ
     int i;                                      // 汎用
-    
+
     if (IsPrtServerEnable())                    // 既に起動していた場合は
         return TRUE;                            // 正常に起動したものとする
 
@@ -198,8 +220,8 @@ ExecutePrtServer(VOID)
     if (!CreateProcess(NULL, szImageName, NULL, NULL, FALSE,
                        0, NULL, NULL, &sui, &pi )) {
         int nErr = GetLastError();
-        MessageBox(NULL, GetLastErrorMessage("CreateProcess", nErr),
-                   "ExecutePrtServer()", MB_ERROR);
+        Syslog("%s#%d: %s", __FILE__, __LINE__,
+               GetLastErrorMessage("CreateProcess", nErr));
         return FALSE;
     }
 
@@ -220,8 +242,7 @@ ExecutePrtServer(VOID)
 
     // もう一度サーバーをチェックする
     if (!IsPrtServerEnable()) {
-        MessageBox(NULL, "サーバの起動に失敗したようです",
-                   "ExecutePrtServer()", MB_ERROR);
+        Syslog("%s#%d: サーバの起動に失敗したようです", __FILE__, __LINE__);
         return FALSE;
     }
     return TRUE;                                // 正常起動
@@ -250,8 +271,8 @@ SendPrintData(
     // サーバのハンドルを得る
     if (!(hWndTo = FindWindow(SV_CLASS, SV_CAPTION))) {
         int nErr = GetLastError();
-        MessageBox(hWnd, GetLastErrorMessage("FindWindow", nErr),
-                   "SendPrintData()", MB_ERROR);
+        Syslog("%s#%d: %s", __FILE__, __LINE__,
+               GetLastErrorMessage("FindWindow", nErr));
         return FALSE;
     }
 
@@ -294,7 +315,6 @@ SendPrintFromStdin(
     PrtInfo.nNumOfUp = nNumOfUp;
     PrtInfo.nTab = nTab;
     PrtInfo.nType = bMail ? PT_MAIL : PT_TEXT;
-    PrtInfo.bDelete = TRUE;
     PrtInfo.fFontSize = fFontSize;
 
     // 作業ファイルを作成する
@@ -318,7 +338,7 @@ SendPrintFromStdin(
     return SendPrintData(hWnd, &PrtInfo);
 }
 
-/*-------------------------------------------------------------------- 
+/*--------------------------------------------------------------------
  * 指定されたファイルを一時ファイルへ複写し，プリントサーバへ印刷情報
  * を送信する。
  * *-------------------------------------------------------------------*/
@@ -335,6 +355,23 @@ SendPrintFromFileCopy(
 {
     PRT_INFO PrtInfo;                           // プリントファイル情報
     FILE *fp;                                   // ファイルポインタ
+    DWORD dwFA;                                 // ファイル情報
+
+    // ファイルの存在チェックを行う
+    if (0xFFFFFFFF == (dwFA = GetFileAttributes(lpszFileName))) {
+        LPCTSTR p;
+        dwFA = GetLastError();
+        p = GetLastErrorMessage("GetFileAttributes()", dwFA);
+        Syslog("%s#%d: %s %s", __FILE__, __LINE__, p, lpszFileName);
+        return FALSE;
+    }
+
+    // ディレクトリの場合はエラー
+    if (dwFA & FILE_ATTRIBUTE_DIRECTORY) {
+        Syslog("%s#%d: %sはディレクトリです",
+               __FILE__, __LINE__, lpszFileName);
+        return FALSE;
+    }
 
     // プリントファイル情報の初期化
     memset((LPVOID)&PrtInfo, 0, sizeof(PRT_INFO));
@@ -348,7 +385,6 @@ SendPrintFromFileCopy(
     PrtInfo.nNumOfUp = nNumOfUp;
     PrtInfo.nTab = nTab;
     PrtInfo.nType = bMail ? PT_MAIL : PT_TEXT;
-    PrtInfo.bDelete = TRUE;
     PrtInfo.fFontSize = fFontSize;
 
     // 作業ファイルを作成する
@@ -359,68 +395,12 @@ SendPrintFromFileCopy(
 
     // ファイルを複写する
     if (!CopyFile(lpszFileName, PrtInfo.szFileName, FALSE)) {
-        MessageBox(hWnd, GetLastErrorMessage("GetFileAttributes()",
-                                             GetLastError()),
-                   PrtInfo.szFileName, MB_ERROR);
+        Syslog("%s#%d: %s %s", __FILE__, __LINE__,
+               GetLastErrorMessage("GetFileAttributes()",
+                                   GetLastError()),
+               PrtInfo.szFileName);
         return FALSE;
     }
-
-    return SendPrintData(hWnd, &PrtInfo);
-}
-
-/*--------------------------------------------------------------------
- * ファイルの存在チェックを行いプリントサーバへ印刷情報を送信する。
- * *-------------------------------------------------------------------*/
-BOOL WINAPI
-SendPrintFromFile(
-    HWND hWnd,                                  // ハンドル
-    LPCTSTR lpszFileName,                       // ファイル名
-    int nNumOfUp,                               // 段組数
-    int nTab,                                   // タブ幅
-    double fFontSize,                           // フォントサイズ
-    BOOL bMail                                  // T: 印刷データはメール[mail]
-    )
-{
-    PRT_INFO PrtInfo;                           // プリントファイル情報
-    TCHAR szBuf[1024];                          // 標準入力用バッファ
-    DWORD dwFA;                                 // ファイル情報
-
-    // ファイルの存在チェックを行う
-    if (0xFFFFFFFF == (dwFA = GetFileAttributes(lpszFileName))) {
-        LPCTSTR p;
-        dwFA = GetLastError();
-        p = GetLastErrorMessage("GetFileAttributes()", dwFA);
-        if (hWnd) {
-            MessageBox(hWnd, p, __FILE__, MB_ICONSTOP);
-        }
-        else {
-            fprintf(stderr, "%s\n", p);
-        }
-        return FALSE;
-    }
-
-    // ディレクトリの場合はエラー
-    if (dwFA & FILE_ATTRIBUTE_DIRECTORY) {
-        sprintf(szBuf, "%sはディレクトリです", lpszFileName);
-        if (hWnd) {
-            MessageBox(hWnd, lpszFileName, __FILE__, MB_ICONSTOP);
-        }
-        else {
-            fprintf(stderr, "%s\n", lpszFileName);
-        }
-        return FALSE;
-    }
-
-    // プリントファイル情報の初期化
-    memset((LPVOID)&PrtInfo, 0, sizeof(PRT_INFO));
-    strncpy(PrtInfo.szTitle, GetLongBaseName(lpszFileName), 255);
-
-    PrtInfo.nNumOfUp = nNumOfUp;
-    PrtInfo.nTab = nTab;
-    PrtInfo.nType = bMail ? PT_MAIL : PT_TEXT;
-    PrtInfo.bDelete = FALSE;                    // ★ファイルは削除しない
-    PrtInfo.fFontSize = fFontSize;
-    strcpy(PrtInfo.szFileName, lpszFileName);
 
     return SendPrintData(hWnd, &PrtInfo);
 }
@@ -440,7 +420,7 @@ Syslog(
     SOCKADDR_IN sin;
     LPHOSTENT lpHost;
     va_list args;                               // 引数展開用
-    char szLine[8192], szBuf[1024], *p;
+    char szLine[1024 * 64], szBuf[1024], *p;
 
     // モジュール名のフルパスを得る
     if (!GetModuleFileName(GetModuleHandle(NULL), szBuf, 1024)) {
@@ -457,6 +437,8 @@ Syslog(
     va_start(args, lpstr);
     vsprintf(szLine + strlen(szLine), lpstr, args);
     va_end(args);
+
+    printf("%s\n", szLine);
 
     if (WSAStartup(MAKEWORD(1, 1), &wsaData) != 0) {
 		return;
