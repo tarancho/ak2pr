@@ -1,6 +1,6 @@
 /* -*- mode: c++; coding: sjis-dos; -*-
- * Time-stamp: <2004-12-23 16:12:46 tfuruka1>
- * $Id: init.c,v 1.13 2004/12/23 08:11:56 tfuruka1 Exp $
+ * Time-stamp: <2005-05-01 13:20:22 tfuruka1>
+ * $Id: init.c,v 1.14 2005/05/01 07:27:49 tfuruka1 Exp $
  * $Name:  $
  *
  * 「ak2psのようなもの」のサーバの初期化処理
@@ -14,6 +14,9 @@
  *     wndproc.c - WM_COPYDATA の処理部
  *
  * $Log: init.c,v $
+ * Revision 1.14  2005/05/01 07:27:49  tfuruka1
+ * メール印刷のタブにuncompfaceを指定する為のコントロールを追加しました。
+ *
  * Revision 1.13  2004/12/23 08:11:56  tfuruka1
  * シングルライン印刷(食ミ出した部分を印刷しない)に対応しました。とりあえ
  * ず、サーバ側の設定のみです。
@@ -88,6 +91,9 @@
 #define SEC_DEVICE   "DEVICE SETUP"
 #define KEY_DEVNAME  "DeviceName"
 #define KEY_DEVMODE  "DeviceMode"
+
+#define SEC_MAIL     "Mail"
+#define KEY_UCFACE   "uncompface.path"
 
 #define SEC_PS       "PostScript"
 #define KEY_ACRIN    "AcrobatDistillerWatchdogFolderIN"
@@ -297,6 +303,10 @@ GetDefaultPrtInfo(void)
     strncpy(g_PrtInfo.lfOPPF.lfFaceName, IsBadStr(szBuf) ? FN_ARIAL : szBuf,
             LF_FACESIZE);
 
+    // Mail印刷関連情報を得る
+    GET_PROFILE(SEC_MAIL, KEY_UCFACE);
+    strncpy(g_PrtInfo.szUncompPath, szBuf, MAX_PATH);
+
     // PostScript関連情報を得る
     GET_PROFILE(SEC_PS, KEY_ACRIN);
     strncpy(g_PrtInfo.szAcrobat, szBuf, MAX_PATH);
@@ -379,6 +389,9 @@ SetDefaultPrtInfo(void)
     WRT_PROFILE(SEC_FONT, KEY_PPF, g_PrtInfo.lfPPF.lfFaceName);
     WRT_PROFILE(SEC_FONT, KEY_OF, g_PrtInfo.lfOF.lfFaceName);
     WRT_PROFILE(SEC_FONT, KEY_OPPF, g_PrtInfo.lfOPPF.lfFaceName);
+
+    // Mail印刷情報関連の書込み
+    WRT_PROFILE(SEC_MAIL, KEY_UCFACE, g_PrtInfo.szUncompPath);    
 
     // PostScript情報関連の書き込み
     WRT_PROFILE(SEC_PS, KEY_ACRIN, g_PrtInfo.szAcrobat);

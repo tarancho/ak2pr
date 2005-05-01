@@ -1,9 +1,12 @@
 /* -*- mode: c++; coding: sjis-dos; -*-
- * $Id: wndproc.c,v 1.21 2004/12/23 13:15:12 tfuruka1 Exp $
+ * $Id: wndproc.c,v 1.22 2005/05/01 07:27:48 tfuruka1 Exp $
  *
  * 「ak2psのようなもの」のウインドウプロシジャ
  *
  * $Log: wndproc.c,v $
+ * Revision 1.22  2005/05/01 07:27:48  tfuruka1
+ * メール印刷のタブにuncompfaceを指定する為のコントロールを追加しました。
+ *
  * Revision 1.21  2004/12/23 13:15:12  tfuruka1
  * Version情報ダイアログを表示するようにしました。
  *
@@ -94,7 +97,7 @@
 // (replace-regexp "/\\*\\(.+\\)\\*/" "//\\1")
 // (replace-regexp "[ \t]+$" "")
 
-#define TIME_STAMP "Time-stamp: <2004-12-23 21:46:45 tfuruka1>"
+#define TIME_STAMP "Time-stamp: <2005-05-01 13:35:06 tfuruka1>"
 
 #include "ak2prs.h"
 
@@ -378,6 +381,10 @@ DoCopyData(
     if (-1 == pPrtInfo->nSingleLine) {
         pPrtInfo->nSingleLine = g_PrtInfo.nSingleLine;
     }
+
+    // メール関連は現状, コマンドラインから入力できないので, デフォル
+    // トの値を設定する
+    strcpy(pPrtInfo->szUncompPath, g_PrtInfo.szUncompPath);
 
     // PostScript関連は現状、コマンドラインから入力できないので、全て
     // デフォルトの値を使用する。

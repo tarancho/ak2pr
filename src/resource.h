@@ -56,7 +56,8 @@
 #define IDC_ST_PMEM_FREE                1036
 #define IDC_ST_VMEM_TOTAL               1037
 #define IDC_ST_VMEM_FREE                1038
-//#define IDC_ST_USER_FREE                1040
+#define IDC_ED_UNCOMPFACE               1041
+#define IDC_BT_UC_REF                   1042
 #define IDM_SETUP                       40002
 #define IDM_SHOW                        40003
 #define IDM_EXIT                        40004
@@ -74,7 +75,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        113
 #define _APS_NEXT_COMMAND_VALUE         40023
-#define _APS_NEXT_CONTROL_VALUE         1041
+#define _APS_NEXT_CONTROL_VALUE         1043
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

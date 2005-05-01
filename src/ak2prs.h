@@ -2,8 +2,11 @@
  *
  * 「ak2psのようなもの」のサーバ側のヘッダファイル
  *
- * $Id: ak2prs.h,v 1.26 2004/12/23 13:14:24 tfuruka1 Exp $
+ * $Id: ak2prs.h,v 1.27 2005/05/01 07:27:49 tfuruka1 Exp $
  * $Log: ak2prs.h,v $
+ * Revision 1.27  2005/05/01 07:27:49  tfuruka1
+ * メール印刷のタブにuncompfaceを指定する為のコントロールを追加しました。
+ *
  * Revision 1.26  2004/12/23 13:14:24  tfuruka1
  * 折り返し動作をコマンド引数に追加した事と、それに共なう修正。
  *
@@ -128,7 +131,7 @@
 
 #include "ver.h"
 #define VERSION       "ak2pr Version " MAKE_VERSION "($Name:  $)"
-#define COPYRIGHT_STR "Copyright(C) 1997-2004 By T.Furukawa"
+#define COPYRIGHT_STR "Copyright(C) 1997-2005 By T.Furukawa"
 
 #include <windows.h>
 #include <windowsx.h>
@@ -210,21 +213,25 @@ typedef struct _PrtInfo{
     short dmPaperSize;                          // 用紙サイズ(0:デフォルト)
     CHAR szTimeStamp[64];
     CHAR szTimeStamp1[64];
-    int nBaseLine;                              // 0: Non, 1:E, 2:J, 9:A
-    BOOL bNum;                                  // T: 行番号印刷
-    BOOL bKeisen;                               // T: 罫線連結
-    BOOL bNoRcvHeader;                          // Receivedヘッダを印字しない
-    BOOL bColor;                                // T: Color印刷
     BOOL bPreView;                              // T: プレビュー
     BOOL bDebug;                                // T: デバッグ印刷
     BOOL bNoCopyright;                          // T: Copyrightを印刷しない
     BOOL bShortBinding;                         // T: 短編綴じ
     int nSingleLine;                            // T: 折り返さない
+    // ----- フォント関連
     double fFontSize;                           // フォントサイズ --- Point
     LOGFONT lfTHF;                              // 等幅フォント情報
     LOGFONT lfPPF;                         // プロポーショナルフォント
     LOGFONT lfOF;                              // その他のフォント情報
     LOGFONT lfOPPF;                             // その他のプロポーショナル
+    // ----- メール印刷関連
+    BOOL bNoRcvHeader;                          // Receivedヘッダを印字しない
+    BOOL bColor;                                // T: Color印刷
+    TCHAR szUncompPath[MAX_PATH];               // uncompface path
+    // ----- テキスト印刷関連
+    int nBaseLine;                              // 0: Non, 1:E, 2:J, 9:A
+    BOOL bNum;                                  // T: 行番号印刷
+    BOOL bKeisen;                               // T: 罫線連結
     // ----- 以下はPostScript印刷時の情報
     TCHAR szAcrobat[MAX_PATH];                  // Distiller in フォルダ
     TCHAR szGsPath[MAX_PATH];                   // GhostScript パス

@@ -1,6 +1,6 @@
 /* -*- mode: c++; coding: sjis-dos; -*-
- * Time-stamp: <2004-12-23 16:54:28 tfuruka1>
- * $Id: setup.c,v 1.16 2004/12/23 08:12:50 tfuruka1 Exp $
+ * Time-stamp: <2005-05-01 13:38:46 tfuruka1>
+ * $Id: setup.c,v 1.17 2005/05/01 07:27:48 tfuruka1 Exp $
  * $Name:  $
  *
  * 「ak2psのようなもの」の印字設定
@@ -12,7 +12,16 @@
  * ていない場合は、実行されない。この事を知らなかったので、不可解な現
  * 象が発生していました（INIT_DIALOGが常に発生していると思っていた）。
  *
+ * 印刷オプション等を追加した場合, init.c, setup.c に修正が必要なのは
+ * ファイル名から判断するのは容易ですが, その他にも以下のファイルに修
+ * 正が必要になります。
+ *
+ *   wndproc.c - WM_COPYDATA の処理部
+ *
  * $Log: setup.c,v $
+ * Revision 1.17  2005/05/01 07:27:48  tfuruka1
+ * メール印刷のタブにuncompfaceを指定する為のコントロールを追加しました。
+ *
  * Revision 1.16  2004/12/23 08:12:50  tfuruka1
  * シングルライン印刷(食ミ出した部分を印刷しない)チェックボックスと、
  * GhostScriptの実行ファイルを参照する釦を追加した事による実装。
@@ -385,6 +394,8 @@ DoInitDialogMail(
     // Receivedヘッダの印字チェック
     CheckDlgButton(hWnd, IDC_C_NORHEAD,
                    PrtInfoTmp.bNoRcvHeader ? TRUE : FALSE);
+    // uncompfaceのパス
+    SetDlgItemText(hWnd, IDC_ED_UNCOMPFACE, PrtInfoTmp.szUncompPath);
 
     return TRUE;
 }
@@ -397,6 +408,8 @@ DoCommandMail(
     UINT codeNotify                             // 通知コード
     )
 {
+    TCHAR szBuf[1024];
+
     switch (id) {                               // コントロール番号
     case IDC_C_COLOR:
         // Color印刷の指定
@@ -412,6 +425,19 @@ DoCommandMail(
         CheckDlgButton(hWnd, IDC_C_COLOR, PrtInfoTmp.bColor);
         CheckDlgButton(hWnd, IDC_C_NORHEAD, PrtInfoTmp.bNoRcvHeader);
         break;
+    case IDC_BT_UC_REF:
+        GetDlgItemText(hWnd, IDC_ED_UNCOMPFACE, szBuf, MAX_PATH);
+        if (GetOpenFileNameWrap(hWnd,
+                                "uncompface\0"
+                                "uncompface.exe\0"
+                                "実行ファイル(*.exe)\0*.exe\0"
+                                "全てのファイル(*.*)\0*.*\0"
+                                "\0",
+                                "uncompfaceの実行ファイルを選択して下さい",
+                                szBuf)) {
+            SetDlgItemText(hWnd, IDC_ED_UNCOMPFACE, szBuf);
+        }
+        break;
     }
 }
 
@@ -424,6 +450,8 @@ DoCloseMail(HWND hWnd)
     PrtInfoTmp.bColor = IsDlgButtonChecked(hWnd, IDC_C_COLOR);
     // Receivedヘッダの印字指定
     PrtInfoTmp.bNoRcvHeader = IsDlgButtonChecked(hWnd, IDC_C_NORHEAD);
+    // uncompfaceのパス
+    GetDlgItemText(hWnd, IDC_ED_UNCOMPFACE, PrtInfoTmp.szUncompPath, MAX_PATH);
 }
 
 static BOOL
