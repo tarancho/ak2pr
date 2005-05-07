@@ -2,8 +2,12 @@
  *
  * 「ak2psのようなもの」のサーバ側のヘッダファイル
  *
- * $Id: ak2prs.h,v 1.27 2005/05/01 07:27:49 tfuruka1 Exp $
+ * $Id: ak2prs.h,v 1.28 2005/05/07 12:12:41 tfuruka1 Exp $
  * $Log: ak2prs.h,v $
+ * Revision 1.28  2005/05/07 12:12:41  tfuruka1
+ * CVSのNameキーワードを和名に変換する処理を作ってみたので、プロトタイプ
+ * を追加しました。
+ *
  * Revision 1.27  2005/05/01 07:27:49  tfuruka1
  * メール印刷のタブにuncompfaceを指定する為のコントロールを追加しました。
  *
@@ -433,4 +437,7 @@ DrawRect(
  * *-------------------------------------------------------------------*/
 LPCTSTR WINAPI
 GetTempDirectoryName();
+
+
+LPCTSTR WINAPI ReplaceNameTag(LPCTSTR lpszNameTag);
 #endif
