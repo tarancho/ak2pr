@@ -1,5 +1,5 @@
 /* -*- mode: c++ -*-
- * $Id: xbm.c,v 1.1 2005/04/30 17:15:08 tfuruka1 Exp $
+ * $Id: xbm.c,v 1.2 2005/05/07 12:14:33 tfuruka1 Exp $
  * $Name:  $
  *
  * xbm, uncompface ファイルの展開等を行ないます。本当は, 元々
@@ -8,15 +8,49 @@
  * -X オプションって, version によって, サポートされない事が判明してし
  * まい, 急遽, umcompface に対応したのであった。
  *
- * リンク時は、gdi32.lib, user32.lib が必要です。
+ * リンク時は、gdi32.lib, user32.lib が必要です。単体デバッグ時は 
+ * XBM_DEBUG をコンパイルオプションに指定すると、このファイルだけで動
+ * 作します。
+ *
+ *    cl /W3 /Zi /DXBM_DEBUG xbm.c /link gdi32.lib user32.lib
  *
  * $Log: xbm.c,v $
+ * Revision 1.2  2005/05/07 12:14:33  tfuruka1
+ * printfで行っていたデバッグをak2pr用のものに変更しました。
+ *
  * Revision 1.1  2005/04/30 17:15:08  tfuruka1
  * 新規追加
  *
  */
 
 #include "xbm.h"
+
+#if defined(XBM_DEBUG)
+HWND WINAPI
+DbgPrint(
+    HWND hWnd,                                  // ウインドウハンドル
+    int nFlag,                                  // フラグ
+    LPCSTR lpstr,                               // 書式printfと同じ
+    ...                                         // 引数
+    )
+{
+    va_list args;                               // 引数展開用
+    // 文字列を書式に合せて整形する
+    va_start(args, lpstr);
+    vprintf(lpstr, args);
+    va_end(args);
+    printf("\n");
+    return NULL;
+}
+#else
+HWND WINAPI
+DbgPrint(
+    HWND hWnd,                                  // ウインドウハンドル
+    int nFlag,                                  // フラグ
+    LPCSTR lpstr,                               // 書式printfと同じ
+    ...                                         // 引数
+    );
+#endif
 
 /*
  * XBMファイルから、幅、又は高さを得る
@@ -103,7 +137,8 @@ GetByte(FILE *fp, int kind)
     }
     idx = 0;
     if (!isdigit(c)) {
-        printf("想定外の文字: %c[%02x]\n", c, c);
+        DbgPrint(0, 'D', "%s#(%d)想定外の文字: %c[%02x]",
+                 __FILE__, __LINE__, c, c);
         return -1;
     }
     szBuf[idx] = c;
@@ -120,11 +155,12 @@ GetByte(FILE *fp, int kind)
         idx++;
         szBuf[idx] = '\0';
         if (max < idx) {
-            printf("文字数が長すぎます: %s\n", szBuf);
+            DbgPrint(0, 'D', "%s(%d)文字数が長すぎます: %s\n",
+                     __FILE__, __LINE__, szBuf);
             return -1;
         }
     }
-    printf("EOF検出\n");
+    DbgPrint(0, 'D', "%s(%d)EOF検出", __FILE__, __LINE__);
     return -1;
 }
 
@@ -142,7 +178,7 @@ AllocXBM(FILE *fp, int kind)
     LPXBM_INFO lpXbm = (LPXBM_INFO)malloc(sizeof(XBM_INFO));
 
     if (!lpXbm) {
-        printf("メモリ不足(XBM-INFO):%s(%d)\n", __FILE__, __LINE__);
+        DbgPrint(0, 'D', "%s(%d)メモリ不足(XBM-INFO)", __FILE__, __LINE__);
         return NULL;
     }
     lpXbm->lpData = NULL;
@@ -162,7 +198,7 @@ AllocXBM(FILE *fp, int kind)
     lpXbm->lpData = (unsigned char *)malloc(lpXbm->cbData);
     if (!lpXbm->lpData) {
         free(lpXbm);
-        printf("メモリ不足(XBM-DATA):%s(%d)\n", __FILE__, __LINE__);
+        DbgPrint(0, 'D', "%s(%d)メモリ不足(XBM-DATA)", __FILE__, __LINE__);
         return NULL;
     }
 
@@ -231,27 +267,31 @@ DrawXBM(
     DWORD dwRop                              // ラスターオペレーション
     )
 {
-    HDC hMemDC;                                 // デバイスコンテキスト（仮想）
+    HDC hMemDC;                        // デバイスコンテキスト（仮想）
     HBITMAP hBitMap;                            // ビットマップ
     HBITMAP hOldBitmap;                         // 古いビットマップ
     int xx, yy;
 
     // 仮想デバイスコンテキストを作成する
     if (!(hMemDC = CreateCompatibleDC(hDC))) {
-        printf("仮想デバイスコンテキスト作成失敗\n");
+        DbgPrint(0, 'D', "%s(%d)仮想デバイスコンテキスト作成失敗",
+                 __FILE__, __LINE__);
         return FALSE;
     }
 
     // ビットマップの作成
-    if (!(hBitMap = CreateBitmap(lpXbm->nWidth, lpXbm->nHeight, 1, 1, NULL))) {
-        printf("ビットマップの作成に失敗しました\n");
+    if (!(hBitMap = CreateBitmap(lpXbm->nWidth,
+                                 lpXbm->nHeight, 1, 1, NULL))) {
+        DbgPrint(0, 'D', "%s(%d)ビットマップの作成に失敗しました",
+                 __FILE__, __LINE__);
         DeleteDC(hMemDC);                  // デバイスコンテキスト削除
         return FALSE;
     }
 
     // ビットマップの選択
     if (!(hOldBitmap = SelectObject(hMemDC, hBitMap))) {
-        printf("ビットマップの選択に失敗しました。\n");
+        DbgPrint(0, 'D', "%s(%d)ビットマップの選択に失敗しました。",
+                 __FILE__, __LINE__);
         DeleteDC(hMemDC);                  // デバイスコンテキスト削除
         DeleteObject(hBitMap);                  // ビットマップ削除
         return FALSE;
@@ -260,7 +300,8 @@ DrawXBM(
     // XBMの描画
     for (yy = 0; yy < lpXbm->nWidth; yy++) {
         for (xx = 0; xx < lpXbm->nHeight; xx++) {
-            SetPixel(hMemDC, xx, yy, PeekXBM(lpXbm, xx, yy) ? crFg : crBg);
+            SetPixel(hMemDC, xx, yy,
+                     PeekXBM(lpXbm, xx, yy) ? crFg : crBg);
         }
     }
 
@@ -276,8 +317,7 @@ DrawXBM(
     return TRUE;
 }
 
-#if 1 // ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-
+#if defined(XBM_DEBUG) // ━━━━━━━━━━━━━━━━━━━━━━
 /*
  * SDK32:コンソールウィンドウのハンドル取得
  *
@@ -294,7 +334,7 @@ DrawXBM(
  * Base の Article ID Q124103 (最終更新日 1988-12-23) をもとに作成した
  * ものです。
  */
-#define MY_BUFSIZE 1024                         // コンソールのタイトル用
+#define MY_BUFSIZE 1024                      // コンソールのタイトル用
 HWND GetConsoleHwnd(VOID)
 {
     HWND hwndFound;
@@ -318,8 +358,8 @@ HWND GetConsoleHwnd(VOID)
         // ウィンドウの新規タイトルを探しにいきます
         hwndFound = FindWindow(NULL, pszNewWindowTitle);
         if (hwndFound) {
-            printf("GetConsoleHwnd(): 回数=%d, T=%s\n",
-                   i, pszNewWindowTitle);
+            DbgPrint(0, 'D', "%s(%d)GetConsoleHwnd(): 回数=%d, T=%s\n",
+                     __FILE__, __LINE__, i, pszNewWindowTitle);
             break;                              // 見つかった
         }
         Sleep(10);                              // 10m Wait
