@@ -1,10 +1,14 @@
 /* -*- mode: C++; coding: sjis; -*-
- * Time-stamp: <2005-05-08 22:02:25 tfuruka1>
+ * Time-stamp: <2005-05-08 22:12:25 tfuruka1>
  *
  * 「ak2psのようなもの」のメール印字処理
  *
- * $Id: prtMail.c,v 1.7 2005/05/08 13:02:29 tfuruka1 Exp $
+ * $Id: prtMail.c,v 1.8 2005/05/08 13:22:42 tfuruka1 Exp $
  * $Log: prtMail.c,v $
+ * Revision 1.8  2005/05/08 13:22:42  tfuruka1
+ * X-Face印刷で、行番号を出力している場合に正しく処理されていなかった問題
+ * を修正。
+ *
  * Revision 1.7  2005/05/08 13:02:29  tfuruka1
  * X-Face関連の追加
  *
@@ -240,6 +244,16 @@ VOID PrintMail(void)
                 crLast = crTxt;
             }
 
+            // X-Faceが存在していて、Fromヘッダの場合は、行送りしておく
+            if (0 == stricmp(szLastHeader, "From:")
+                && g_MailBox.xFaceInfo.lpData) {
+                strcpy(szLine, "\n");
+                if (!SetFontAndPrint(szLine, lfHeight, lfWeight, lfItalic,
+                                     lfUnderline, FALSE, pLogFont)) {
+                    goto ErrorExit;
+                }
+            }
+
             // 行番号印刷の場合は行番号を印刷する
             if (g_MailBox.PrtInfo.bNum) {
                 sprintf(szLine, "%4d: ", ++nLine);
@@ -252,16 +266,6 @@ VOID PrintMail(void)
                     // 元の色に戻す
                     SetTextColor(g_MailBox.hDC, crLast);
                     crLast = MULE_BLACK;
-                }
-            }
-
-            // X-Faceが存在していて、Fromヘッダの場合は、行送りしておく
-            if (0 == stricmp(szLastHeader, "From:")
-                && g_MailBox.xFaceInfo.lpData) {
-                strcpy(szLine, "\n");
-                if (!SetFontAndPrint(szLine, lfHeight, lfWeight, lfItalic,
-                                     lfUnderline, FALSE, pLogFont)) {
-                    goto ErrorExit;
                 }
             }
 
