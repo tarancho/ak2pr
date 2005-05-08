@@ -1,35 +1,38 @@
 ; -*- mode: text; coding: sjis-dos; -*-
-; Time-stamp: <2004-06-18 09:32:53 tfuruka1>
+; Time-stamp: <2005-05-08 13:00:53 tfuruka1>
 ;
-; $Id: dllmain.def,v 1.3 2004/06/18 00:57:57 tfuruka1 Exp $
+; $Id: dllmain.def,v 1.4 2005/05/08 13:01:00 tfuruka1 Exp $
 ; $Log: dllmain.def,v $
+; Revision 1.4  2005/05/08 13:01:00  tfuruka1
+; 作業ファイル作成関数を追加しました。従来のファイルポインタを返却する方
+; 法だと、DLLにした時にアクセスバイオレーションが発生するので、ファイル
+; 名のみを返却する関数を追加しました。
+;
 ; Revision 1.3  2004/06/18 00:57:57  tfuruka1
 ; 改行コードの修正のみです。
 ;
 ; Revision 1.2  2003/03/29 13:53:35  tfuruka1
 ; ●GetPSTitleの追加
 ;
-; Revision 1.1  2001/12/07 18:25:40  tfuruka1
-; Initial revision
-;
 ; Revision 1.1  1999/12/16 04:29:44  tfuruka1
 ; Initial revision
 ;
 EXPORTS
-    GetLastErrorMessage
-    IsPrtServerEnable
-    ExecutePrtServer
-    MakeTempFile
-    SendPrintFromStdin
-    SendPrintFromFileCopy
-    GetMyDir
-    BaseName
-    DbgPrint
-    DbgDump
-    Syslog
-    GetLongBaseName
-    GetPaperSizeUsageMessage
-    GetPaperSizeDevMode
-    GetPaperSizeComment
-    GetTempDirectoryName
-    GetPSTitle
+    GetLastErrorMessage         @1000
+    IsPrtServerEnable           @1010
+    ExecutePrtServer            @1020
+    MakeTempFile                @1030
+    MakeTempFileAndClose        @1040
+    SendPrintFromStdin          @1050
+    SendPrintFromFileCopy       @1060
+    GetMyDir                    @1070
+    BaseName                    @1080
+    DbgPrint                    @1090
+    DbgDump                     @1100
+    Syslog                      @1110
+    GetLongBaseName             @1120
+    GetPaperSizeUsageMessage    @1130
+    GetPaperSizeDevMode         @1140
+    GetPaperSizeComment         @1150
+    GetTempDirectoryName        @1160
+    GetPSTitle                  @1170
