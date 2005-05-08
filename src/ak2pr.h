@@ -1,10 +1,13 @@
-/* -*- mode: c++; coding: sjis-dos;-*-
- * Time-stamp: <2004-12-23 19:37:10 tfuruka1>
+/* -*- mode: c++; coding: sjis;-*-
+ * Time-stamp: <2005-05-08 21:55:47 tfuruka1>
  *
  * 「ak2psのようなもの」の共通ヘッダファイル(クライアント用)
  *
- * $Id: ak2pr.h,v 1.12 2004/12/23 13:14:24 tfuruka1 Exp $
+ * $Id: ak2pr.h,v 1.13 2005/05/08 12:56:47 tfuruka1 Exp $
  * $Log: ak2pr.h,v $
+ * Revision 1.13  2005/05/08 12:56:47  tfuruka1
+ * X-Face関連の追加
+ *
  * Revision 1.12  2004/12/23 13:14:24  tfuruka1
  * 折り返し動作をコマンド引数に追加した事と、それに共なう修正。
  *
@@ -88,6 +91,15 @@ FILE * WINAPI
 MakeTempFile(
     IN const char *mode,                        // モード
     OUT LPTSTR lpszFileName                     // 作成した作業ファイル名
+    );
+/*--------------------------------------------------------------------
+ * MakeTempFileと同じですが、ファイルを作成するだけで、ファイルポイン
+ * タは返却しません。ファイルもクローズ状態です。
+ * *-------------------------------------------------------------------*/
+BOOL WINAPI
+MakeTempFileAndClose(
+    IN const char *mode,                        // モード
+    IN OUT LPTSTR lpszFileName                  // 作成した作業ファイル名
     );
 /*--------------------------------------------------------------------
  * 自分自身が格納されているディレクトリ名への一時的なポインタを得る。

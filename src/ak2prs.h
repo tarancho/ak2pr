@@ -1,9 +1,12 @@
-/* -*- mode: C++; coding: sjis-dos; -*-
+/* -*- mode: C++; coding: sjis; -*-
  *
  * 「ak2psのようなもの」のサーバ側のヘッダファイル
  *
- * $Id: ak2prs.h,v 1.28 2005/05/07 12:12:41 tfuruka1 Exp $
+ * $Id: ak2prs.h,v 1.29 2005/05/08 12:57:24 tfuruka1 Exp $
  * $Log: ak2prs.h,v $
+ * Revision 1.29  2005/05/08 12:57:24  tfuruka1
+ * X-Face関連の追加
+ *
  * Revision 1.28  2005/05/07 12:12:41  tfuruka1
  * CVSのNameキーワードを和名に変換する処理を作ってみたので、プロトタイプ
  * を追加しました。
@@ -154,6 +157,7 @@
 #include "resource.h"
 
 #include "ak2pr.h"
+#include "xbm.h"
 
 #define IsShellTray() FindWindow("Shell_TrayWnd", NULL)
 
@@ -279,6 +283,8 @@ typedef struct {
     TCHAR szDate[128];                          // 受信日時
     TCHAR szReference[128];                     // リファレンス
     TCHAR szMessageID[128];                     // メッセージID
+    XBM_INFO xFaceInfo;                         // X-FACE情報
+    BYTE xbmBuf[6 * 48];                        // X-FACEデータ領域
 } MAILBOX, *PMAILBOX;
 
 // フォント列挙情報
@@ -431,13 +437,17 @@ DrawRect(
     COLORREF rgb,                               // 色
     int pnStyle                                 // 線のスタイル
     );
+/* -------------------------------------------------------------------
+ * X-FACEを描画する
+ * *-----------------------------------------------------------------*/
+VOID WINAPI
+DrawXFace(LPXBM_INFO lpXbmInfo);
 /*-------------------------------------------------------------------- 
  * 作業用ディレクトリ名を得る。作業ディレクトリ名は書き換えてはいけま
  * せん。
  * *-------------------------------------------------------------------*/
 LPCTSTR WINAPI
 GetTempDirectoryName();
-
 
 LPCTSTR WINAPI ReplaceNameTag(LPCTSTR lpszNameTag);
 #endif

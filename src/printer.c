@@ -1,11 +1,14 @@
-/* -*- mode: c++; coding: sjis-dos; -*-
- * Time-stamp: <2004-12-26 18:16:48 tfuruka1>
- * $Id: printer.c,v 1.13 2004/12/26 09:19:15 tfuruka1 Exp $
+/* -*- mode: c++; coding: sjis; -*-
+ * Time-stamp: <2005-05-08 22:02:01 tfuruka1>
+ * $Id: printer.c,v 1.14 2005/05/08 13:02:04 tfuruka1 Exp $
  * $Name:  $
  *
  * 「ak2psのようなもの」のプリンタ制御関連
  *
  * $Log: printer.c,v $
+ * Revision 1.14  2005/05/08 13:02:04  tfuruka1
+ * X-Face関連の追加
+ *
  * Revision 1.13  2004/12/26 09:19:15  tfuruka1
  * 行番号を印刷している状態で, 文字を折り返す場合に折り返し行以降の先頭文
  * 字の位置を一行目の行番号を除いた位置と同じになるようにしました。
@@ -1027,4 +1030,18 @@ DrawRect(
 
     SelectObject(hDC, hPenOld);                 // ペンを元に戻す
     DeleteObject(hPen);                         // ペンの削除
+}
+
+/* -------------------------------------------------------------------
+ * X-FACEを描画する
+ * *-----------------------------------------------------------------*/
+VOID WINAPI
+DrawXFace(LPXBM_INFO lpXbmInfo)
+{
+    //X-Faceを描画する。サイズは、三行分にリサイズする。
+    DrawXBM(lpXbmInfo, g_MailBox.hDC, nCurrentX,
+            nCurrentY - nBaseLine,
+            nBaseLine * 3, nBaseLine * 3,
+            RGB(0, 0, 0), RGB(255, 255, 255), SRCCOPY);
+    nCurrentX += nBaseLine * 3;
 }

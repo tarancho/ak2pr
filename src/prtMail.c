@@ -1,10 +1,13 @@
-/* -*- mode: C++; coding: sjis-dos; -*-
- * Time-stamp: <2004-08-21 13:22:01 tfuruka1>
+/* -*- mode: C++; coding: sjis; -*-
+ * Time-stamp: <2005-05-08 22:02:25 tfuruka1>
  *
  * 「ak2psのようなもの」のメール印字処理
  *
- * $Id: prtMail.c,v 1.6 2004/08/21 05:35:46 tfuruka1 Exp $
+ * $Id: prtMail.c,v 1.7 2005/05/08 13:02:29 tfuruka1 Exp $
  * $Log: prtMail.c,v $
+ * Revision 1.7  2005/05/08 13:02:29  tfuruka1
+ * X-Face関連の追加
+ *
  * Revision 1.6  2004/08/21 05:35:46  tfuruka1
  * メール印刷で、ヘッダ部の二行目以降のフォントが正しくない問題を修正。
  *
@@ -80,6 +83,7 @@ VOID PrintMail(void)
         {NULL, 0, FALSE, 0}};
     BOOL bHeader = TRUE;
     TCHAR szBuf[1024], szLastHeader[128], szLine[8];
+    TCHAR szXFace[MAX_PATH];
     LPTSTR p, p1;
     FILE *fp;
     int bTitle = FALSE, c, i;
@@ -102,6 +106,28 @@ VOID PrintMail(void)
 
     szLastHeader[0] = '\0';
 
+    // X-FACE情報を先に取り出す
+    strcpy(szXFace, "X-FACE");
+    if (!MakeTempFileAndClose("wt", szXFace)) {
+        return;
+    }
+    if (ExecuteUncompface(g_MailBox.PrtInfo.szUncompPath,
+                           g_MailBox.PrtInfo.szFileName,
+                           szXFace)) {
+        g_MailBox.xFaceInfo.lpData = g_MailBox.xbmBuf;
+        g_MailBox.xFaceInfo.cbData = sizeof(g_MailBox.xbmBuf);
+        if (!SetXBM(&g_MailBox.xFaceInfo, szXFace, SETXBM_UFACE)) {
+            g_MailBox.xFaceInfo.lpData = NULL;
+            g_MailBox.xFaceInfo.cbData = 0;
+        }
+    } else {
+        // X-FACE情報は無し
+        g_MailBox.xFaceInfo.lpData = NULL;
+        g_MailBox.xFaceInfo.cbData = 0;
+    }
+    unlink(szXFace);                         // X-FACE一次ファイル削除
+
+    // メールファイルを開く
     if (NULL == (fp = fopen(g_MailBox.PrtInfo.szFileName, "rt"))) {
         DbgPrint(NULL, 'E', "%s", _strerror(g_MailBox.PrtInfo.szFileName));
         return;
@@ -139,31 +165,24 @@ VOID PrintMail(void)
                 strncpy(g_MailBox.PrtInfo.szTitle, szBuf + 9, 76);
                 g_MailBox.PrtInfo.szTitle[
                     strlen(g_MailBox.PrtInfo.szTitle) - 1] = '\0';
-            }
-
-            // メッセージIDの場合はメッセージIDを設定
-            else if (0 == strnicmp("Message-Id:", szBuf, 11)) {
+            } else if (0 == strnicmp("Message-Id:", szBuf, 11)) {
+                // メッセージIDの場合はメッセージIDを設定
                 strcpy(g_MailBox.szMessageID, szBuf);
                 g_MailBox.szMessageID[
                     strlen(g_MailBox.szMessageID) - 1] = '\0';
-            }
-
-            // Fromの場合
-            else if (0 == strnicmp(SZ_FROM, szBuf, strlen(SZ_FROM))) {
+            } else if (0 == strnicmp(SZ_FROM, szBuf, strlen(SZ_FROM))) {
+                // Fromの場合
                 strcpy(g_MailBox.szFrom, szBuf);
                 g_MailBox.szFrom[strlen(g_MailBox.szFrom) - 1] = '\0';
-            }
-            // Dateの場合
-            else if (0 == strnicmp(SZ_DATE, szBuf, strlen(SZ_DATE))) {
+            } else if (0 == strnicmp(SZ_DATE, szBuf, strlen(SZ_DATE))) {
+                // Dateの場合
                 strcpy(g_MailBox.szDate, szBuf);
                 g_MailBox.szDate[strlen(g_MailBox.szDate) - 1] = '\0';
-            }
-
-            // リファレンスの場合はリファレンスを設定
-            else if (0 == strnicmp(SZ_REFERENCES, szBuf,
-                                   strlen(SZ_REFERENCES)) ||
-                     0 == strnicmp(SZ_IN_REPLY_TO, szBuf,
-                                   strlen(SZ_IN_REPLY_TO))) {
+            } else if (0 == strnicmp(SZ_REFERENCES, szBuf,
+                                     strlen(SZ_REFERENCES))
+                       || 0 == strnicmp(SZ_IN_REPLY_TO, szBuf,
+                                        strlen(SZ_IN_REPLY_TO))) {
+                // リファレンスの場合はリファレンスを設定
                 strcpy(g_MailBox.szReference, szBuf);
                 g_MailBox.szReference[
                     strlen(g_MailBox.szReference) - 1] = '\0';
@@ -176,12 +195,14 @@ VOID PrintMail(void)
                 if (' ' == *(p + 1) || '\t' == *(p + 1)) {
                     p++;
                 }
+                // ヘッダタイトルを印刷する為に ： の次又は次の次(:の
+                // 次が空白の場合)の文字を退避後、ストッパを埋め込む
+                // (う～ん、今見ると解析が大変だ(^^ 2005/05/08 古川談
                 c = *(p + 1);
                 *(p + 1) = '\0';
                 lfWeight = 700;
                 TrimRight(strcpy(szLastHeader, szBuf));
-            }
-            else {
+            } else {
                 p = szBuf;
                 lfWeight = 400;
             }
@@ -209,8 +230,7 @@ VOID PrintMail(void)
                         if (' ' == szBuf[0]) {  // 継続ヘッダ
                             crTxt = Header[i].crDetail;
                             pLogFont = &g_MailBox.PrtInfo.lfPPF;
-                        }
-                        else {
+                        } else {
                             crTxt = Header[i].crHead;
                         }
                         break;
@@ -235,9 +255,26 @@ VOID PrintMail(void)
                 }
             }
 
+            // X-Faceが存在していて、Fromヘッダの場合は、行送りしておく
+            if (0 == stricmp(szLastHeader, "From:")
+                && g_MailBox.xFaceInfo.lpData) {
+                strcpy(szLine, "\n");
+                if (!SetFontAndPrint(szLine, lfHeight, lfWeight, lfItalic,
+                                     lfUnderline, FALSE, pLogFont)) {
+                    goto ErrorExit;
+                }
+            }
+
             if (!SetFontAndPrint(szBuf, lfHeight, lfWeight, lfItalic,
                                  lfUnderline, FALSE, pLogFont)) {
                 goto ErrorExit;
+            }
+            // X-Faceが存在していて、Fromヘッダを印刷した後であれば、
+            // XFACEを描画する
+            if (0 == stricmp(szLastHeader, "From:")
+                && g_MailBox.xFaceInfo.lpData) {
+                SetTextColor(g_MailBox.hDC, MULE_BLACK);
+                DrawXFace(&g_MailBox.xFaceInfo);
             }
 
             // : が見つからなかった場合は次の行へ
@@ -252,6 +289,9 @@ VOID PrintMail(void)
                 }
                 continue;
             }
+            // ヘッダタイトルを印刷する為にNULL文字に潰されていた文字
+            // を復元する。因みにこのコメントは、処理を追いきれなくなっ
+            // て2005/05/08に追記していたりします。
             *(p + 1) = c;
             p++;
             // ハイライトヘッダが含まれているかを検索
@@ -263,8 +303,7 @@ VOID PrintMail(void)
                         lfWeight = 400;
                         SetTextColor(g_MailBox.hDC, Header[i].crDetail);
                         crLast = Header[i].crDetail;
-                    }
-                    else {
+                    } else {
                         lfWeight = Header[i].nWeight;
                         lfUnderline = Header[i].bUnderLine;
                     }
@@ -274,6 +313,18 @@ VOID PrintMail(void)
                                          &g_MailBox.PrtInfo.lfPPF)) {
                         goto ErrorExit;
                     }
+
+                    // XFace印刷後であれば、一行送る
+                    if (0 == stricmp(szLastHeader, "From:")
+                        && g_MailBox.xFaceInfo.lpData) {
+                        strcpy(szLine, "\n");
+                        if (!SetFontAndPrint(szLine, lfHeight, lfWeight,
+                                             lfItalic, lfUnderline, FALSE,
+                                             &g_MailBox.PrtInfo.lfPPF)) {
+                            goto ErrorExit;
+                        }
+                    }
+
                     break;
                 }
             }
@@ -365,8 +416,7 @@ VOID PrintMail(void)
                         goto ErrorExit;
                     }
                     *p = c;
-                }
-                else {
+                } else {
                     lfUnderline = TRUE;
 
                     if (!SetFontAndPrint(p1, lfHeight, lfWeight,
@@ -386,8 +436,7 @@ VOID PrintMail(void)
                     goto ErrorExit;
                 }
             }
-        }
-        else {
+        } else {
             // 通常のボディ部
             if (!SetFontAndPrint(szBuf, lfHeight, lfWeight,
                                  lfItalic, lfUnderline, FALSE,

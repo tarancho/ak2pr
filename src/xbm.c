@@ -1,5 +1,5 @@
 /* -*- mode: c++ -*-
- * $Id: xbm.c,v 1.2 2005/05/07 12:14:33 tfuruka1 Exp $
+ * $Id: xbm.c,v 1.3 2005/05/08 13:03:27 tfuruka1 Exp $
  * $Name:  $
  *
  * xbm, uncompface ファイルの展開等を行ないます。本当は, 元々
@@ -8,13 +8,16 @@
  * -X オプションって, version によって, サポートされない事が判明してし
  * まい, 急遽, umcompface に対応したのであった。
  *
- * リンク時は、gdi32.lib, user32.lib が必要です。単体デバッグ時は 
+ * リンク時は、gdi32.lib, user32.lib が必要です。単体デバッグ時は
  * XBM_DEBUG をコンパイルオプションに指定すると、このファイルだけで動
  * 作します。
  *
  *    cl /W3 /Zi /DXBM_DEBUG xbm.c /link gdi32.lib user32.lib
  *
  * $Log: xbm.c,v $
+ * Revision 1.3  2005/05/08 13:03:27  tfuruka1
+ * X-Face関連の追加
+ *
  * Revision 1.2  2005/05/07 12:14:33  tfuruka1
  * printfで行っていたデバッグをak2pr用のものに変更しました。
  *
@@ -24,6 +27,9 @@
  */
 
 #include "xbm.h"
+
+#define XFACE_STR "X-Face:"
+#define PROCESS_TIMEOUT 100                     // プロセスタイムアウト
 
 #if defined(XBM_DEBUG)
 HWND WINAPI
@@ -42,6 +48,24 @@ DbgPrint(
     printf("\n");
     return NULL;
 }
+
+BOOL WINAPI
+MakeTempFileAndClose(
+    IN const char *mode,                        // モード
+    IN OUT LPTSTR lpszFileName                  // 作成した作業ファイル名
+    )
+{
+    FILE *fp;
+
+    sprintf(lpszFileName, "XBM_XXXXXX");
+    if (!_mktemp(lpszFileName)) {
+        return FALSE;
+    }
+    fp = fopen(lpszFileName, mode);
+    fclose(fp);
+    return TRUE;
+}
+
 #else
 HWND WINAPI
 DbgPrint(
@@ -50,7 +74,68 @@ DbgPrint(
     LPCSTR lpstr,                               // 書式printfと同じ
     ...                                         // 引数
     );
+
+BOOL WINAPI
+MakeTempFileAndClose(
+    IN const char *mode,                        // モード
+    IN OUT LPTSTR lpszFileName                  // 作成した作業ファイル名
+    );
+
 #endif
+
+/*
+ * 子プロセスの実行
+ */
+static int WINAPI
+ExecuteProcess(LPTSTR lpCmd)
+{
+    DWORD exitCode;
+    HANDLE hProcess;
+    long ret;
+    STARTUPINFO stInfo;
+    PROCESS_INFORMATION procInfo;
+    int i;
+
+    stInfo.cb = sizeof(STARTUPINFO);
+    stInfo.lpReserved = NULL;
+    stInfo.lpDesktop = NULL;
+    stInfo.lpTitle = NULL;
+    stInfo.dwFlags = STARTF_USESHOWWINDOW;
+    stInfo.cbReserved2 = 0;
+    stInfo.lpReserved2 = NULL;
+    stInfo.wShowWindow = SW_HIDE;               // 画面表示無し
+    ret = CreateProcess(NULL, (LPTSTR)lpCmd, NULL, NULL, FALSE, 0, NULL,
+                        NULL, &stInfo, &procInfo);
+
+    if (!ret) {
+        int nErr = GetLastError();
+        DbgPrint(0, 'E', "%s(%d) コマンド実行失敗： %s", __FILE__, __LINE__,
+                 lpCmd);
+        return 255;
+    }
+
+    // ハンドルは使用しないので閉じる
+    CloseHandle(procInfo.hProcess);
+    CloseHandle(procInfo.hThread);
+
+    // プロセスの終了を待ち合わせる
+    hProcess = OpenProcess(PROCESS_QUERY_INFORMATION, 1, procInfo.dwProcessId);
+    for (i = 0; i < PROCESS_TIMEOUT; i++) {
+        GetExitCodeProcess(hProcess, &exitCode);
+        if (STILL_ACTIVE != exitCode) {
+            DbgPrint(0, 'I', "コマンド実行(%s)終了: ExitCode=%d",
+                     lpCmd, exitCode);
+            CloseHandle(hProcess);
+            return exitCode;
+        }
+        Sleep(100);
+    }
+    // タイムアウト
+    DbgPrint(0, 'W', "プロセスを強制終了します %s", lpCmd);
+    TerminateProcess(hProcess, 255);
+    CloseHandle(hProcess);
+    return 255;
+}
 
 /*
  * XBMファイルから、幅、又は高さを得る
@@ -126,7 +211,7 @@ GetByte(FILE *fp, int kind)
 {
     int c;
     int idx;
-    int max = (AXBM_XBM == kind) ? 4 : 6;
+    int max = (SETXBM_XBM == kind) ? 4 : 6;
     char szBuf[12];
 
     // 最初の空白を消去
@@ -165,26 +250,27 @@ GetByte(FILE *fp, int kind)
 }
 
 /*
- * XBM または, uncompface ファイルの情報を展開する。引数で渡されたファ
- * イルポインタは処理完了後クローズします。エラーが発生した場合は, ク
- * ローズしません。
+ * XBM または, uncompface ファイルの情報を展開する。LPXBM_INFOのlpData
+ * に展開領域と、cbData にlpDataのバイト数が設定されている必要がありま
+ * す。この値を越えるサイズを展開する事はできません。
  */
-LPXBM_INFO
-AllocXBM(FILE *fp, int kind)
+BOOL WINAPI
+SetXBM(LPXBM_INFO lpXbm, LPCTSTR lpszFileName, int kind)
 {
     int i;
     long c;
+    size_t size;
+    FILE *fp;
 
-    LPXBM_INFO lpXbm = (LPXBM_INFO)malloc(sizeof(XBM_INFO));
-
-    if (!lpXbm) {
-        DbgPrint(0, 'D', "%s(%d)メモリ不足(XBM-INFO)", __FILE__, __LINE__);
-        return NULL;
+    if (!(fp = fopen(lpszFileName, "rt"))) {
+        DbgPrint(0, 'E', "%s(%d) %s", __FILE__, __LINE__,
+                 _strerror(lpszFileName));
+        return FALSE;
     }
-    lpXbm->lpData = NULL;
+
     lpXbm->kind = kind;
 
-    if (AXBM_XBM == kind) {                     // xbm
+    if (SETXBM_XBM == kind) {                   // xbm
         lpXbm->nWidth = GetXbmWidth(fp);
         lpXbm->nHeight = GetXbmHeight(fp);
     } else {                                    // uncompface
@@ -193,24 +279,24 @@ AllocXBM(FILE *fp, int kind)
     }
     lpXbm->cbWidth = ((lpXbm->nWidth / 8)
                       + (0 == (lpXbm->nWidth % 8) ? 0 : 1));
-    lpXbm->cbData = lpXbm->cbWidth * lpXbm->nHeight;
-
-    lpXbm->lpData = (unsigned char *)malloc(lpXbm->cbData);
-    if (!lpXbm->lpData) {
-        free(lpXbm);
-        DbgPrint(0, 'D', "%s(%d)メモリ不足(XBM-DATA)", __FILE__, __LINE__);
-        return NULL;
+    size = lpXbm->cbWidth * lpXbm->nHeight;
+    if (size > lpXbm->cbData) {
+        DbgPrint(NULL, 'E', "%s(%d) XBMをメモリに展開できません。"
+                 "%dバイトの領域が必要ですが、%dバイトしかありません。",
+                 __FILE__, __LINE__, size, lpXbm->cbData);
+        return FALSE;
     }
+    lpXbm->cbData = size;
 
-    if (AXBM_XBM == kind) {                     // xbm
+    if (SETXBM_XBM == kind) {                   // xbm
         SkipToFirstByte(fp);
 
-        for (i = 0; i < lpXbm->cbData; i++) {
+        for (i = 0; i < (int)lpXbm->cbData; i++) {
             c = GetByte(fp, kind);
             *(lpXbm->lpData + i) = c & 0xff;
         }
     } else {                                    // uncompface
-        for (i = 0; i < lpXbm->cbData; i += 2) {
+        for (i = 0; i < (int)lpXbm->cbData; i += 2) {
             c = GetByte(fp, kind);
             *(lpXbm->lpData + i) = (c >> 8)& 0xff;
             *(lpXbm->lpData + i + 1) = c & 0xff;
@@ -218,21 +304,7 @@ AllocXBM(FILE *fp, int kind)
     }
     fclose(fp);
 
-    return lpXbm;
-}
-
-/*
- * AllocXBMで取得した情報エリアを開放します。
- */
-void
-FreeXBM(LPXBM_INFO lpXbm)
-{
-    if (lpXbm && lpXbm->lpData) {
-        free(lpXbm->lpData);
-    }
-    if (lpXbm) {
-        free(lpXbm);
-    }
+    return TRUE;
 }
 
 /*
@@ -245,7 +317,7 @@ PeekXBM(LPXBM_INFO lpXbm, int x, int y)
     int shift = (x % 8);
     int c = *(lpXbm->lpData + idx);
 
-    if (AXBM_UFACE == lpXbm->kind) {
+    if (SETXBM_UFACE == lpXbm->kind) {
         shift = 7 - shift;
     }
     return (c >> shift) & 1;
@@ -317,6 +389,90 @@ DrawXBM(
     return TRUE;
 }
 
+/*
+ * メールファイルからX-FACE部分を切り出し、ファイルに出力する
+ */
+static BOOL WINAPI
+CutXFACEToFile(
+    LPTSTR lpszInFile,                          // メールファイル
+    LPTSTR lpszOutFile                          // X-FACE出力先
+    )
+{
+    FILE *fpIn;
+    FILE *fpOut;
+    int cbXFace = strlen(XFACE_STR);
+    BOOL bFind = FALSE;
+    TCHAR szBuf[1024];
+
+    if (!(fpIn = fopen(lpszInFile, "rt"))) {
+        DbgPrint(0, 'E', "%s(%d) %s", __FILE__, __LINE__,
+                 _strerror(lpszInFile));
+        return FALSE;
+    }
+    if (!(fpOut = fopen(lpszOutFile, "wt"))) {
+        DbgPrint(0, 'E', "%s(%d) %s", __FILE__, __LINE__,
+                 _strerror(lpszOutFile));
+        fclose(fpIn);
+        return FALSE;
+    }
+
+    // X-Face:が見付かる迄、読み飛ばす
+    while (fgets(szBuf, 1024, fpIn)) {
+        if (0 == memicmp(szBuf, XFACE_STR, cbXFace)) {
+            bFind = TRUE;
+            break;
+        }
+    }
+    if (!bFind) {
+        DbgPrint(0, 'I', "%s は存在しません", XFACE_STR);
+        fclose(fpIn);
+        fclose(fpOut);
+        return FALSE;
+    }
+    fprintf(fpOut, "%s", szBuf + cbXFace);
+
+    while (fgets(szBuf, 1024, fpIn)) {
+        // 継続行でなければ終了
+        if (' ' != szBuf[0]) {
+            break;
+        }
+        fprintf(fpOut, "%s", szBuf);
+    }
+    fclose(fpIn);
+    fclose(fpOut);
+    return TRUE;
+}
+
+/*
+ * uncompfaceを実行する
+ */
+BOOL WINAPI
+ExecuteUncompface(
+    LPTSTR lpszCmdPath,                         // uncompfaceパス
+    LPTSTR lpszInFile,                          // メールファイル
+    LPTSTR lpszOutFile                          // 出力ファイル
+    )
+{
+    TCHAR szCmd[1024];
+    TCHAR szTempFile[MAX_PATH];
+    int exitCode;
+
+    strcpy(szTempFile, "XFACE");
+    if (!MakeTempFileAndClose("wt", szTempFile)) {
+        return FALSE;
+    }
+
+    if (!CutXFACEToFile(lpszInFile, szTempFile)) {
+        unlink(szTempFile);
+        return FALSE;
+    }
+
+    sprintf(szCmd, "%s %s %s", lpszCmdPath, szTempFile, lpszOutFile);
+    exitCode = ExecuteProcess(szCmd);
+    unlink(szTempFile);
+    return 0 == exitCode ? TRUE : FALSE;
+}
+
 #if defined(XBM_DEBUG) // ━━━━━━━━━━━━━━━━━━━━━━
 /*
  * SDK32:コンソールウィンドウのハンドル取得
@@ -373,41 +529,60 @@ HWND GetConsoleHwnd(VOID)
 
 int main(int argc, char *argv[])
 {
-    FILE *fp;
     int x, y;
     int kind;
-    LPXBM_INFO lpXbm;
+    LPCTSTR lpszFileName;
+    TCHAR szFileName[MAX_PATH];
     HWND hWnd = GetConsoleHwnd();
     HDC hDC = GetDC(hWnd);
+    unsigned char xbmBuf[6 * 48];
+    XBM_INFO xbmInfo;
+
+    xbmInfo.lpData = xbmBuf;
+    xbmInfo.cbData = sizeof(xbmBuf);
 
     if (3 != argc) {
-        printf("Usage: xbm [u | x] FileName\n");
+        printf("Usage: xbm [u | x | m<uncompfacePath>] FileName\n");
+        printf(" u - uncompfaceで処理されたファイル\n"
+               " x - xbmファイル\n"
+               " m - X-FACEが含まれたメールファイル\n");
         return 1;
     }
 
-    kind = (*argv[1] == 'u') ? AXBM_UFACE : AXBM_XBM;
-
-    if (!(fp = fopen(argv[2], "rt"))) {
-        perror(argv[1]);
+    kind = (*argv[1] != 'x') ? SETXBM_UFACE : SETXBM_XBM;
+    lpszFileName = argv[2];
+    if (*argv[1] == 'm') {
+        strcpy(szFileName, "X-FACE");
+        if (!MakeTempFileAndClose("wt", szFileName)) {
+            return 1;
+        }
+        if (!ExecuteUncompface(argv[1] + 1, argv[2], szFileName)) {
+            unlink(szFileName);
+            return 1;
+        }
+        lpszFileName = szFileName;
+    }
+    if (!SetXBM(&xbmInfo, lpszFileName, kind)) {
+        if (*argv[1] == 'm') {
+            unlink(lpszFileName);
+        }
         return 1;
     }
-
-    if (!(lpXbm = AllocXBM(fp, kind))) {
-        return 1;
+    if (*argv[1] == 'm') {
+        unlink(lpszFileName);
     }
 
     // テキストで描画
-    for (y = 0; y < lpXbm->nHeight; y++) {
-        for (x = 0; x < lpXbm->nWidth; x++) {
-            printf("%c", PeekXBM(lpXbm, x, y) ? 'X': ' ');
+    for (y = 0; y < xbmInfo.nHeight; y++) {
+        for (x = 0; x < xbmInfo.nWidth; x++) {
+            printf("%c", PeekXBM(&xbmInfo, x, y) ? 'X': ' ');
         }
         printf("\n");
     }
 
     // グラフィックで描画
-    DrawXBM(lpXbm, hDC, 100, 100, lpXbm->nWidth * 2, lpXbm->nHeight * 2,
+    DrawXBM(&xbmInfo, hDC, 100, 100, xbmInfo.nWidth * 2, xbmInfo.nHeight * 2,
             RGB(0, 0, 0), RGB(255, 255, 255), SRCCOPY);
-    FreeXBM(lpXbm);
 
     ReleaseDC(hWnd, hDC);
     return 0;
