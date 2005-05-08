@@ -1,6 +1,6 @@
-/* -*- mode: c++; coding: sjis-dos; -*-
- * Time-stamp: <2004-12-23 20:35:40 tfuruka1>
- * $Id: clientCommon.c,v 1.17 2004/12/23 13:14:24 tfuruka1 Exp $
+/* -*- mode: c++; coding: sjis; -*-
+ * Time-stamp: <2005-05-08 21:58:13 tfuruka1>
+ * $Id: clientCommon.c,v 1.18 2005/05/08 12:58:59 tfuruka1 Exp $
  * $Name:  $
  *
  * 「ak2psのようなもの」のクライアントの共通処理部
@@ -14,6 +14,9 @@
  *   いる箇所の変更が必要になります。
  *
  * $Log: clientCommon.c,v $
+ * Revision 1.18  2005/05/08 12:58:59  tfuruka1
+ * 関数の宣言部分の修正のみです。
+ *
  * Revision 1.17  2004/12/23 13:14:24  tfuruka1
  * 折り返し動作をコマンド引数に追加した事と、それに共なう修正。
  *
@@ -130,7 +133,8 @@ static void Usage(LPTSTR arg)
     printf("%s", GetPaperSizeUsageMessage());
 }
 
-int ak2prClientCommon(int __argc, char **_argv)
+int
+ak2prClientCommon(int __argc, char **_argv)
 {
     TCHAR szBuf[4096];
     TCHAR szSVOption[128];                      // サーバの起動オプション
