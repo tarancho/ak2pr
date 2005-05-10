@@ -1,10 +1,13 @@
 /* -*- mode: c++; coding: sjis-dos; -*-
- * Time-stamp: <2005-05-11 00:57:26 tfuruka1>
+ * Time-stamp: <2005-05-11 01:08:55 tfuruka1>
  *
  * ak2psのようなもののテスト印字関連
  *
- * $Id: testprint.c,v 1.8 2005/05/10 16:06:52 tfuruka1 Exp $
+ * $Id: testprint.c,v 1.9 2005/05/10 16:10:56 tfuruka1 Exp $
  * $Log: testprint.c,v $
+ * Revision 1.9  2005/05/10 16:10:56  tfuruka1
+ * コンパイルエラーの修正(^^;
+ *
  * Revision 1.8  2005/05/10 16:06:52  tfuruka1
  * Nameキーワードの置換を追加しました。
  *
@@ -323,7 +326,8 @@ DoTestPrint(void)
     }
 
     wsprintf(szBuf, "この用紙は%d年%d月%d日%d時%d分%d秒%dミリ秒に"
-             "%sによって印刷されました。\n" ReplaceNameTag(COPYRIGHT),
+             "%sによって印刷されました。\n%s",
+             ReplaceNameTag(COPYRIGHT),
              st.wYear, st.wMonth, st.wDay, st.wHour, st.wMinute,
              st.wSecond, st. wMilliseconds, szUser);
 

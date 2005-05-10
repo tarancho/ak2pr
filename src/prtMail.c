@@ -1,10 +1,13 @@
 /* -*- mode: C++; coding: sjis; -*-
- * Time-stamp: <2005-05-11 00:57:01 tfuruka1>
+ * Time-stamp: <2005-05-11 01:09:36 tfuruka1>
  *
  * 「ak2psのようなもの」のメール印字処理
  *
- * $Id: prtMail.c,v 1.9 2005/05/10 16:06:25 tfuruka1 Exp $
+ * $Id: prtMail.c,v 1.10 2005/05/10 16:10:46 tfuruka1 Exp $
  * $Log: prtMail.c,v $
+ * Revision 1.10  2005/05/10 16:10:46  tfuruka1
+ * コンパイルエラーの修正(^^;
+ *
  * Revision 1.9  2005/05/10 16:06:25  tfuruka1
  * モノクロモードでメール印刷した時に継続ヘッダが文字化けする不具合を修正
  * しました。
@@ -249,7 +252,6 @@ VOID PrintMail(void)
             } else {
                 // モノクロ印刷の場合 Thanks 茅野 san.
                 if (' ' == szBuf[0]) {          // 継続ヘッダ
-                    crTxt = Header[i].crDetail;
                     pLogFont = &g_MailBox.PrtInfo.lfPPF;
                 }
             }
