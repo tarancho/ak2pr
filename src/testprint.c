@@ -1,10 +1,13 @@
-/* -*- mode: c++; coding: sjis-dos; -*-
- * Time-stamp: <2005-05-11 01:08:55 tfuruka1>
+/* -*- mode: c++; coding: sjis; -*-
+ * Time-stamp: <2005-05-11 01:16:54 tfuruka1>
  *
  * ak2psのようなもののテスト印字関連
  *
- * $Id: testprint.c,v 1.9 2005/05/10 16:10:56 tfuruka1 Exp $
+ * $Id: testprint.c,v 1.10 2005/05/10 16:18:07 tfuruka1 Exp $
  * $Log: testprint.c,v $
+ * Revision 1.10  2005/05/10 16:18:07  tfuruka1
+ * 焦って修正したら、アクセスヴァイオレーションになってしまった。反省。
+ *
  * Revision 1.9  2005/05/10 16:10:56  tfuruka1
  * コンパイルエラーの修正(^^;
  *
@@ -327,9 +330,9 @@ DoTestPrint(void)
 
     wsprintf(szBuf, "この用紙は%d年%d月%d日%d時%d分%d秒%dミリ秒に"
              "%sによって印刷されました。\n%s",
-             ReplaceNameTag(COPYRIGHT),
              st.wYear, st.wMonth, st.wDay, st.wHour, st.wMinute,
-             st.wSecond, st. wMilliseconds, szUser);
+             st.wSecond, st. wMilliseconds, szUser,
+             ReplaceNameTag(COPYRIGHT));
 
     DrawText(g_MailBox.hDC, szBuf, -1, &rc,
              DT_NOPREFIX | DT_CENTER | DT_WORDBREAK);
