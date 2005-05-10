@@ -1,10 +1,13 @@
 /* -*- mode: c++; coding: sjis-dos; -*-
- * Time-stamp: <2005-05-07 21:06:16 tfuruka1>
+ * Time-stamp: <2005-05-11 00:57:26 tfuruka1>
  *
  * ak2psのようなもののテスト印字関連
  *
- * $Id: testprint.c,v 1.7 2005/05/07 12:13:15 tfuruka1 Exp $
+ * $Id: testprint.c,v 1.8 2005/05/10 16:06:52 tfuruka1 Exp $
  * $Log: testprint.c,v $
+ * Revision 1.8  2005/05/10 16:06:52  tfuruka1
+ * Nameキーワードの置換を追加しました。
+ *
  * Revision 1.7  2005/05/07 12:13:15  tfuruka1
  * CVSのNameキーワードを和名に変換する処理を作ってみたので、変換処理を組
  * み込んでみました。
@@ -320,7 +323,7 @@ DoTestPrint(void)
     }
 
     wsprintf(szBuf, "この用紙は%d年%d月%d日%d時%d分%d秒%dミリ秒に"
-             "%sによって印刷されました。\n" COPYRIGHT,
+             "%sによって印刷されました。\n" ReplaceNameTag(COPYRIGHT),
              st.wYear, st.wMonth, st.wDay, st.wHour, st.wMinute,
              st.wSecond, st. wMilliseconds, szUser);
 
