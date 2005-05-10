@@ -1,11 +1,14 @@
 /* -*- mode: c++; coding: sjis; -*-
- * Time-stamp: <2005-05-08 22:02:01 tfuruka1>
- * $Id: printer.c,v 1.14 2005/05/08 13:02:04 tfuruka1 Exp $
+ * Time-stamp: <2005-05-11 00:52:25 tfuruka1>
+ * $Id: printer.c,v 1.15 2005/05/10 16:06:02 tfuruka1 Exp $
  * $Name:  $
  *
  * 「ak2psのようなもの」のプリンタ制御関連
  *
  * $Log: printer.c,v $
+ * Revision 1.15  2005/05/10 16:06:02  tfuruka1
+ * Nameキーワードを和名に置換しない方が良い箇所にコメントを記述しました。
+ *
  * Revision 1.14  2005/05/08 13:02:04  tfuruka1
  * X-Face関連の追加
  *
@@ -613,6 +616,8 @@ BeginPage(void)
                               FALSE, FALSE, FALSE, &g_MailBox.PrtInfo.lfOPPF);
         hOldFont = SelectObject(g_MailBox.hDC, hFont);
 
+        // ここの COPYRIGHT は Name を和名に変換しない。日本語を含まな
+        // いフォントを使用する可能性が高い。
         DrawText(g_MailBox.hDC, COPYRIGHT, -1, &rc,
                  DT_LEFT | DT_VCENTER | DT_NOCLIP | DT_WORDBREAK);
 
