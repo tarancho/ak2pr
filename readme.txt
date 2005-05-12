@@ -1,6 +1,6 @@
 -*- mode: text; coding: sjis-dos -*-
-Time-stamp: <2005-05-11 01:28:36 tfuruka1>
-$Id: readme.txt,v 1.16 2005/05/10 16:29:14 tfuruka1 Exp $
+Time-stamp: <2005-05-12 22:44:12 tfuruka1>
+$Id: readme.txt,v 1.17 2005/05/12 14:39:07 tfuruka1 Exp $
 $Name:  $
 
 
@@ -508,49 +508,49 @@ Usage: ak2pr [-o{p|l}] [-m{PLAIN|MAIL|PS_ACROBAT|PS_GHOST}]
 用紙サイズは以下の何れかを指定して下さい。但し, 全てのオプションが全て
 のプリンタで有効とは限りません。
 
-オプション          説明
-------------------- ------------------------------
-A3                  A3シート, 297× 420ミリメートル
-A4                  A4シート, 210× 297ミリメートル
-A4SMALL             A4 small シート, 210× 297ミリメートル
-A5                  A5シート, 148× 210ミリメートル
-B4                  B4シート, 250× 354ミリメートル
-B5                  B5シート, 182× 257ミリメートル
-LETTER              Letter, 8 1/2× 11インチ
-LEGAL               Legal, 8 1/2× 14インチ
-CSHEET              C シート, 17× 22インチ
-DSHEET              D シート, 22× 34インチ
-ESHEET              E シート, 34× 44インチ
-LETTERSMALL         Letter Small, 8 1/2× 11インチ
-TABLOID             Tabloid, 11× 17インチ
-LEDGER              Ledger, 17× 11インチ
-STATEMENT           Statement, 5 1/2× 8 1/2インチ
-EXECUTIVE           Executive, 7 1/4× 10 1/2インチ
-FOLIO               Folio, 8 1/2× 13インチ
-QUARTO              Quarto, 215× 275ミリメートル
-10X14               10× 14インチシート
-11X17               11× 17インチシート
-NOTE                Note, 8 1/2× 11インチ
-ENV_9               #9 Envelope, 3 7/8× 8 7/8インチ
-ENV_10              #10 Envelope, 4 1/8× 9 1/2インチ
-ENV_11              #11 Envelope, 4 1/2× 10 3/8インチ
-ENV_12              #12 Envelope, 4 3/4× 11インチ
-ENV_14              #14 Envelope, 5× 11 1/2インチ
-ENV_DL              DL Envelope, 110× 220ミリメートル
-ENV_C5              C5 Envelope, 162× 229ミリメートル
-ENV_C3              C3 Envelope, 324× 458ミリメートル
-ENV_C4              C4 Envelope, 229× 324ミリメートル
-ENV_C6              C6 Envelope, 114× 162ミリメートル
-ENV_C65             C65 Envelope, 114× 229ミリメートル
-ENV_B4              B4 Envelope, 250× 353ミリメートル
-ENV_B5              B5 Envelope, 176× 250ミリメートル
-ENV_B6              B6 Envelope, 176× 125ミリメートル
-ENV_ITALY           Italy Envelope, 110× 230ミリメートル
-ENV_MONARCH         Monarch Envelope, 3 7/8× 7 1/2インチ
-ENV_PERSONAL        6 3/4 Envelope, 3 5/8× 6 1/2インチ
-FANFOLD_US          US Std Fanfold, 14 7/8× 11インチ
-FANFOLD_STD_GERMAN  German Std Fanfold, 8 1/2× 12インチ
-FANFOLD_LGL_GERMAN  German Legal Fanfold, 8 1/2× 13インチ
+    オプション          説明
+    ------------------- ------------------------------
+    A3                  A3シート, 297× 420ミリメートル
+    A4                  A4シート, 210× 297ミリメートル
+    A4SMALL             A4 small シート, 210× 297ミリメートル
+    A5                  A5シート, 148× 210ミリメートル
+    B4                  B4シート, 250× 354ミリメートル
+    B5                  B5シート, 182× 257ミリメートル
+    LETTER              Letter, 8 1/2× 11インチ
+    LEGAL               Legal, 8 1/2× 14インチ
+    CSHEET              C シート, 17× 22インチ
+    DSHEET              D シート, 22× 34インチ
+    ESHEET              E シート, 34× 44インチ
+    LETTERSMALL         Letter Small, 8 1/2× 11インチ
+    TABLOID             Tabloid, 11× 17インチ
+    LEDGER              Ledger, 17× 11インチ
+    STATEMENT           Statement, 5 1/2× 8 1/2インチ
+    EXECUTIVE           Executive, 7 1/4× 10 1/2インチ
+    FOLIO               Folio, 8 1/2× 13インチ
+    QUARTO              Quarto, 215× 275ミリメートル
+    10X14               10× 14インチシート
+    11X17               11× 17インチシート
+    NOTE                Note, 8 1/2× 11インチ
+    ENV_9               #9 Envelope, 3 7/8× 8 7/8インチ
+    ENV_10              #10 Envelope, 4 1/8× 9 1/2インチ
+    ENV_11              #11 Envelope, 4 1/2× 10 3/8インチ
+    ENV_12              #12 Envelope, 4 3/4× 11インチ
+    ENV_14              #14 Envelope, 5× 11 1/2インチ
+    ENV_DL              DL Envelope, 110× 220ミリメートル
+    ENV_C5              C5 Envelope, 162× 229ミリメートル
+    ENV_C3              C3 Envelope, 324× 458ミリメートル
+    ENV_C4              C4 Envelope, 229× 324ミリメートル
+    ENV_C6              C6 Envelope, 114× 162ミリメートル
+    ENV_C65             C65 Envelope, 114× 229ミリメートル
+    ENV_B4              B4 Envelope, 250× 353ミリメートル
+    ENV_B5              B5 Envelope, 176× 250ミリメートル
+    ENV_B6              B6 Envelope, 176× 125ミリメートル
+    ENV_ITALY           Italy Envelope, 110× 230ミリメートル
+    ENV_MONARCH         Monarch Envelope, 3 7/8× 7 1/2インチ
+    ENV_PERSONAL        6 3/4 Envelope, 3 5/8× 6 1/2インチ
+    FANFOLD_US          US Std Fanfold, 14 7/8× 11インチ
+    FANFOLD_STD_GERMAN  German Std Fanfold, 8 1/2× 12インチ
+    FANFOLD_LGL_GERMAN  German Legal Fanfold, 8 1/2× 13インチ
 
 ● Emacs(Meadow)から印刷する
 =============================
