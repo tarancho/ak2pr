@@ -1,10 +1,13 @@
 /* -*- mode: c; coding: sjis; -*-
- * $Id: version.c,v 1.3 2005/05/07 12:13:26 tfuruka1 Exp $
+ * $Id: version.c,v 1.4 2005/05/12 14:39:41 tfuruka1 Exp $
  * $Name:  $
  *
  * 「ak2psのようなもの」のヴァージョン情報
  *
  * $Log: version.c,v $
+ * Revision 1.4  2005/05/12 14:39:41  tfuruka1
+ * Build日時の対応
+ *
  * Revision 1.3  2005/05/07 12:13:26  tfuruka1
  * CVSのNameキーワードを和名に変換する処理を作ってみたので、変換処理を組
  * み込んでみました。
@@ -54,7 +57,8 @@ DoInitDialog(HWND hWnd, HWND hWndFocus, LPARAM lParam)
 {
     TCHAR szBuf[1024];
 
-    wsprintf(szBuf, "%s\r\n%s", ReplaceNameTag(VERSION), COPYRIGHT_STR);
+    wsprintf(szBuf, "%s\r\n%s\r\n%s",
+             ReplaceNameTag(VERSION), BUILD, COPYRIGHT_STR);
 
     SetDlgItemText(hWnd, IDC_ST_VERSION, szBuf);
     SetMemoryInfo(hWnd);

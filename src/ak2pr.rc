@@ -153,7 +153,7 @@ FONT 9, "ＭＳ Ｐゴシック"
 BEGIN
     DEFPUSHBUTTON   "OK",IDOK,194,56,50,14
     CONTROL         112,IDC_STATIC,"Static",SS_BITMAP,7,7,27,32
-    CTEXT           "Static\nhoge",IDC_ST_VERSION,38,7,206,22
+    CTEXT           "Static\nhoge",IDC_ST_VERSION,38,7,206,29
     CONTROL         "",IDC_STATIC,"Static",SS_BLACKFRAME,7,41,237,1
     LTEXT           "メモリ使用率",IDC_STATIC,186,45,41,8
     LTEXT           "物理メモリの総容量",IDC_STATIC,7,45,63,8

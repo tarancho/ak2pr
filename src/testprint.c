@@ -1,10 +1,13 @@
 /* -*- mode: c++; coding: sjis; -*-
- * Time-stamp: <2005-05-11 01:16:54 tfuruka1>
+ * Time-stamp: <2005-05-12 22:49:48 tfuruka1>
  *
  * ak2psのようなもののテスト印字関連
  *
- * $Id: testprint.c,v 1.10 2005/05/10 16:18:07 tfuruka1 Exp $
+ * $Id: testprint.c,v 1.11 2005/05/12 14:39:41 tfuruka1 Exp $
  * $Log: testprint.c,v $
+ * Revision 1.11  2005/05/12 14:39:41  tfuruka1
+ * Build日時の対応
+ *
  * Revision 1.10  2005/05/10 16:18:07  tfuruka1
  * 焦って修正したら、アクセスヴァイオレーションになってしまった。反省。
  *
@@ -55,7 +58,7 @@ static void DrawCross(
     int xr,                                     // 水平方向の半径
     int yr                                      // 垂直方向の半径
     )
-{ 
+{
     POINT pt[2];
 
     Arc(g_MailBox.hDC, x - xr, y - yr, x + xr, y + yr, x + xr, y, x + xr, y);
@@ -104,7 +107,7 @@ void DrawTombow(void)
     pt[1].x = pt[0].x + nDPIW;
     pt[0].y = pt[1].y = nDPIH - nPaperMarginH;
     Polyline(g_MailBox.hDC, &pt[0], 2);         // 上の横線
-    
+
     pt[0].y = pt[1].y = nPaperHeight - nDPIH - nPaperMarginH;
     Polyline(g_MailBox.hDC, &pt[0], 2);         // 下の横線
 
@@ -213,8 +216,7 @@ void DrawTombow(void)
         default:
             if (i % 2) {
                 pt[1].y = pt[0].y + ConvX2Dt(0.15, nDPIH, CX_CM);
-            }
-            else {
+            } else {
                 pt[1].y = pt[0].y + ConvX2Dt(0.3, nDPIH, CX_CM);
             }
             break;
@@ -244,8 +246,7 @@ void DrawTombow(void)
         default:
             if (i % 2) {
                 pt[1].x = pt[0].x + ConvX2Dt(0.15, nDPIW, CX_CM);
-            }
-            else {
+            } else {
                 pt[1].x = pt[0].x + ConvX2Dt(0.3, nDPIW, CX_CM);
             }
             break;
@@ -433,8 +434,7 @@ DoTestPrint(void)
     // プレビューの場合は、プレビュー画面を表示する
     if (g_MailBox.PrtInfo.bPreView) {
         PrintPreview(g_MailBox.hWnd, &g_MailBox.PrevInfo);
-    }
-    else {
+    } else {
         EndPage(g_MailBox.hDC);                 // ページ出力
         EndDoc(g_MailBox.hDC);                  // ドキュメント完了
     }

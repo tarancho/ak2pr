@@ -1,9 +1,13 @@
 /* -*- mode: C++; coding: sjis; -*-
+ * $Id: ak2prs.h,v 1.30 2005/05/12 14:39:41 tfuruka1 Exp $
+ * $Name:  $
  *
  * 「ak2psのようなもの」のサーバ側のヘッダファイル
  *
- * $Id: ak2prs.h,v 1.29 2005/05/08 12:57:24 tfuruka1 Exp $
  * $Log: ak2prs.h,v $
+ * Revision 1.30  2005/05/12 14:39:41  tfuruka1
+ * Build日時の対応
+ *
  * Revision 1.29  2005/05/08 12:57:24  tfuruka1
  * X-Face関連の追加
  *
@@ -138,7 +142,10 @@
 
 #include "ver.h"
 #define VERSION       "ak2pr Version " MAKE_VERSION "($Name:  $)"
-#define COPYRIGHT_STR "Copyright(C) 1997-2005 By T.Furukawa"
+#define BUILD         "Build: " __DATE__ " " __TIME__
+#define COPYRIGHT_STR "Copyright(C) 1997-2005 T.Furukawa"
+#define COPYRIGHT VERSION " " COPYRIGHT_STR\
+"\n(tfuruka1@nifty.com) " BUILD
 
 #include <windows.h>
 #include <windowsx.h>
@@ -167,9 +174,6 @@
 #define PV_CAPTION  "ぷれびゅうううぅぅぅ" TIMESTAMP
 
 #define SV_EXE_NAME "ak2prSV.EXE"
-
-#define COPYRIGHT VERSION " " COPYRIGHT_STR\
-"\n(tfuruka1@nifty.com)" TIMESTAMP
 
 // 1バイト目が漢字コードか否かチェックするマクロ
 #define IsKanjiSJIS(c)  (((c) >= 0x81 && (c) <= 0x9f) ||\
