@@ -1,10 +1,13 @@
 /* -*- mode: C++; coding: sjis; -*-
- * Time-stamp: <2005-05-11 01:09:36 tfuruka1>
+ * Time-stamp: <2005-08-03 18:59:31 tfuruka1>
  *
  * 「ak2psのようなもの」のメール印字処理
  *
- * $Id: prtMail.c,v 1.10 2005/05/10 16:10:46 tfuruka1 Exp $
+ * $Id: prtMail.c,v 1.11 2005/08/03 10:09:20 tfuruka1 Exp $
  * $Log: prtMail.c,v $
+ * Revision 1.11  2005/08/03 10:09:20  tfuruka1
+ * メール印刷でFaceを印刷できるようにしました。
+ *
  * Revision 1.10  2005/05/10 16:10:46  tfuruka1
  * コンパイルエラーの修正(^^;
  *
@@ -51,6 +54,8 @@
 #define SZ_DATE        "Date:"
 #define SZ_RECEIVED    "Received:"
 #define SZ_MAILER      "X-Mailer:"
+#define SZ_X_FACE      "X-Face:"
+#define SZ_FACE        "Face:"
 
 #define MULE_GREEN RGB(0, 255, 0)
 #define MULE_BLUE  RGB(0, 0, 255)
@@ -137,6 +142,19 @@ VOID PrintMail(void)
         g_MailBox.xFaceInfo.cbData = 0;
     }
     unlink(szXFace);                         // X-FACE一次ファイル削除
+
+    // FACE情報の取得
+    strcpy(g_MailBox.szFaceFilePath, "FACE-BMP");
+    if (!MakeTempFileAndClose("wt", g_MailBox.szFaceFilePath)) {
+        return;
+    }
+    if (!ExecuteConvert(g_MailBox.PrtInfo.szConvertPath,
+                       g_MailBox.PrtInfo.szFileName,
+                       g_MailBox.szFaceFilePath)) {
+        // FACE情報は無し
+        unlink(g_MailBox.szFaceFilePath);
+        g_MailBox.szFaceFilePath[0] = '\0';
+    }
 
     // メールファイルを開く
     if (NULL == (fp = fopen(g_MailBox.PrtInfo.szFileName, "rt"))) {
@@ -232,6 +250,12 @@ VOID PrintMail(void)
                 }
             }
 
+            // 簡易ヘッダ以外でもX-FaceとFaceは印刷しない
+            if (0 == stricmp(SZ_X_FACE, szLastHeader)
+                || 0 == stricmp(SZ_FACE, szLastHeader)) {
+                continue;
+            }
+
             // ヘッダのタイトル印字
             if (g_MailBox.PrtInfo.bColor) {     // カラー印刷の場合
                 COLORREF crTxt = MULE_BLACK;
@@ -256,9 +280,11 @@ VOID PrintMail(void)
                 }
             }
 
-            // X-Faceが存在していて、Fromヘッダの場合は、行送りしておく
+            // X-Face 又は Face が存在していて, 
+            // From ヘッダの場合は, 行送りしておく
             if (0 == stricmp(szLastHeader, "From:")
-                && g_MailBox.xFaceInfo.lpData) {
+                && (g_MailBox.xFaceInfo.lpData
+                    || g_MailBox.szFaceFilePath[0])) {
                 strcpy(szLine, "\n");
                 if (!SetFontAndPrint(szLine, lfHeight, lfWeight, lfItalic,
                                      lfUnderline, FALSE, pLogFont)) {
@@ -285,12 +311,21 @@ VOID PrintMail(void)
                                  lfUnderline, FALSE, pLogFont)) {
                 goto ErrorExit;
             }
-            // X-Faceが存在していて、Fromヘッダを印刷した後であれば、
-            // XFACEを描画する
-            if (0 == stricmp(szLastHeader, "From:")
-                && g_MailBox.xFaceInfo.lpData) {
-                SetTextColor(g_MailBox.hDC, MULE_BLACK);
-                DrawXFace(&g_MailBox.xFaceInfo);
+
+            // Fromヘッダを印刷した後で
+            if (0 == stricmp(szLastHeader, "From:")) {
+                // Faceが存在しているならFaceを描画する
+                if (g_MailBox.szFaceFilePath[0]) {
+                    DrawFace(g_MailBox.szFaceFilePath);
+                    // 描画後はFaceファイルは不要なので削除する
+                    unlink(g_MailBox.szFaceFilePath);
+                    g_MailBox.szFaceFilePath[0] = '\0';
+                }
+                // X-Faceが存在しているならXFACEを描画する
+                if (g_MailBox.xFaceInfo.lpData) {
+                    SetTextColor(g_MailBox.hDC, MULE_BLACK);
+                    DrawXFace(&g_MailBox.xFaceInfo);
+                }
             }
 
             // : が見つからなかった場合は次の行へ

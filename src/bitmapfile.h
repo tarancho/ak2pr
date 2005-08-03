@@ -1,11 +1,14 @@
 /* -*- mode: c++; coding: sjis; -*-
  * Copyright (C) 2005 Tadamegu Furukawa
- * $Id: bitmapfile.h,v 1.1 2005/08/03 03:43:42 tfuruka1 Exp $
+ * $Id: bitmapfile.h,v 1.2 2005/08/03 10:09:20 tfuruka1 Exp $
  * $Name:  $
  *
  * ビットマップファイル関連
  *
  * $Log: bitmapfile.h,v $
+ * Revision 1.2  2005/08/03 10:09:20  tfuruka1
+ * メール印刷でFaceを印刷できるようにしました。
+ *
  * Revision 1.1  2005/08/03 03:43:42  tfuruka1
  * 新規追加(Face対応の前準備)
  *
@@ -13,7 +16,6 @@
 #ifndef _BITMAPFILE_H_
 #define _BITMAPFILE_H_
 
-#define WINVER 0x500
 #include <windows.h>
 #include <stdio.h>
 

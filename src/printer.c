@@ -1,11 +1,14 @@
 /* -*- mode: c++; coding: sjis; -*-
- * Time-stamp: <2005-05-11 00:52:25 tfuruka1>
- * $Id: printer.c,v 1.15 2005/05/10 16:06:02 tfuruka1 Exp $
+ * Time-stamp: <2005-08-03 19:00:25 tfuruka1>
+ * $Id: printer.c,v 1.16 2005/08/03 10:09:20 tfuruka1 Exp $
  * $Name:  $
  *
  * 「ak2psのようなもの」のプリンタ制御関連
  *
  * $Log: printer.c,v $
+ * Revision 1.16  2005/08/03 10:09:20  tfuruka1
+ * メール印刷でFaceを印刷できるようにしました。
+ *
  * Revision 1.15  2005/05/10 16:06:02  tfuruka1
  * Nameキーワードを和名に置換しない方が良い箇所にコメントを記述しました。
  *
@@ -1048,5 +1051,41 @@ DrawXFace(LPXBM_INFO lpXbmInfo)
             nCurrentY - nBaseLine,
             nBaseLine * 3, nBaseLine * 3,
             RGB(0, 0, 0), RGB(255, 255, 255), SRCCOPY);
+    nCurrentX += nBaseLine * 3;
+}
+
+/* -------------------------------------------------------------------
+ * FACEを描画する
+ * *-----------------------------------------------------------------*/
+VOID WINAPI
+DrawFace(LPCTSTR lpszFileName)
+{
+    HDC hDCMem;
+    HBITMAP hBM, hBMOld;
+    BITMAP bm;
+
+    hDCMem = CreateCompatibleDC(g_MailBox.hDC);
+    if (!(hBM = LoadBitMapFile(g_MailBox.hDC, lpszFileName))) {
+        DeleteDC(hDCMem);
+        DbgPrint(NULL, 'E', "FACE: ビットマップファイルのロード失敗 %s",
+                 lpszFileName);
+        return;
+    }
+    GetObject(hBM, sizeof(BITMAP), &bm);
+    DbgPrint(NULL, 'I', "Face Size: %d×%d %x",
+             bm.bmWidth, bm.bmHeight, bm.bmBits);
+
+    hBMOld = SelectObject(hDCMem, hBM);    // 新しいビットマップを設定
+
+    // ビットマップ転送
+    StretchBlt(g_MailBox.hDC, nCurrentX, nCurrentY - nBaseLine,
+               nBaseLine * 3, nBaseLine * 3,
+               hDCMem, 0, 0, bm.bmWidth, bm.bmHeight, SRCCOPY);
+
+    SelectObject(hDCMem, hBMOld);              // 必要無いので元に戻す
+
+    DeleteObject(hBM);                          // 削除
+    DeleteDC(hDCMem);                           // 削除
+
     nCurrentX += nBaseLine * 3;
 }

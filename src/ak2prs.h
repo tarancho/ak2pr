@@ -1,10 +1,13 @@
 /* -*- mode: C++; coding: sjis; -*-
- * $Id: ak2prs.h,v 1.31 2005/08/03 01:33:47 tfuruka1 Exp $
+ * $Id: ak2prs.h,v 1.32 2005/08/03 10:09:20 tfuruka1 Exp $
  * $Name:  $
  *
  * 「ak2psのようなもの」のサーバ側のヘッダファイル
  *
  * $Log: ak2prs.h,v $
+ * Revision 1.32  2005/08/03 10:09:20  tfuruka1
+ * メール印刷でFaceを印刷できるようにしました。
+ *
  * Revision 1.31  2005/08/03 01:33:47  tfuruka1
  * Face対応の前準備としてBase64のデコードとImagiMagicのconvert.exeを指定
  * できるように対応。
@@ -169,6 +172,8 @@
 
 #include "ak2pr.h"
 #include "xbm.h"
+#include "base64.h"
+#include "bitmapfile.h"
 
 #define IsShellTray() FindWindow("Shell_TrayWnd", NULL)
 
@@ -294,6 +299,7 @@ typedef struct {
     TCHAR szMessageID[128];                     // メッセージID
     XBM_INFO xFaceInfo;                         // X-FACE情報
     BYTE xbmBuf[6 * 48];                        // X-FACEデータ領域
+    TCHAR szFaceFilePath[MAX_PATH];             // FACE作業ファイル
 } MAILBOX, *PMAILBOX;
 
 // フォント列挙情報
@@ -451,6 +457,11 @@ DrawRect(
  * *-----------------------------------------------------------------*/
 VOID WINAPI
 DrawXFace(LPXBM_INFO lpXbmInfo);
+/* -------------------------------------------------------------------
+ * FACEを描画する
+ * *-----------------------------------------------------------------*/
+VOID WINAPI
+DrawFace(LPCTSTR lpszFileName);
 /*-------------------------------------------------------------------- 
  * 作業用ディレクトリ名を得る。作業ディレクトリ名は書き換えてはいけま
  * せん。

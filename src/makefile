@@ -1,8 +1,11 @@
 # -*- mode: makefile; coding: sjis; -*-
-# Time-stamp: <2005-05-08 22:01:21 tfuruka1>
+# Time-stamp: <2005-08-03 16:47:48 tfuruka1>
 #
-# $Id: makefile,v 1.11 2005/05/08 13:01:35 tfuruka1 Exp $
+# $Id: makefile,v 1.12 2005/08/03 10:09:20 tfuruka1 Exp $
 # $Log: makefile,v $
+# Revision 1.12  2005/08/03 10:09:20  tfuruka1
+# メール印刷でFaceを印刷できるようにしました。
+#
 # Revision 1.11  2005/05/08 13:01:35  tfuruka1
 # X-Face関連の追加
 #
@@ -41,7 +44,8 @@ ETAGS = /usr/local/Meadow/2.00/bin/etags
 DLL_OBJS = dllmain.obj dbg.obj string.obj clipboard.obj
 SV_OBJS = main.obj init.obj wndproc.obj ak2pr.res setup.obj queue.obj\
     pThread.obj printer.obj testprint.obj prtMail.obj prtText.obj string.obj\
-	prev.obj fonts.obj xbm.obj version.obj nametag.obj
+	prev.obj fonts.obj xbm.obj version.obj nametag.obj bitmapfile.obj\
+	base64.obj
 TARGZ = ../ak2pr_src.tar.gz
 
 INSTDIR = /usr/local/meadow/site-bin

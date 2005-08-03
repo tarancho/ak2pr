@@ -1,6 +1,6 @@
 /* -*- mode: c++; coding: sjis; -*-
  * Copyright (C) 2005 Tadamegu Furukawa
- * $Id: bitmapfile.c,v 1.1 2005/08/03 03:43:42 tfuruka1 Exp $
+ * $Id: bitmapfile.c,v 1.2 2005/08/03 10:09:20 tfuruka1 Exp $
  * $Name:  $
  *
  * ビットマップファイル関連
@@ -34,6 +34,9 @@
  *   数で指定したファイルに出力します。
  *
  * $Log: bitmapfile.c,v $
+ * Revision 1.2  2005/08/03 10:09:20  tfuruka1
+ * メール印刷でFaceを印刷できるようにしました。
+ *
  * Revision 1.1  2005/08/03 03:43:42  tfuruka1
  * 新規追加(Face対応の前準備)
  *
@@ -117,9 +120,6 @@ LoadBitMapFile(
         break;
     case sizeof(BITMAPV4HEADER):
         printf("BITMAPV4HEADER: PCOLOR=%x\n", pColor);
-        break;
-    case sizeof(BITMAPV5HEADER):
-        printf("BITMAPV5HEADER: PCOLOR=%x\n", pColor);
         break;
     default:
         printf(DBG_FMT("BITMAPINFOHEADERの種別を特定できません\n"));

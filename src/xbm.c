@@ -1,5 +1,5 @@
 /* -*- mode: c++ -*-
- * $Id: xbm.c,v 1.3 2005/05/08 13:03:27 tfuruka1 Exp $
+ * $Id: xbm.c,v 1.4 2005/08/03 10:09:20 tfuruka1 Exp $
  * $Name:  $
  *
  * xbm, uncompface ファイルの展開等を行ないます。本当は, 元々
@@ -15,6 +15,9 @@
  *    cl /W3 /Zi /DXBM_DEBUG xbm.c /link gdi32.lib user32.lib
  *
  * $Log: xbm.c,v $
+ * Revision 1.4  2005/08/03 10:09:20  tfuruka1
+ * メール印刷でFaceを印刷できるようにしました。
+ *
  * Revision 1.3  2005/05/08 13:03:27  tfuruka1
  * X-Face関連の追加
  *
@@ -29,6 +32,8 @@
 #include "xbm.h"
 
 #define XFACE_STR "X-Face:"
+#define FACE_STR "Face:"
+
 #define PROCESS_TIMEOUT 100                     // プロセスタイムアウト
 
 #if defined(XBM_DEBUG)
@@ -444,6 +449,60 @@ CutXFACEToFile(
 }
 
 /*
+ * メールファイルからFACE部分を切り出し、ファイルに出力する
+ */
+static BOOL WINAPI
+CutFACEToFile(
+    LPTSTR lpszInFile,                          // メールファイル
+    LPTSTR lpszOutFile                          // FACE出力先
+    )
+{
+    FILE *fpIn;
+    FILE *fpOut;
+    int cbFace = strlen(FACE_STR);
+    BOOL bFind = FALSE;
+    TCHAR szBuf[1024];
+
+    if (!(fpIn = fopen(lpszInFile, "rt"))) {
+        DbgPrint(0, 'E', "%s(%d) %s", __FILE__, __LINE__,
+                 _strerror(lpszInFile));
+        return FALSE;
+    }
+    if (!(fpOut = fopen(lpszOutFile, "wt"))) {
+        DbgPrint(0, 'E', "%s(%d) %s", __FILE__, __LINE__,
+                 _strerror(lpszOutFile));
+        fclose(fpIn);
+        return FALSE;
+    }
+
+    // Face:が見付かる迄、読み飛ばす
+    while (fgets(szBuf, 1024, fpIn)) {
+        if (0 == memicmp(szBuf, FACE_STR, cbFace)) {
+            bFind = TRUE;
+            break;
+        }
+    }
+    if (!bFind) {
+        DbgPrint(0, 'I', "%s は存在しません", FACE_STR);
+        fclose(fpIn);
+        fclose(fpOut);
+        return FALSE;
+    }
+    fprintf(fpOut, "%s", szBuf + cbFace);
+
+    while (fgets(szBuf, 1024, fpIn)) {
+        // 継続行でなければ終了
+        if (' ' != szBuf[0]) {
+            break;
+        }
+        fprintf(fpOut, "%s", szBuf);
+    }
+    fclose(fpIn);
+    fclose(fpOut);
+    return TRUE;
+}
+
+/*
  * uncompfaceを実行する
  */
 BOOL WINAPI
@@ -467,9 +526,62 @@ ExecuteUncompface(
         return FALSE;
     }
 
-    sprintf(szCmd, "%s %s %s", lpszCmdPath, szTempFile, lpszOutFile);
+    sprintf(szCmd, "\"%s\" \"%s\" \"%s\"",
+            lpszCmdPath, szTempFile, lpszOutFile);
     exitCode = ExecuteProcess(szCmd);
     unlink(szTempFile);
+    return 0 == exitCode ? TRUE : FALSE;
+}
+
+/*
+ * Convert(Face→png→bmp)を実行する。Convert.exeはImageMagickの物を使
+ * 用します。詳細は http://www.imagemagick.org を参照。
+ */
+BOOL WINAPI
+ExecuteConvert(
+    LPTSTR lpszCmdPath,                         // convertパス
+    LPTSTR lpszInFile,                          // メールファイル
+    LPTSTR lpszOutFile                          // 出力ファイル(BMP)
+    )
+{
+    TCHAR szCmd[1024];
+    TCHAR szTempFile[MAX_PATH];                 // Face用
+    TCHAR szPngFile[MAX_PATH];                  // PNG用
+    int exitCode;
+
+    // Convert.exeが指定されていない場合は処理しない。
+    if (!lpszCmdPath[0]) {
+        return FALSE;
+    }
+
+    strcpy(szTempFile, "FACE");
+    if (!MakeTempFileAndClose("wt", szTempFile)) {
+        return FALSE;
+    }
+
+    strcpy(szPngFile, "PNG");
+    if (!MakeTempFileAndClose("wt", szPngFile)) {
+        unlink(szTempFile);
+        return FALSE;
+    }
+
+    // Face部分を切り出す
+    if (!CutFACEToFile(lpszInFile, szTempFile)) {
+        unlink(szTempFile);
+        unlink(szPngFile);
+        return FALSE;
+    }
+
+    // FACEからPNGを作成する
+    DecodeBase64File(szTempFile, szPngFile);
+    unlink(szTempFile);
+
+    // PNGからBMPを作成する
+    sprintf(szCmd, "\"%s\" \"png:%s\" \"bmp:%s\"",
+            lpszCmdPath, szPngFile, lpszOutFile);
+    exitCode = ExecuteProcess(szCmd);
+    unlink(szPngFile);
+
     return 0 == exitCode ? TRUE : FALSE;
 }
 

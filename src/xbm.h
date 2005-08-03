@@ -1,10 +1,13 @@
 /* -*- mode: c++ -*-
- * $Id: xbm.h,v 1.2 2005/05/08 13:03:39 tfuruka1 Exp $
+ * $Id: xbm.h,v 1.3 2005/08/03 10:09:20 tfuruka1 Exp $
  * $Name:  $
  *
  * xbm ファイルの展開等
  *
  * $Log: xbm.h,v $
+ * Revision 1.3  2005/08/03 10:09:20  tfuruka1
+ * メール印刷でFaceを印刷できるようにしました。
+ *
  * Revision 1.2  2005/05/08 13:03:39  tfuruka1
  * X-Face関連の追加
  *
@@ -18,6 +21,7 @@
 #include <windows.h>
 #include <stdio.h>
 #include <io.h>
+#include "base64.h"
 
 // ファイルの種類(SetXBMの引数)
 enum {
@@ -45,6 +49,17 @@ ExecuteUncompface(
     LPTSTR lpszInFile,                          // メールファイル
     LPTSTR lpszOutFile                          // 出力ファイル
     );
+/*
+ * Convert(Face→png→bmp)を実行する。Convert.exeはImageMagickの物を使
+ * 用します。詳細は http://www.imagemagick.org を参照。
+ */
+BOOL WINAPI
+ExecuteConvert(
+    LPTSTR lpszCmdPath,                         // convertパス
+    LPTSTR lpszInFile,                          // メールファイル
+    LPTSTR lpszOutFile                          // 出力ファイル(BMP)
+    );
+
 /*
  * XBM情報の内容を描画します。
  */
