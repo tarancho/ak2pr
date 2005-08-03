@@ -1,10 +1,14 @@
 /* -*- mode: C++; coding: sjis; -*-
- * $Id: ak2prs.h,v 1.30 2005/05/12 14:39:41 tfuruka1 Exp $
+ * $Id: ak2prs.h,v 1.31 2005/08/03 01:33:47 tfuruka1 Exp $
  * $Name:  $
  *
  * 「ak2psのようなもの」のサーバ側のヘッダファイル
  *
  * $Log: ak2prs.h,v $
+ * Revision 1.31  2005/08/03 01:33:47  tfuruka1
+ * Face対応の前準備としてBase64のデコードとImagiMagicのconvert.exeを指定
+ * できるように対応。
+ *
  * Revision 1.30  2005/05/12 14:39:41  tfuruka1
  * Build日時の対応
  *
@@ -240,6 +244,7 @@ typedef struct _PrtInfo{
     BOOL bNoRcvHeader;                          // Receivedヘッダを印字しない
     BOOL bColor;                                // T: Color印刷
     TCHAR szUncompPath[MAX_PATH];               // uncompface path
+    TCHAR szConvertPath[MAX_PATH];              // convert.exe path
     // ----- テキスト印刷関連
     int nBaseLine;                              // 0: Non, 1:E, 2:J, 9:A
     BOOL bNum;                                  // T: 行番号印刷

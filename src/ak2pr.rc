@@ -77,11 +77,14 @@ BEGIN
     CONTROL         "簡易ヘッダ印字",IDC_C_NORHEAD,"Button",BS_AUTOCHECKBOX | 
                     WS_TABSTOP,0,10,63,10
     PUSHBUTTON      "&Default",IDC_DEFAULT,145,0,50,14
-    CONTROL         "",IDC_PICTURE,"Static",SS_BLACKFRAME,87,66,108,62
-    RTEXT           "将来の拡張用→",IDC_STATIC,8,70,62,26,SS_CENTERIMAGE
+    CONTROL         "",IDC_PICTURE,"Static",SS_BLACKFRAME,87,84,108,44
+    RTEXT           "将来の拡張用→",IDC_STATIC,8,89,62,26,SS_CENTERIMAGE
     EDITTEXT        IDC_ED_UNCOMPFACE,0,36,165,14,ES_AUTOHSCROLL
-    PUSHBUTTON      "...(&U)",IDC_BT_UC_REF,167,36,28,14
-    LTEXT           "uncompfaceの場所(X-Face)",IDC_STATIC,0,25,83,8
+    PUSHBUTTON      "...&U",IDC_BT_UC_REF,167,36,28,14
+    LTEXT           "X-Face: uncompfaceの場所",IDC_STATIC,0,25,82,8
+    EDITTEXT        IDC_ED_CONVERT,0,64,165,14,ES_AUTOHSCROLL
+    PUSHBUTTON      "...&I",IDC_BT_IM_REF,167,64,28,14
+    LTEXT           "Face: convert(ImageMagick)の場所",IDC_STATIC,0,54,103,8
 END
 
 IDD_TEXT DIALOG DISCARDABLE  0, 0, 195, 138

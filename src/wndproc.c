@@ -1,9 +1,13 @@
 /* -*- mode: c++; coding: sjis-dos; -*-
- * $Id: wndproc.c,v 1.22 2005/05/01 07:27:48 tfuruka1 Exp $
+ * $Id: wndproc.c,v 1.23 2005/08/03 01:33:47 tfuruka1 Exp $
  *
  * 「ak2psのようなもの」のウインドウプロシジャ
  *
  * $Log: wndproc.c,v $
+ * Revision 1.23  2005/08/03 01:33:47  tfuruka1
+ * Face対応の前準備としてBase64のデコードとImagiMagicのconvert.exeを指定
+ * できるように対応。
+ *
  * Revision 1.22  2005/05/01 07:27:48  tfuruka1
  * メール印刷のタブにuncompfaceを指定する為のコントロールを追加しました。
  *
@@ -97,7 +101,7 @@
 // (replace-regexp "/\\*\\(.+\\)\\*/" "//\\1")
 // (replace-regexp "[ \t]+$" "")
 
-#define TIME_STAMP "Time-stamp: <2005-05-01 13:35:06 tfuruka1>"
+#define TIME_STAMP "Time-stamp: <2005-06-30 22:46:49 tfuruka1>"
 
 #include "ak2prs.h"
 
@@ -385,6 +389,7 @@ DoCopyData(
     // メール関連は現状, コマンドラインから入力できないので, デフォル
     // トの値を設定する
     strcpy(pPrtInfo->szUncompPath, g_PrtInfo.szUncompPath);
+    strcpy(pPrtInfo->szConvertPath, g_PrtInfo.szConvertPath);
 
     // PostScript関連は現状、コマンドラインから入力できないので、全て
     // デフォルトの値を使用する。

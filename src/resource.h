@@ -58,6 +58,8 @@
 #define IDC_ST_VMEM_FREE                1038
 #define IDC_ED_UNCOMPFACE               1041
 #define IDC_BT_UC_REF                   1042
+#define IDC_ED_CONVERT                  1043
+#define IDC_BT_IM_REF                   1044
 #define IDM_SETUP                       40002
 #define IDM_SHOW                        40003
 #define IDM_EXIT                        40004

@@ -1,6 +1,6 @@
 /* -*- mode: c++; coding: sjis-dos; -*-
- * Time-stamp: <2005-05-01 13:20:22 tfuruka1>
- * $Id: init.c,v 1.14 2005/05/01 07:27:49 tfuruka1 Exp $
+ * Time-stamp: <2005-06-30 22:44:56 tfuruka1>
+ * $Id: init.c,v 1.15 2005/08/03 01:33:47 tfuruka1 Exp $
  * $Name:  $
  *
  * 「ak2psのようなもの」のサーバの初期化処理
@@ -14,6 +14,10 @@
  *     wndproc.c - WM_COPYDATA の処理部
  *
  * $Log: init.c,v $
+ * Revision 1.15  2005/08/03 01:33:47  tfuruka1
+ * Face対応の前準備としてBase64のデコードとImagiMagicのconvert.exeを指定
+ * できるように対応。
+ *
  * Revision 1.14  2005/05/01 07:27:49  tfuruka1
  * メール印刷のタブにuncompfaceを指定する為のコントロールを追加しました。
  *
@@ -94,6 +98,7 @@
 
 #define SEC_MAIL     "Mail"
 #define KEY_UCFACE   "uncompface.path"
+#define KEY_CONVERT  "convert.path"
 
 #define SEC_PS       "PostScript"
 #define KEY_ACRIN    "AcrobatDistillerWatchdogFolderIN"
@@ -307,6 +312,9 @@ GetDefaultPrtInfo(void)
     GET_PROFILE(SEC_MAIL, KEY_UCFACE);
     strncpy(g_PrtInfo.szUncompPath, szBuf, MAX_PATH);
 
+    GET_PROFILE(SEC_MAIL, KEY_CONVERT);
+    strncpy(g_PrtInfo.szConvertPath, szBuf, MAX_PATH);
+
     // PostScript関連情報を得る
     GET_PROFILE(SEC_PS, KEY_ACRIN);
     strncpy(g_PrtInfo.szAcrobat, szBuf, MAX_PATH);
@@ -391,7 +399,8 @@ SetDefaultPrtInfo(void)
     WRT_PROFILE(SEC_FONT, KEY_OPPF, g_PrtInfo.lfOPPF.lfFaceName);
 
     // Mail印刷情報関連の書込み
-    WRT_PROFILE(SEC_MAIL, KEY_UCFACE, g_PrtInfo.szUncompPath);    
+    WRT_PROFILE(SEC_MAIL, KEY_UCFACE, g_PrtInfo.szUncompPath);
+    WRT_PROFILE(SEC_MAIL, KEY_CONVERT, g_PrtInfo.szConvertPath);
 
     // PostScript情報関連の書き込み
     WRT_PROFILE(SEC_PS, KEY_ACRIN, g_PrtInfo.szAcrobat);

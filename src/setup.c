@@ -1,6 +1,6 @@
 /* -*- mode: c++; coding: sjis-dos; -*-
- * Time-stamp: <2005-05-01 13:38:46 tfuruka1>
- * $Id: setup.c,v 1.17 2005/05/01 07:27:48 tfuruka1 Exp $
+ * Time-stamp: <2005-06-30 22:51:32 tfuruka1>
+ * $Id: setup.c,v 1.18 2005/08/03 01:33:47 tfuruka1 Exp $
  * $Name:  $
  *
  * 「ak2psのようなもの」の印字設定
@@ -19,6 +19,10 @@
  *   wndproc.c - WM_COPYDATA の処理部
  *
  * $Log: setup.c,v $
+ * Revision 1.18  2005/08/03 01:33:47  tfuruka1
+ * Face対応の前準備としてBase64のデコードとImagiMagicのconvert.exeを指定
+ * できるように対応。
+ *
  * Revision 1.17  2005/05/01 07:27:48  tfuruka1
  * メール印刷のタブにuncompfaceを指定する為のコントロールを追加しました。
  *
@@ -396,6 +400,7 @@ DoInitDialogMail(
                    PrtInfoTmp.bNoRcvHeader ? TRUE : FALSE);
     // uncompfaceのパス
     SetDlgItemText(hWnd, IDC_ED_UNCOMPFACE, PrtInfoTmp.szUncompPath);
+    SetDlgItemText(hWnd, IDC_ED_CONVERT, PrtInfoTmp.szConvertPath);
 
     return TRUE;
 }
@@ -425,6 +430,20 @@ DoCommandMail(
         CheckDlgButton(hWnd, IDC_C_COLOR, PrtInfoTmp.bColor);
         CheckDlgButton(hWnd, IDC_C_NORHEAD, PrtInfoTmp.bNoRcvHeader);
         break;
+    case IDC_BT_IM_REF:
+        GetDlgItemText(hWnd, IDC_ED_CONVERT, szBuf, MAX_PATH);
+        if (GetOpenFileNameWrap(hWnd,
+                                "convert(ImageMagick)\0"
+                                "convert.exe\0"
+                                "実行ファイル(*.exe)\0*.exe\0"
+                                "全てのファイル(*.*)\0*.*\0"
+                                "\0",
+                                "convert(ImageMagick)"
+                                "の実行ファイルを選択して下さい",
+                                szBuf)) {
+            SetDlgItemText(hWnd, IDC_ED_CONVERT, szBuf);
+        }
+        break;
     case IDC_BT_UC_REF:
         GetDlgItemText(hWnd, IDC_ED_UNCOMPFACE, szBuf, MAX_PATH);
         if (GetOpenFileNameWrap(hWnd,
@@ -450,8 +469,9 @@ DoCloseMail(HWND hWnd)
     PrtInfoTmp.bColor = IsDlgButtonChecked(hWnd, IDC_C_COLOR);
     // Receivedヘッダの印字指定
     PrtInfoTmp.bNoRcvHeader = IsDlgButtonChecked(hWnd, IDC_C_NORHEAD);
-    // uncompfaceのパス
+    // uncompface, convertのパス
     GetDlgItemText(hWnd, IDC_ED_UNCOMPFACE, PrtInfoTmp.szUncompPath, MAX_PATH);
+    GetDlgItemText(hWnd, IDC_ED_CONVERT, PrtInfoTmp.szConvertPath, MAX_PATH);
 }
 
 static BOOL
