@@ -148,9 +148,10 @@
 #define _AK2PRS_H_
 
 #include "ver.h"
-#define VERSION       "ak2pr Version " MAKE_VERSION "($Name:  $)"
+// GITに変更したので、以下は自分で記載する必要があります。
+#define VERSION       "ak2pr Version " MAKE_VERSION "($Name: APPI-KOGEN $)"
 #define BUILD         "Build: " __DATE__ " " __TIME__
-#define COPYRIGHT_STR "Copyright(C) 1997-2005 T.Furukawa"
+#define COPYRIGHT_STR "Copyright(C) 1997-2012 T.Furukawa"
 #define COPYRIGHT VERSION " " COPYRIGHT_STR\
 "\n(tfuruka1@nifty.com) " BUILD
 

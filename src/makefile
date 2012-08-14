@@ -1,5 +1,5 @@
 # -*- mode: makefile; coding: sjis; -*-
-# Time-stamp: <2005-08-03 16:47:48 tfuruka1>
+# Time-stamp: <2012-08-14 16:48:23 tfuruka1>
 #
 # $Id: makefile,v 1.12 2005/08/03 10:09:20 tfuruka1 Exp $
 # $Log: makefile,v $
@@ -39,7 +39,7 @@
 include version
 SHELL=sh
 CC = cl
-ETAGS = /usr/local/Meadow/2.00/bin/etags
+ETAGS = /usr/local/emacs/bin/etags
 
 DLL_OBJS = dllmain.obj dbg.obj string.obj clipboard.obj
 SV_OBJS = main.obj init.obj wndproc.obj ak2pr.res setup.obj queue.obj\
@@ -48,7 +48,7 @@ SV_OBJS = main.obj init.obj wndproc.obj ak2pr.res setup.obj queue.obj\
 	base64.obj
 TARGZ = ../ak2pr_src.tar.gz
 
-INSTDIR = /usr/local/meadow/site-bin
+INSTDIR = ~/.emacs.d/local/bin
 
 COMM_LIB = user32.lib shell32.lib gdi32.lib comdlg32.lib advapi32.lib\
 	comctl32.lib wsock32.lib
@@ -66,9 +66,9 @@ release : install clean
 	cd ..
 	cd ..
 	tar cvzf /tmp/ak2pr-$(MAKE_VERSION)-src.tar.gz\
-        ak2pr/readme.txt ak2pr/bin ak2pr/src
+        ak2pr/readme.txt ak2pr/ak2pr_doc.txt ak2pr/bin ak2pr/src
 	tar cvzf /tmp/ak2pr-$(MAKE_VERSION)-bin.tar.gz\
-        ak2pr/readme.txt ak2pr/bin
+        ak2pr/readme.txt ak2pr/ak2pr_doc.txt ak2pr/bin
 
 ver.h : version
 	echo #define MAKE_VERSION "$(MAKE_VERSION)" > $@
