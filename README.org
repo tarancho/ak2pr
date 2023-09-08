@@ -5,14 +5,16 @@
 以下の時刻に更新しました。
 
 #+BEGIN_EXAMPLE
-Time-stamp: "2023-09-08 18:49:33 tfuruka1"
+Time-stamp: "2023-09-08 19:06:44 tfuruka1"
 #+END_EXAMPLE
 
 ドキュメントの内容は、2005年から殆ど更新されていませんので、かなり古い
-事を記載している可能性があります。
+事を記載している可能性があります。現在では嘘になっている可能性もありま
+す。
+
 実行ファイルのアーカイブは以下のリンクからダウンロードして下さい。
 
-[[./ak2pr.zip]]
+[[./ak2pr.zip][ak2pr.zip]]
 
 - Ver. 2.6
 - 〜とっても不親切なマニュアル〜
@@ -107,7 +109,7 @@ Time-stamp: "2023-09-08 18:49:33 tfuruka1"
 
  - ak2pr.dll :: 共通ダイナミックリンクライブラリ
  - ak2prSV.exe :: 印刷サーバ
- - ak2pr.exe :: - コマンドライン用ツール
+ - ak2pr.exe :: コマンドライン用ツール
  - ak2prW.exe :: コマンドライン用ツール(コンソール無し)
 
 頻繁にコマンドラインから使用する方は, PATH が張られているフォルダに格
@@ -343,7 +345,7 @@ Ctrl-Y でも・・・私がよく間違えるので・・・)。
 ます。そのまま印刷する場合は「Print」を押下します。印刷を取り消す場合は
 「Cancel」を押下します。レイアウトを変更する場合は「Setup」を押下して下
 さい。「Setup」を押下した時に開く画面は, 「印刷スタイルの設定」と同じで
-すが, ここで設定した値は, 現在のファイルに*のみ*反映されます。また,
+すが, ここで設定した値は, 現在のファイルに *のみ* 反映されます。また,
 「個別設定」のタブが追加されています。このタブでは, 印刷タイトルを変更
 する事が出来ます。但し変更可能な印刷タイトルはテキスト印刷のみです。
 
@@ -507,7 +509,7 @@ A4, 長辺綴じに設定する場合は以下のように設定します。
 私のように, 間違えて意味のない用紙を沢山出力してしまう方は, -S オプショ
 ンを常に指定しておくと良いでしょう(そんな奴は居ないって)。
 
-#+BEGIN_SRC 
+#+BEGIN_SRC elisp
 (setq lpr-switches '("-S"))
 #+END_SRC
 
@@ -518,7 +520,7 @@ ps-print-region-with-faces を使用して非 PostScriptプリンタで印刷を
 事も可能です。その場合は, 上記の例で, lpr-command の設定を行っている事
 が前提ですが, 更に以下の設定を.emacs 等で行って下さい。
 
-#+BEGIN_SRC 
+#+BEGIN_SRC elisp
 (setq ps-multibyte-buffer 'non-latin-printer ;マルチバイト印刷を行う
           ps-line-number t                  ;行番号を印刷する
           ps-paper-type 'a4                 ;用紙サイズは A4
@@ -576,14 +578,14 @@ mew-field-for-printing
 になっていると思いますので, その場合は, .emacs 等で
 mew-field-for-printing を再定義して下さい。例えば,
 
-#+BEGIN_EXAMPLE
+#+BEGIN_SRC elisp
 (setq mew-field-for-printing
  '("Subject:" "From:" "To:" "Cc:" "Date:"
   "Message-ID:" "X-Face:"))
-#+END_EXAMPLE
+#+END_SRC
 
 等としたり, あるは,
-#+BEGIN_EXAMPLE
+#+BEGIN_SRC elisp
 (if (not (member "Message-ID:" mew-field-for-printing))
     (setq mew-field-for-printing
           (cons "Message-ID:"
@@ -592,7 +594,7 @@ mew-field-for-printing を再定義して下さい。例えば,
     (setq mew-field-for-printing
           (cons "X-Face:"
                 mew-field-for-printing)))
-#+END_EXAMPLE
+#+END_SRC
 
 等と定義する事によって, Message-ID や X-Face が印刷されるようになります。
 X-Face の場合は uncompface の設定も確認してみて下さい。
@@ -724,7 +726,7 @@ ak2prW.exe のようなクライアント(と呼んで良いかは別として)�
    - 行番号の印刷を抑止できるように -n オプションを追加しました。また,
      サーバ側でも「行番号」印刷の On/Off を制御できるようにしました。メー
      ルの印刷にも行番号は有効です。
-   - Emacs から印刷するときに, *scratch* バッファのように, ファイルをも
+   - Emacs から印刷するときに, *scratch*バッファのように, ファイルをも
      たないバッファで, バッファ名に * や : が含まれていると, 印刷が出来
      なかった問題を修正しました。
    - e-mail 印刷を少しだけカラフルにしました。
